@@ -7,70 +7,38 @@ from surprise import SVD, Dataset, Reader, accuracy
 from surprise.model_selection import KFold, GridSearchCV
 import openpyxl
 import random
-
-"""
-# DATA LOADING AND PREPARATION
-- load_data(...)
-- load_context_data(...)
-
-# ACTION SEQUENCE GENERATION
-- get_list_of_actions(...)
-- get_dataMat(...)
-- get_random_context(...)
-- get_one_random_context(...)
-- is_action_context_feasibleQ(...)
-
-# RECOMMENDATION LOGIC
-- get_recommendations(...)
-- get_recommendations_with_context(...)
-
-# EVALUATION METRICS AND VALIDATION
-- evaluate_precision_recall_f1(...)
-- perform_cross_validation(...)
-- save_evaluation_results(...)
-
-# MODEL SELECTION AND TRAINING
-- grid_search(...)
-- initialize_model(...)
-
-# EXPORTING RESULTS
-- save_recommendations_to_excel(...)
-- export_recommendations_with_context(...)   # (implicitno, če uporabljaš for-loop v glavnem delu)
-
-# CONTEXT PROCESSING AND TRANSFORMATION
-- get_context(...)
-
-# SCORE AND COMPATIBILITY MATRIX GENERATION
-- get_actID_score_df(...)
-- get_actIDPair_compat_df(...)
-- get_score_estimation(...)
-
-# USER ANSWER PROCESSING
-- get_uID_answers_df(...)
-
-"""
+from pathlib import Path
 
 ##############################################################
 #
 # DATA LOADING AND PREPARATION
 #
 ##############################################################
-def load_data(D_lst):
+def load_data(D_lst, with_context=False):
     """
-    Converts a list of user-item-rating triples into a Surprise dataset.
+    Converts a list of user-item-rating tuples (or 4-tuples with context) into a Surprise dataset.
 
     Parameters:
-    - D_lst (list): A list of tuples in the format (user_id, item_id, rating)
+    - D_lst (list): Either:
+        - A list of 3-tuples/lists in format (user_id, item_id, rating)
+        - OR a list of 4-tuples/lists in format (user_id, item_id, context, rating)
+    - with_context (bool): Set to True if D_lst contains context and you want to ignore it
 
     Returns:
     - df (pd.DataFrame): The converted DataFrame version of D_lst
     - data (surprise.Dataset): The Surprise dataset that can be used for training/testing
     """
 
-    df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'rating'])
+    if with_context:
+        cleaned_lst = [(uid, item[0] if isinstance(item, tuple) else item, rating) 
+                       for uid, item, _, rating in D_lst]
+    else:
+        cleaned_lst = D_lst  # Assume already in correct (user_id, item_id, rating) format
+
+    df = pd.DataFrame(cleaned_lst, columns=['user_id', 'item_id', 'rating'])
     reader = Reader(rating_scale=(df['rating'].min(), df['rating'].max()))
     data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
-    
+
     return df, data
 
 def load_context_data(filepath):
@@ -253,76 +221,61 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
 #
 ##############################################################
 #@brief returns m best actions triples
-def get_recommendations(uID, D_lst, n_recommendations):
+def get_recommendations(uID, 
+                        n_recommendations=5, 
+                        D_lst=None, 
+                        trainset=None, 
+                        model=None, 
+                        context=None, 
+                        actID_context_dc=None):
     """
-    Returns the top-m recommended action sequences for a given user,
-    sorted by their relevance scores.
-
-    :param uID: ID of the user for whom we want to generate recommendations
-    :param D_lst: list of tuples (user_id, action_sequence, score)
-    :param n_recommendations: number of top recommendations to return
+    Returns top-N recommended actions for a given user.
     
-    :return: list of m best (user_id, action_sequence, score) tuples for the user
-    """
-    c_act_trp_lst = [x for x in D_lst if x[0]==uID] # Select all actions of this user
-    mbest_act_trp_lst = sorted(c_act_trp_lst, key=lambda x: x[2], reverse=True) # Sort it
-    
-    return mbest_act_trp_lst[:n_recommendations] 
-
-def get_recommendations_model(uID, trainset, model, n_recommendations):
-    """
-    Returns the top-N recommended actions for a given user based on a trained model.
-
-    :param uID: ID of the user for whom we want to generate recommendations
-    :param trainset: Surprise Trainset object
-    :param model: Trained Surprise model
-    :param n_recommendations: number of top recommendations to return
-
-    :return: list of (user_id, item_id, estimated_rating) tuples
-    """
-    all_iids = trainset._raw2inner_id_items.keys()
-    predictions = []
-
-    for raw_iid in all_iids:
-        act_id_str = raw_iid[0] if isinstance(raw_iid, tuple) else raw_iid
-        est = model.predict(uid=str(uID), iid=act_id_str).est
-        predictions.append((uID, act_id_str, est))
-
-    sorted_predictions = sorted(predictions, key=lambda x: x[2], reverse=True)
-    return sorted_predictions[:n_recommendations]
-
-def get_recommendations_with_context(uID, trainset, model, n_recommendations, actID_context_dc, context):
-    """
-    Generates context-aware recommendations for a given user.
+    You can use:
+    - D_lst for precomputed recommendations (triplets: user_id, item_id, score)
+    - model + trainset for matrix factorization-based recommendations
+    - Optionally apply context filtering (if context & actID_context_dc provided)
 
     Parameters:
-    - uID (int or str): ID of the user to recommend for
-    - trainset (surprise.Trainset): The full training set used by the model
-    - model (surprise.AlgoBase): Trained Surprise model (e.g., SVD)
-    - n_recommendations (int): Number of top recommendations to return
-    - actID_context_dc (dict): Dictionary with action context definitions
-    - context (dict): Context to filter actions, e.g., {'C_T': 'dopoldne', 'C_P': 'kjerkoli'}
+    - uID (int or str): ID of the user
+    - n_recommendations (int): Number of top results to return
+    - D_lst (list of tuples): Optional. Precomputed (uID, item, score) list
+    - trainset (Surprise Trainset): Optional. Surprise trainset object
+    - model (Surprise model): Optional. Trained Surprise model
+    - context (dict): Optional. Context to filter actions (e.g., {'C_T': 'dopoldne'})
+    - actID_context_dc (dict): Optional. Dictionary with context info for each action
 
     Returns:
-    - top_preds (list): A list of top-N predictions (user_id, item_id, estimated_rating)
+    - List of top-N recommendations: [(uID, item, score), ...]
     """
 
-    # Get all item IDs from the trainset
-    all_iids = trainset._raw2inner_id_items.keys()
-    predictions = []
+    if D_lst is not None:
+        # Method 1: Use precomputed matrix
+        user_entries = [x for x in D_lst if x[0] == uID]
+        sorted_entries = sorted(user_entries, key=lambda x: x[2], reverse=True)
+        return sorted_entries[:n_recommendations]
 
-    for raw_iid in all_iids:
-        # Unwrap the item ID if it's a tuple
-        act_id_str = raw_iid[0] if isinstance(raw_iid, tuple) else raw_iid
+    elif model is not None and trainset is not None:
+        # Method 2: Use model prediction
+        all_iids = trainset._raw2inner_id_items.keys()
+        predictions = []
 
-        # if is_action_context_feasibleQ(act_id_str, context, actID_context_dc):
-        est = model.predict(uid=str(uID), iid=act_id_str).est
-        predictions.append((uID, act_id_str, est))
+        for raw_iid in all_iids:
+            act_id = raw_iid[0] if isinstance(raw_iid, tuple) else raw_iid
 
-    # Sort by estimated rating in descending order
-    sorted_predictions = sorted(predictions, key=lambda x: x[2], reverse=True)
-    
-    return sorted_predictions[:n_recommendations]
+            # Context filtering
+            if context and actID_context_dc:
+                if not is_action_context_feasibleQ(act_id, context, actID_context_dc):
+                    continue  # Skip actions not matching the context
+
+            est = model.predict(uid=str(uID), iid=act_id).est
+            predictions.append((uID, act_id, est))
+
+        sorted_predictions = sorted(predictions, key=lambda x: x[2], reverse=True)
+        return sorted_predictions[:n_recommendations]
+
+    else:
+        raise ValueError("Provide either D_lst or both model and trainset.")
 
 ##############################################################
 #
@@ -483,7 +436,7 @@ def initialize_model(algorithm_name='SVD', **kwargs):
 # EXPORTING RESULTS
 #
 ##############################################################
-def save_recommendations_to_excel(recommendations, file_path='latex/tabs/recommendations_for_user.xlsx'):
+def save_recommendations_to_excel(recommendations, file_path):
     """
     Saves a list of recommendations to an Excel file.
 
@@ -493,7 +446,7 @@ def save_recommendations_to_excel(recommendations, file_path='latex/tabs/recomme
     """
 
     df = pd.DataFrame(recommendations, columns=['user_id', 'item_id', 'estimated_rating'])
-    df.to_excel(file_path, index=False)
+    df.to_excel(str(file_path), index=False)  # Pandas zahteva str pot za Excel
 
 #uIDsIn, seq_act_lstIn = uIDs[:5], seq_act_lst[:5]
 #meth_code = 'score'

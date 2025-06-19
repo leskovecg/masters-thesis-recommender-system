@@ -1,22 +1,16 @@
-#%% Generate data matrix
 #%% Import required libraries
 import numpy as np
-import pandas as pd
 import cProfile
 import seaborn as sns
 import importlib
-import elderly_recsys_tools as erst
 import pandas as pd
-from surprise import accuracy, Dataset, Reader, SVD
+from surprise import accuracy, Dataset, Reader, SVD, KNNBasic, NMF
 from sklearn.model_selection import ShuffleSplit
-import cProfile
-from surprise import SVD, KNNBasic, NMF, accuracy
 from surprise.model_selection import train_test_split
-import seaborn as sns
 from collections import defaultdict
 from pathlib import Path
 import datetime
-
+import pickle
 import elderly_recsys_tools as erst
 #%% Enable profiling to measure execution time of code blocks
 TIME_THRESHOLD = 10  # 10 milliseconds
@@ -176,8 +170,9 @@ uID_scores_dc['phyHealOrganski'] = uID_phyHealOrganski_scores_dc
 aspect_groups_lst = ['activity'] #, 'phy_health'] #, 'ment_helath', 'soc_helath']
 
 # Display the activity score dictionary for inspection (optional line)
-#uID_scores_dc['activity']
-#%% Set lists of users and actions accoring to selected aspect =====================
+uID_scores_dc['activity']
+#%% Set lists of users and actions accoring to selected aspect 
+##==================================================================================
 #single_act_lst = [g for g in singleAct_qID_dc]
 
 # Generate a list of single actions relevant to the selected aspect group(s)
@@ -200,7 +195,7 @@ for group in aspect_groups_lst:
             if qID in actID:
                 single_actID_lst.append(actID)
 #%% ####################################################################################
-# Load and prepare contextual information for actions
+# Load contexts
 
 # Reload the custom module in case it was modified (useful during development)
 importlib.reload(erst)
@@ -212,6 +207,7 @@ activityContextGen_df = pd.read_excel(data_path / 'ActivityContextGen_v06.xlsx',
 # Generate a new column 'kontekst' by combining valid time context values (C_T1, C_T2, C_T3)
 # The `get_context` function handles this by filtering and formatting time descriptions
 activityContextGen_df['kontekst'] = activityContextGen_df.apply(lambda row: erst.get_context(row['C_T1'], row['C_T2'], row['C_T3']), axis=1)
+# print(df[['Single_action', 'C_T1', 'C_T2', 'C_T3', 'kontekst']])
 
 # Extract the context strings into a list for further use
 context_lst = activityContextGen_df['kontekst'].tolist()
@@ -286,16 +282,68 @@ sns.heatmap(uID_actID_answers_df)
 # - user responses to questions (uID_actID_answers_df),
 # - precomputed action scores (actID_score_df),
 # - and optionally compatibility between actions (actID_compat_df).
-# Only sequences with a relevance score above the defined threshold (r_T) are included.
-D_lst = erst.get_dataMat(uIDsIn, seq_actID_lstIn, uID_actID_answers_df, actID_score_df, actID_compat_df, r_T, meth_code)
 
-# Alternative (older) version if needed for export:
+# Only sequences with a relevance score above the defined threshold (r_T) are included.
+# D_lst = erst.get_dataMat(uIDsIn, seq_actID_lstIn, uID_actID_answers_df, actID_score_df, actID_compat_df, r_T, meth_code)
 # D_df = get_dataMat(uIDs, seq_act_lst, meth_code)
 # D_df.to_excel(data_path + meth_code+'_D_df.xlsx')
+
+# Mentor's new and laready built D_lst matrix: 
+BASE_DIR = Path.cwd().parent  
+matD_path = BASE_DIR / 'data'
+D_mat_fn = 'D_contx_a3_sparse_mat.pkl'
+
+with open(matD_path / D_mat_fn, "rb") as fp:
+    D_lst = pickle.load(fp)
+
+#%% Random context generator
+# ====================================================================================================
+
+# # @brief Get random context 
+# def get_one_random_context(full_cntx):
+    
+#     C_T = random.choice(['C_T1', 'C_T2', 'C_T3'])
+#     C_P = random.choice(['C_P1', 'C_P2', 'C_P3'])
+
+#     c_cntx = {'qID': full_cntx['qID'], 'C_T': full_cntx[C_T], 'C_P': full_cntx[C_P], 'C_A':''}
+    
+#     return c_cntx
+
+
+# # @brief Get random context 
+# def get_random_context(all_contexts):
+    
+#     full_cntx = random.choice(all_contexts)
+#     C_T = random.choice(['C_T1', 'C_T2', 'C_T3'])
+#     C_P = random.choice(['C_P1', 'C_P2', 'C_P3'])
+
+#     c_cntx = {'qID': full_cntx['qID'], 'C_T': full_cntx[C_T], 'C_P': full_cntx[C_P], 'C_A':''}
+    
+#     return c_cntx
+
+# # @brief test if a given action fits to a given context
+# def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
+
+#     f_cntx = actID_context_dc[actID] # Full context
+#     f_cntx = actID_context_dc[actID]
+#     C_Ts = [f_cntx[k].strip() for k in ['C_T1', 'C_T2', 'C_T3'] if isinstance(f_cntx[k], str)]
+#     C_Ps = [f_cntx[k].strip() for k in ['C_P1', 'C_P2', 'C_P3'] if isinstance(f_cntx[k], str)]
+
+#     if (cntx['C_T'] in C_Ts) and (cntx['C_P'] in C_Ps):
+#         return True 
+#     else:
+#         return False
+
+# # Test
+# all_contexts = [actID_context_dc[actID] for actID in actID_lstIn]
+# cntx = get_random_context(all_contexts)
+# actID = 'Ac_AB4_8_Act04'Add commentMore actions
+# is_action_context_feasibleQ(actID, cntx, actID_context_dc)
+
 #%%
 # Assume D_lst is generated from the recommendation system and contains tuples (user_id, action_sequence, score)
 # ground_truth_dict will store the top-N true relevant actions for each user, to serve as the evaluation reference
-
+"""
 top_n = 5
 ground_truth_dict = {}
 
@@ -348,6 +396,8 @@ with open(latex_output_path, 'w') as f:
     f.write(latex_table)
 
 print(f"Results saved to:\n- Excel: {excel_output_path}\n- LaTeX: {latex_output_path}")
+
+"""
 #%% ====================================================================================================
 # Random context generator
 
@@ -376,7 +426,182 @@ erst.is_action_context_feasibleQ(actID, cntx, actID_context_dc)
 #   - recommend first three sequences: parametric form
 #   - recommend first three sequences: textual form
 
-# def get_recommendations(uID, D_lst, m): ## zbriši 
+# #@brief returns m best actions triplesAdd commentMore actions
+# def get_recommendations(uID, D_lst, m):
+
+#     c_act_trp_lst = [x for x in D_lst if x[0]==uID] # Select all actions of this user
+#     mbest_act_trp_lst = sorted(c_act_trp_lst, key=lambda x: x[2], reverse=True) # Sort it
+    
+#     return mbest_act_trp_lst[:m]
+
+# %%
+# Full pipeline for generating and evaluating context-aware recommendations
+importlib.reload(erst)
+
+##############################################################
+#
+# LOAD DATA
+#
+##############################################################
+"""
+# Mentor's new and laready built D_lst matrix: 
+BASE_DIR = Path.cwd().parent  
+matD_path = BASE_DIR / 'data'
+D_mat_fn = 'D_contx_a3_sparse_mat.pkl'
+
+with open(matD_path / D_mat_fn, "rb") as fp:
+    D_lst = pickle.load(fp)
+"""
+# Load the prepared dataset from the previously computed D_lst
+# D_df, data = erst.load_data(D_lst) # D_lst contains triplets: (user_id, item_id, rating)
+
+# Če imaš četvorke z dodatnim kontekstom:
+D_df, data = erst.load_data(D_lst, with_context=True)
+
+# # Če imaš klasične trojke brez konteksta:
+# D_df, data = erst.load_data(D_lst)
+
+##############################################################
+#
+# DEFINE CONTEXTUAL METADATA
+#
+##############################################################
+
+# Load contextual metadata for each activity 
+context_file_path = data_path / 'ActivityContextGen_v06.xlsx'  
+
+# Load context data from the specified file
+# This function reads the context definitions and returns a dictionary mapping action IDs to their context data
+actID_context_dc = erst.load_context_data(context_file_path)
+
+# Define an example context for generating recommendations 
+context = {'C_T': 'dopoldne', 'C_P': 'doma'}
+
+##############################################################
+#
+# HYPERPARAMETER TUNING AND GRID SEARCH
+#
+##############################################################
+
+# # Define hyperparameter search space for the SVD algorithm (from Surprise library)
+# param_grid = {
+#     'n_factors': [50, 100, 150], # Number of latent factors
+#     'n_epochs': [10, 20, 30], # Number of training epochs
+#     'lr_all': [0.002, 0.005], # Learning rate
+#     'reg_all': [0.02, 0.1] # Regularization term
+# }
+
+param_grid = {
+    'n_factors': [10],      # namesto 50–150
+    'n_epochs': [5],        # namesto 10–30
+    'lr_all': [0.002],      # pusti eno vrednost
+    'reg_all': [0.02]
+}
+
+# Run grid search to find the best combination of hyperparameters
+gs = erst.grid_search(data, 'SVD', param_grid)
+best_params = gs.best_params['rmse']
+
+##############################################################
+#
+# CROSS-VALIDATION AND METRIC EVALUATION
+#
+##############################################################
+
+# # Perform cross-validation to evaluate model performance
+# avg_metrics = erst.perform_cross_validation(
+#     data, 'SVD', n_splits=10, test_size=0.25, random_state=42, sim_options=None
+# )
+
+avg_metrics = erst.perform_cross_validation(
+    data, 
+    'SVD', 
+    n_splits=2,  # namesto 10
+    test_size=0.25,
+    random_state=42
+)
+
+# Save average metrics from CV (RMSE, MAE, MSE, FCP, training time)
+results_list = [
+    {
+        'Algorithm': 'SVD',
+        'Average RMSE': avg_metrics['Average RMSE'],
+        'Average MAE': avg_metrics['Average MAE'],
+        'Average MSE': avg_metrics['Average MSE'],
+        'Average FCP': avg_metrics['Average FCP'],
+        'Average Training Time': avg_metrics['Average Training Time']
+    }
+]
+
+erst.save_evaluation_results(results_list, tabs_path)
+
+##############################################################
+#
+# TRAIN FINAL MODEL
+#
+##############################################################
+
+# Train the model on the full training set
+trainset = data.build_full_trainset()
+
+# Inicializacija modela z najboljšimi parametri
+model = erst.initialize_model('SVD', **best_params)
+model.fit(trainset)
+
+##############################################################
+#
+# GENERATE RECOMMENDATIONS FOR SPECIFIC USER
+#
+##############################################################
+
+# Define user and number of recommendations to generate
+# uID = 115 
+# n_recommendations = 5
+
+# %% 
+##############################################################
+#
+# GET RECOMMENDATIONS - WITHOUT CONTEXT
+#
+##############################################################
+# recommendations = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=n_recommendations)
+
+# timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+# file_path = tabs_path  / f'latex/tabs/recommendations_without_context__user_{uID}_{timestamp}.xlsx'
+
+##############################################################
+#
+# GET RECOMMENDATIONS - WITHOUT CONTEXT - USING SURPRISE LIBRARY
+#
+##############################################################
+# recommendations = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=n_recommendations)
+
+# timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+# file_path = tabs_path  / f'latex/tabs/recommendations_model_without_context__user_{uID}_{timestamp}.xlsx'
+
+##############################################################
+#
+# GET RECOMMENDATIONS - WITH CONTEXT
+#
+##############################################################
+# enerate top-N context-aware recommendations for a specific user
+# recommendations = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
+                    # context=context, actID_context_dc=actID_context_dc, n_recommendations=n_recommendations)
+
+# # Print sample entries from the context dictionary for verification
+# print("Sample actID_context_dc entries:")
+# for actID, cxt in list(actID_context_dc.items())[:5]:  # Limit to 5 entries
+#     print(f"{actID}: {cxt}")
+
+#=============================
+#=============================
+# timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+# file_path = tabs_path  / f'recommendations_with_context_user_{uID}_{timestamp}.xlsx'
+
+# # Save the recommendations to Excel using the following:
+# erst.save_recommendations_to_excel(recommendations, file_path = file_path)
+
+
 #%% ==========================================================================================
 # Export recommendations and corresponding contextual explanations
 # This section prepares a detailed export of recommended actions along with explanations 
@@ -446,109 +671,4 @@ rec_X_df = pd.DataFrame(dc_lst)
 
 # Export the DataFrame to Excel for further use or visualization in reports
 rec_X_df.to_excel(tabs_path / 'recom_acts_sample.xlsx')
-# %%
-# Full pipeline for generating and evaluating context-aware recommendations
-
-# Load the prepared dataset from the previously computed D_lst
-D_df, data = erst.load_data(D_lst) # D_lst contains triplets: (user_id, item_id, rating)
-
-# Define hyperparameter search space for the SVD algorithm (from Surprise library)
-param_grid = {
-    'n_factors': [50, 100, 150], # Number of latent factors
-    'n_epochs': [10, 20, 30], # Number of training epochs
-    'lr_all': [0.002, 0.005], # Learning rate
-    'reg_all': [0.02, 0.1] # Regularization term
-}
-
-# Run grid search to find the best combination of hyperparameters
-erst.grid_search(data, 'SVD', param_grid)
-
-# Convert the list of triplets to a DataFrame, required by the Surprise library
-df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'rating'])
-
-# Define rating scale dynamically based on min/max ratings in the dataset
-reader = Reader(rating_scale=(df['rating'].min(), df['rating'].max()))
-
-# Load data into Surprise’s Dataset object
-data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
-
-# Load contextual metadata for each activity 
-context_file_path = data_path / 'ActivityContextGen_v06.xlsx'  # Update this to the correct file path
-actID_context_dc = erst.load_context_data(context_file_path)
-
-# Define an example context for generating recommendations 
-context = {'C_T': 'dopoldanska malica', 'C_P': 'kjerkoli'}
-
-# Perform cross-validation to evaluate model performance
-avg_metrics = erst.perform_cross_validation(
-    data, 'SVD', n_splits=10, test_size=0.25, random_state=42, sim_options=None
-)
-
-# Save average metrics from CV (RMSE, MAE, MSE, FCP, training time)
-results_list = [
-    {
-        'Algorithm': 'SVD',
-        'Average RMSE': avg_metrics['Average RMSE'],
-        'Average MAE': avg_metrics['Average MAE'],
-        'Average MSE': avg_metrics['Average MSE'],
-        'Average FCP': avg_metrics['Average FCP'],
-        'Average Training Time': avg_metrics['Average Training Time']
-    }
-]
-
-erst.save_evaluation_results(results_list, tabs_path)
-
-# Define user and number of recommendations to generate
-uID = 115 
-n_recommendations = 5
-
-# Train the model on the full training set
-trainset = data.build_full_trainset()
-model = erst.initialize_model('SVD')
-model.fit(trainset)
-# %% brez konteskta
-recommendations = erst.get_recommendations(
-    uID, D_lst, n_recommendations
-    )
-
-# Display the recommended actions
-print("Recommendations for user:", recommendations)
-
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-file_path = f'latex/tabs/recommendations_without_context__user_{uID}_{timestamp}.xlsx'
-
-# Save the recommendations to Excel using the following:
-erst.save_recommendations_to_excel(recommendations, file_path=file_path)
-# %% brez konteskta
-recommendations = erst.get_recommendations_model(
-    uID, trainset, model, n_recommendations
-    )
-
-# Display the recommended actions
-print("Recommendations for user:", recommendations)
-
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-file_path = f'latex/tabs/recommendations_model_without_context__user_{uID}_{timestamp}.xlsx'
-
-# Save the recommendations to Excel using the following:
-erst.save_recommendations_to_excel(recommendations, file_path=file_path)
-# %% s kontekstom
-# enerate top-N context-aware recommendations for a specific user
-recommendations = erst.get_recommendations_with_context(
-    uID, trainset, model, n_recommendations, actID_context_dc, context
-    )
-
-# Display the recommended actions
-print("Recommendations with context:", recommendations)
-
-# Print sample entries from the context dictionary for verification
-print("Sample actID_context_dc entries:")
-for actID, context in list(actID_context_dc.items())[:5]:  # Limit to 5 entries
-    print(f"{actID}: {context}")
-
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-file_path = f'latex/tabs/recommendations_with_context_user_{uID}_{timestamp}.xlsx'
-
-# Save the recommendations to Excel using the following:
-erst.save_recommendations_to_excel(recommendations, file_path=file_path)
 # %%
