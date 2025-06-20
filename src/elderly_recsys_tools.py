@@ -8,6 +8,7 @@ from surprise.model_selection import KFold, GridSearchCV
 import openpyxl
 import random
 from pathlib import Path
+from collections import defaultdict
 
 ##############################################################
 #
@@ -41,20 +42,19 @@ def load_data(D_lst, with_context=False):
 
     return df, data
 
-def load_context_data(filepath):
+def load_context_data(activityContextGen_df):
     """
     Loads contextual information from an Excel sheet and converts it to a dictionary.
 
     Parameters:
-    - filepath (str): Path to the Excel file containing context data
+    - activityContextGen_df
 
     Returns:
     - context_dc (dict): Dictionary where keys are actIDs and values are context dictionaries
     """
 
-    df = pd.read_excel(filepath, sheet_name='ActionLst').replace(-1, pd.NA)
     context_dc = {}
-    for _, row in df.iterrows():
+    for _, row in activityContextGen_df.iterrows():
         actID = row['actID']
         context_dc[actID] = {
             'qID': row['qID'],
@@ -176,10 +176,10 @@ def get_one_random_context(full_cntx):
                      }
     """
 
-    C_T = random.choice(['C_T1', 'C_T2', 'C_T3'])
-    C_P = random.choice(['C_P1', 'C_P2', 'C_P3'])
+    C_T = random.choice(['act_C_T1', 'act_C_T2', 'act_C_T3'])
+    C_P = random.choice(['act_C_P1', 'act_C_P2', 'act_C_P3'])
 
-    c_cntx = {'qID': full_cntx['qID'], 'C_T': full_cntx[C_T], 'C_P': full_cntx[C_P], 'C_A':''}
+    c_cntx = {'qID': full_cntx['qID'], 'act_C_T': full_cntx[C_T], 'act_C_P': full_cntx[C_P], 'act_C_A':''}
     
     return c_cntx
 
@@ -252,7 +252,9 @@ def get_recommendations(uID,
     if D_lst is not None:
         # Method 1: Use precomputed matrix
         user_entries = [x for x in D_lst if x[0] == uID]
-        sorted_entries = sorted(user_entries, key=lambda x: x[2], reverse=True)
+        print(D_lst)
+        print(user_entries)
+        sorted_entries = sorted(user_entries, key=lambda x: x[3], reverse=True)
         return sorted_entries[:n_recommendations]
 
     elif model is not None and trainset is not None:
@@ -282,24 +284,48 @@ def get_recommendations(uID,
 # EVALUATION METRICS AND VALIDATION
 #
 ##############################################################
-def evaluate_precision_recall_f1(D_lst, ground_truth_dict, k=5):
+def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=5, k_eval=5):
     """
-    Computes Precision, Recall, and F1-score based on 
-    user recommendations and known relevant sequences (ground truth).
+    Computes Precision, Recall, and F1-score by comparing recommended actions
+    (from best_act_trp_lst) with top-N relevant actions (from D_lst).
     
-    :param D_lst: list of dictionaries containing top recommendations per user.
-                  Example: [{'user_id': 101, 'top_recommendations': ['seq1', 'seq2', ...]}, ...]
-    :param ground_truth_dict: dictionary with relevant sequences for each user.
-                  Example: {101: {'seq1', 'seq3'}, 102: {'seq2'}}
-    :param k: number of top recommended sequences to consider (default = 5)
-    
-    :return: average metric values: precision, recall, f1
+    Parameters:
+    - D_lst: list of [user_id, action_sequence, score] → all potential scored actions
+    - best_act_trp_lst: list of (user_id, action_sequence, score) → top recommendations from recommender
+    - top_n_groundtruth: how many top actions per user to consider as ground truth (default: 5)
+    - k_eval: number of top recommendations per user to consider (default: 5)
+
+    Returns:
+    - avg_p, avg_r, avg_f: average precision, recall, and F1-score
     """
+
+    # STEP 1 – build ground truth dict: top-N scored actions per user
+    user_action_scores = defaultdict(list)
+    for uid, act_seq, score in D_lst:
+        user_action_scores[uid].append((act_seq, score))
+
+    ground_truth_dict = {}
+    for uid, scored_seqs in user_action_scores.items():
+        top_gt = sorted(scored_seqs, key=lambda x: x[1], reverse=True)[:top_n_groundtruth]
+        ground_truth_dict[uid] = set([tuple(a) for a, _ in top_gt])  # ensure tuple format
+
+    # STEP 2 – build recommended dict: top-K recommended actions per user
+    recommended_dict = defaultdict(list)
+    for uid, act_seq, score in best_act_trp_lst:
+        recommended_dict[uid].append((act_seq, score))
+
+    formatted_D_lst = []
+    for uid, recs in recommended_dict.items():
+        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
+        top_recs = [tuple(seq) for seq, _ in top_k]
+        formatted_D_lst.append({'user_id': uid, 'top_recommendations': top_recs})
+
+    # STEP 3 – compute metrics
     precision_list, recall_list, f1_list = [], [], []
 
-    for user in D_lst:
+    for user in formatted_D_lst:
         uid = user['user_id']
-        predicted = set(user['top_recommendations'][:k])
+        predicted = set(user['top_recommendations'])
         actual = ground_truth_dict.get(uid, set())
 
         tp = len(predicted & actual)
