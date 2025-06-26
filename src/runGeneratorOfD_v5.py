@@ -7,7 +7,7 @@ import importlib
 import pandas as pd
 from surprise import accuracy, Dataset, Reader, SVD, KNNBasic, NMF
 from sklearn.model_selection import ShuffleSplit
-from surprise.model_selection import train_test_split
+from surprise.model_selection import train_test_split, cross_validate
 from collections import defaultdict
 from pathlib import Path
 import datetime
@@ -345,12 +345,40 @@ erst.is_action_context_feasibleQ(actID, cntx, actID_context_dc)
   - recommend first three sequences: textual form
 """
 
-#%% STEP-BY-STEP PIPELINE: Load Data → Tune → Cross-Validate → Train Final Model
-## ===================================================================================================
+#%% Export recommendations and corresponding contextual explanations
+## ==========================================================================================
+# STEP-BY-STEP PIPELINE: Load Data → Tune → Cross-Validate → Train Final Model
+
+"""
+This section prepares a detailed export of recommended actions along with explanations 
+for why those actions are relevant to each user.
+
+What is included in the export:
+ - uID: user ID
+ - One recommended action per row (multiple recommendations per user, so uID may repeat)
+ - Explanations include:
+   - Context: a relevant situation for the action 
+   - User’s answer for the question linked to the action
+   - User’s overall score for this aspect (e.g., physical activity)
+   - Explainability components from matrix factorization: latent feature vectors P and Q
+
+The goal is to construct interpretable recommendations such as:
+  - context: "It's nice weather and the right time to go outside"
+  - qaID: "You’ve previously shown a strong preference for this activity"
+  - scores: "You're physically capable and active, so this fits you well"
+  - P and Q: "Your profile aligns with others who also enjoy this action (based on P and Q vectors)"
+"""
 
 importlib.reload(erst)
 
-# LOAD DATA
+# Settings - Omeji podatke za hitrejše testiranje
+# uIDs_n, acts_n = 100, 80 # Number of users and actions to consider
+uIDs_n, acts_n = 10, 20 # Number of users and actions to consider
+M = 3 # Number of latent features for matrix factorization (dummy value here)
+m = 4 # Number of top recommended actions per user
+uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n] # Subset of users and actions
+
+# LOAD CONTEXTUAL DATA AND MATRIX
 ##############################################################
 
 # Mentor's new and laready built D_lst matrix: 
@@ -359,25 +387,26 @@ with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
 
 D_lst = D_lst[:1000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
 
-# Load the prepared dataset from the previously computed D_lst
-# D_df, data = erst.load_data(D_lst) # D_lst contains triplets: (user_id, item_id, rating)
-
-# Če imaš četvorke z dodatnim kontekstom:
-D_df, data = erst.load_data(D_lst, with_context=True)
-
-# # Če imaš klasične trojke brez konteksta:
-# D_df, data = erst.load_data(D_lst)
-
-
-# DEFINE CONTEXTUAL METADATA
-##############################################################
-
 # Load context data from the specified file
 # This function reads the context definitions and returns a dictionary mapping action IDs to their context data
 actID_context_dc = erst.load_context_data(activityContextGen_df)
 
 # Define an example context for generating recommendations 
 context = {'C_T': 'dopoldne', 'C_P': 'doma'}
+
+
+# PREPARE DATA FOR SURPRISE
+##############################################################
+
+df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'context', 'rating'])
+
+# Odstranimo 'context', ker ga Surprise ne podpira:
+df_for_surprise = df[['user_id', 'item_id', 'rating']]
+
+# Prepare data
+reader = Reader(rating_scale=(0, 5))
+data = Dataset.load_from_df(df_for_surprise, reader)
+
 
 # HYPERPARAMETER TUNING AND GRID SEARCH
 ##############################################################
@@ -407,148 +436,84 @@ best_params = gs.best_params['rmse']
 profile.disable()
 profile.print_stats(sort='cumtime')  
 
+
 # CROSS-VALIDATION AND METRIC EVALUATION
 ##############################################################
-
-# # Perform cross-validation to evaluate model performance
-# avg_metrics = erst.perform_cross_validation(
-#     data, 'SVD', n_splits=10, test_size=0.25, random_state=42, sim_options=None
-# )
-
 profile = cProfile.Profile()
 profile.enable()
-
-avg_metrics = erst.perform_cross_validation(
-    data, 
-    'SVD', 
-    n_splits=2,  # namesto 10
-    test_size=0.25,
+cv_results_df = erst.perform_cross_validation(
+    data=data, 
+    model_class=lambda: SVD(**best_params),  # tovarna za nov model
+    n_splits=10, 
     random_state=42
 )
-
 profile.disable()
 profile.print_stats(sort='cumtime')
+print(cv_results_df)
 
-# Save average metrics from CV (RMSE, MAE, MSE, FCP, training time)
+# Izvlečemo srednje vrednosti iz vrstice 'Mean'
+mean_metrics = cv_results_df[cv_results_df['Fold'] == 'Mean'].iloc[0]
+
+# Pripravimo seznam za prikaz
 results_list = [
     {
         'Algorithm': 'SVD',
-        'Average RMSE': avg_metrics['Average RMSE'],
-        'Average MAE': avg_metrics['Average MAE'],
-        'Average MSE': avg_metrics['Average MSE'],
-        'Average FCP': avg_metrics['Average FCP'],
-        'Average Training Time': avg_metrics['Average Training Time']
+        'Average RMSE': mean_metrics['RMSE'],
+        'Average MAE': mean_metrics['MAE'],
+        'Average MSE': mean_metrics['MSE'],
+        'Average FCP': mean_metrics['FCP'],
+        'Average Training Time': mean_metrics['Fit time']
     }
 ]
 
-erst.save_evaluation_results(results_list, tabs_path)
+print("\nAverage metrics across folds:")
+print(results_list)
 
-# TRAIN FINAL MODEL
+
+# INITIALIZE MODEL / TRAIN FINAL MODEL ON FULL DATASET OR SPLIT DATASET
 ##############################################################
+
+# # Train the model on the full training set
+# trainset = data.build_full_trainset()
+
+# Train the model on the training set
+trainset, testset = train_test_split(data, test_size=0.2)
+
+# Inicializacija modela z najboljšimi parametri
+model = SVD(**best_params)
+
 profile = cProfile.Profile()
 profile.enable()
 
-# Train the model on the full training set
-trainset = data.build_full_trainset()
-
-# Inicializacija modela z najboljšimi parametri
-model = erst.initialize_model('SVD', **best_params)
+# Train the algorithm on the trainset
 model.fit(trainset)
+
+# predict ratings for the testset
+predictions = model.test(testset)
 
 profile.disable()
 profile.print_stats(sort='cumtime')
 
-# %% GET RECOMMENDATIONS FOR ONE USER (WITHOUT CONTEXT, WITHOUT CONTEXT - USING SURPRISE LIBRARY AND WITH CONTEXT)
-##==================================================================================
+# Izračun osnovnih metrik na testnem delu
+print("Test set evaluation:")
+print(f"RMSE: {accuracy.rmse(predictions)}")
+print(f"MAE:  {accuracy.mae(predictions)}")
+print(f"MSE:  {accuracy.mse(predictions)}")
+print(f"FCP:  {accuracy.fcp(predictions)}")
 
-
-# GENERATE RECOMMENDATIONS FOR SPECIFIC USER
+# EXTRACT USER AND ITEM FACTORS (P, Q)
 ##############################################################
 
-# Define user and number of recommendations to generate
-uID = 115 
-n_recommendations = 5
+# Build user and item factor dicts
+user_factors = {trainset.to_raw_uid(uid): model.pu[uid] for uid in range(trainset.n_users)}
+item_factors = {trainset.to_raw_iid(iid): model.qi[iid] for iid in range(trainset.n_items)}
 
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-# GET RECOMMENDATIONS - WITHOUT CONTEXT
-recommendations = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=n_recommendations)
-
-file_path = tabs_path  / f'latex/tabs/recommendations_without_context__user_{uID}_{timestamp}.xlsx'
-erst.save_recommendations_to_excel(recommendations, file_path = file_path)
-
-# GET RECOMMENDATIONS - WITHOUT CONTEXT - USING SURPRISE LIBRARY
-recommendations = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=n_recommendations)
-
-file_path = tabs_path  / f'latex/tabs/recommendations_model_without_context__user_{uID}_{timestamp}.xlsx'
-erst.save_recommendations_to_excel(recommendations, file_path = file_path)
-
-# GET RECOMMENDATIONS - WITH CONTEXT
-recommendations = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
-                    context=context, actID_context_dc=actID_context_dc, n_recommendations=n_recommendations)
-
-# Print sample entries from the context dictionary for verification
-print("Sample actID_context_dc entries:")
-for actID, cxt in list(actID_context_dc.items())[:5]:  # Limit to 5 entries
-    print(f"{actID}: {cxt}")
-
-file_path = tabs_path  / f'recommendations_with_context_user_{uID}_{timestamp}.xlsx'
-erst.save_recommendations_to_excel(recommendations, file_path = file_path)
-
-#%% Export recommendations and corresponding contextual explanations
-## ==========================================================================================
-
-"""
-This section prepares a detailed export of recommended actions along with explanations 
-for why those actions are relevant to each user.
-
-What is included in the export:
- - uID: user ID
- - One recommended action per row (multiple recommendations per user, so uID may repeat)
- - Explanations include:
-   - Context: a relevant situation for the action 
-   - User’s answer for the question linked to the action
-   - User’s overall score for this aspect (e.g., physical activity)
-   - Explainability components from matrix factorization: latent feature vectors P and Q
-
-The goal is to construct interpretable recommendations such as:
-  - context: "It's nice weather and the right time to go outside"
-  - qaID: "You’ve previously shown a strong preference for this activity"
-  - scores: "You're physically capable and active, so this fits you well"
-  - P and Q: "Your profile aligns with others who also enjoy this action (based on P and Q vectors)"
-"""
-
-importlib.reload(erst)
-
-# Settings
-# uIDs_n, acts_n = 100, 80 # Number of users and actions to consider
-uIDs_n, acts_n = 10, 20 # Number of users and actions to consider
-M = 3 # Number of latent features for matrix factorization (dummy value here)
-m = 4 # Number of top recommended actions per user
-uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n] # Subset of users and actions
+# GENERATE EXPLAINABLE RECOMMENDATIONS FOR EACH USER
+##############################################################
 
 dc_lst = []
 
 all_recommendations = []  # <- Zbiramo priporočila za vse uID-je
-
-df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'context', 'rating'])
-
-# Odstranimo 'context', ker ga Surprise ne podpira:
-df_for_surprise = df[['user_id', 'item_id', 'rating']]
-
-# Prepare data
-
-reader = Reader(rating_scale=(0, 5))
-data = Dataset.load_from_df(df_for_surprise, reader)
-trainset = data.build_full_trainset()
-
-# Train SVD
-algo = SVD(n_factors=M)
-algo.fit(trainset)
-
-# Build user and item factor dicts
-user_factors = {trainset.to_raw_uid(uid): algo.pu[uid] for uid in range(trainset.n_users)}
-item_factors = {trainset.to_raw_iid(iid): algo.qi[iid] for iid in range(trainset.n_items)}
 
 for uID in uIDsIn:
 
@@ -573,11 +538,19 @@ for uID in uIDsIn:
     except KeyError:
         c_MF_P = [0.0] * M  # fallback
 
-
-    # Get top `m` recommendations for the current user
+    # GET RECOMMENDATIONS FOR ONE USER (WITHOUT CONTEXT, WITHOUT CONTEXT - USING SURPRISE LIBRARY AND WITH CONTEXT)
+    # Get top `m` recommendations for the current user - # GET RECOMMENDATIONS - WITHOUT CONTEXT
     best_act_trp_lst = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=m)
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=m)
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
+
+
+    # # GET RECOMMENDATIONS - WITHOUT CONTEXT - USING SURPRISE LIBRARY
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=m)
+
+    # # GET RECOMMENDATIONS - WITH CONTEXT
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
+    #                 context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
 
     # all_recommendations.extend(best_act_trp_lst)  # <- Dodamo v glavni seznam
 
@@ -623,6 +596,9 @@ rec_X_df = pd.DataFrame(dc_lst)
 # Export the DataFrame to Excel for further use or visualization in reports
 rec_X_df.to_excel(tabs_path / 'recom_acts_sample.xlsx')
 
+
+# EVALUATE FINAL RECOMMENDATION QUALITY
+##############################################################
 
 # Pretvori D_lst iz četverčkov v trojčke, ki jih funkcija pričakuje --> to damo sam za hitro testiranje brez kontesta
 D_triplets = [(uid, iid, rating) for uid, iid, context, rating in D_lst]

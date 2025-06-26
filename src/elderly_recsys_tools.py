@@ -9,38 +9,13 @@ import openpyxl
 import random
 from pathlib import Path
 from collections import defaultdict
+import time 
 
 ##############################################################
 #
 # DATA LOADING AND PREPARATION
 #
 ##############################################################
-def load_data(D_lst, with_context=False):
-    """
-    Converts a list of user-item-rating tuples (or 4-tuples with context) into a Surprise dataset.
-
-    Parameters:
-    - D_lst (list): Either:
-        - A list of 3-tuples/lists in format (user_id, item_id, rating)
-        - OR a list of 4-tuples/lists in format (user_id, item_id, context, rating)
-    - with_context (bool): Set to True if D_lst contains context and you want to ignore it
-
-    Returns:
-    - df (pd.DataFrame): The converted DataFrame version of D_lst
-    - data (surprise.Dataset): The Surprise dataset that can be used for training/testing
-    """
-
-    if with_context:
-        cleaned_lst = [(uid, item[0] if isinstance(item, tuple) else item, rating) 
-                       for uid, item, _, rating in D_lst]
-    else:
-        cleaned_lst = D_lst  # Assume already in correct (user_id, item_id, rating) format
-
-    df = pd.DataFrame(cleaned_lst, columns=['user_id', 'item_id', 'rating'])
-    reader = Reader(rating_scale=(df['rating'].min(), df['rating'].max()))
-    data = Dataset.load_from_df(df[['user_id', 'item_id', 'rating']], reader)
-
-    return df, data
 
 def load_context_data(activityContextGen_df):
     """
@@ -346,42 +321,68 @@ def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=5, k
 
     return avg_p, avg_r, avg_f
 
-def perform_cross_validation(data, algorithm_name='SVD', n_splits=10, test_size=0.25, random_state=42, sim_options=None):
+def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=10, random_state=42):
     """
-    Performs k-fold cross-validation and evaluates model performance.
+    Performs k-fold cross-validation and prints evaluation metrics.
 
     Parameters:
-    - data (surprise.Dataset): The data to evaluate
-    - algorithm_name (str): Name of the algorithm (e.g., 'SVD')
-    - n_splits (int): Number of folds for KFold
-    - test_size (float): Size of the test set per fold (not used by Surprise KFold)
-    - random_state (int): Seed for reproducibility
-    - sim_options (dict): Not used here but can be extended for similarity-based models
-
-    Returns:
-    - avg_metrics (dict): A dictionary with average RMSE, MAE, MSE, FCP, and dummy training time
+    - data: surprise.Dataset
+    - model_class: function that returns a new model instance
+    - algorithm_name: str (e.g., 'SVD')
+    - n_splits: int, number of folds
+    - random_state: int
     """
 
     kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
-    algo = initialize_model(algorithm_name)
-    metrics = {'rmse': [], 'mae': [], 'fcp': [], 'mse': []}
 
-    for trainset, testset in kf.split(data):
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-        metrics['rmse'].append(accuracy.rmse(predictions, verbose=False))
-        metrics['mae'].append(accuracy.mae(predictions, verbose=False))
-        metrics['fcp'].append(accuracy.fcp(predictions))
-        metrics['mse'].append(accuracy.mse(predictions, verbose=False))
-
-    avg_metrics = {
-        'Average RMSE': sum(metrics['rmse']) / n_splits,
-        'Average MAE': sum(metrics['mae']) / n_splits,
-        'Average FCP': sum(metrics['fcp']) / n_splits,
-        'Average MSE': sum(metrics['mse']) / n_splits,
-        'Average Training Time': 0  # Can be updated if actual time is measured
+    metrics = {
+        'RMSE': [],
+        'MAE': [],
+        'MSE': [],
+        'FCP': [],
+        'Fit time': [],
+        'Test time': []
     }
-    return avg_metrics
+
+    print(f"Evaluating RMSE, MAE, MSE, FCP of algorithm {algorithm_name} on {n_splits} split(s).\n")
+
+    for i, (trainset, testset) in enumerate(kf.split(data), 1):
+        model = model_class()
+
+        start_fit = time.time()
+        model.fit(trainset)
+        end_fit = time.time()
+
+        start_test = time.time()
+        predictions = model.test(testset)
+        end_test = time.time()
+
+        metrics['Fit time'].append(round(end_fit - start_fit, 2))
+        metrics['Test time'].append(round(end_test - start_test, 2))
+        metrics['RMSE'].append(accuracy.rmse(predictions, verbose=False))
+        metrics['MAE'].append(accuracy.mae(predictions, verbose=False))
+        metrics['MSE'].append(accuracy.mse(predictions, verbose=False))
+        metrics['FCP'].append(accuracy.fcp(predictions))
+
+    # Create DataFrame with folds
+    results = pd.DataFrame({
+        'Fold': [f'Fold {i+1}' for i in range(n_splits)],
+        **{key: metrics[key] for key in metrics}
+    })
+
+    # Add mean and std rows
+    summary = pd.DataFrame({
+        'Fold': ['Mean', 'Std'],
+        **{key: [np.mean(metrics[key]), np.std(metrics[key])] for key in metrics}
+    })
+
+    results = pd.concat([results, summary], ignore_index=True)
+
+    # Output formatted table
+    pd.set_option('display.precision', 4)
+    print(results.set_index('Fold'))
+
+    return results
 
 def save_evaluation_results(results_list, save_path):
     """
@@ -439,23 +440,6 @@ def grid_search(data, algorithm_name, param_grid):
     print("Best params:", gs.best_params['rmse'])
     
     return gs
-
-def initialize_model(algorithm_name='SVD', **kwargs):
-    """
-    Initializes a Surprise algorithm model based on name and parameters.
-
-    Parameters:
-    - algorithm_name (str): The name of the algorithm (currently only supports 'SVD')
-    - kwargs: Additional keyword arguments to pass to the algorithm constructor
-
-    Returns:
-    - model (surprise.AlgoBase): Initialized Surprise model
-    """
-
-    if algorithm_name == 'SVD':
-        return SVD(**kwargs)
-    else:
-        raise ValueError(f"Unsupported algorithm: {algorithm_name}")
     
 ##############################################################
 #
