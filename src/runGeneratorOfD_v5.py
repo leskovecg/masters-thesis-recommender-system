@@ -5,9 +5,10 @@ import cProfile
 import seaborn as sns
 import importlib
 import pandas as pd
-from surprise import accuracy, Dataset, Reader, SVD, KNNBasic, NMF
+import matplotlib.pyplot as plt
+from surprise import Dataset, Reader, SVD, KNNBasic, BaselineOnly, NMF, accuracy
 from sklearn.model_selection import ShuffleSplit
-from surprise.model_selection import train_test_split, cross_validate
+from surprise.model_selection import train_test_split, cross_validate, KFold
 from collections import defaultdict
 from pathlib import Path
 import datetime
@@ -177,7 +178,7 @@ uID_scores_dc['phyHealOrganski'] = uID_phyHealOrganski_scores_dc
 aspect_groups_lst = ['activity'] #, 'phy_health'] #, 'ment_helath', 'soc_helath']
 
 # Display the activity score dictionary for inspection (optional line)
-uID_scores_dc['activity']
+# uID_scores_dc['activity']
 
 #%% Set lists of users and actions accoring to selected aspect 
 ##==================================================================================
@@ -238,7 +239,7 @@ seq_actID_lst = erst.get_list_of_actions(single_actID_lst, act_max_len)
 # @brief compute data matrix
 """
 Assumptions:
-- each action belongs to a question => higher anwser to this questio n
+- each action belongs to a question => higher anwser to this question
   means higher relevance to this activity for this user
 - each user has his score for each question and higher score to
   this question means higher relevance to this group of activities (=question)
@@ -308,7 +309,15 @@ The function computes relevance scores based on:
 with open(data_path / 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
     D_lst = pickle.load(fp)
 
-D_lst = D_lst[:1000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
+D_lst = D_lst[:10000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
+
+ratings = [x[3] for x in D_lst]
+
+print("\n========== D_lst LOADED ==========")
+print(f"Total rows in D_lst: {len(D_lst)}")
+print(f"Unique users: {len(set(x[0] for x in D_lst))}")
+print(f"Unique actions: {len(set(x[1] for x in D_lst))}")
+print(f"Min rating: {min(ratings):.3f}, Max rating: {max(ratings):.3f}, Mean: {np.mean(ratings):.3f}")
 
 #%% Random context generator
 ## ====================================================================================================
@@ -317,6 +326,8 @@ D_lst = D_lst[:1000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testi
 Test
 This block tests whether a randomly generated context is feasible for a given action.
 """
+
+importlib.reload(erst)
 
 # Step 1: Collect all possible contexts corresponding to the selected actions
 all_contexts = [actID_context_dc[actID] for actID in actID_lstIn]
@@ -373,43 +384,99 @@ importlib.reload(erst)
 
 # Settings - Omeji podatke za hitrejše testiranje
 # uIDs_n, acts_n = 100, 80 # Number of users and actions to consider
-uIDs_n, acts_n = 10, 20 # Number of users and actions to consider
+uIDs_n, acts_n = 20, 20 # Number of users and actions to consider #users cca 600 # 
 M = 3 # Number of latent features for matrix factorization (dummy value here)
-m = 4 # Number of top recommended actions per user
+m = 5 # Number of top recommended actions per user #20
 uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n] # Subset of users and actions
 
+
+
+# ==========================================================
 # LOAD CONTEXTUAL DATA AND MATRIX
-##############################################################
+# ==========================================================
 
 # Mentor's new and laready built D_lst matrix: 
 with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
     D_lst = pickle.load(fp)
 
-D_lst = D_lst[:1000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
+D_lst = D_lst[:10000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
 
 # Load context data from the specified file
 # This function reads the context definitions and returns a dictionary mapping action IDs to their context data
 actID_context_dc = erst.load_context_data(activityContextGen_df)
 
 # Define an example context for generating recommendations 
-context = {'C_T': 'dopoldne', 'C_P': 'doma'}
+context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
 
 
+
+# ==========================================================
 # PREPARE DATA FOR SURPRISE
-##############################################################
+# ==========================================================
 
 df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'context', 'rating'])
 
 # Odstranimo 'context', ker ga Surprise ne podpira:
 df_for_surprise = df[['user_id', 'item_id', 'rating']]
+print("\n========== PREPARED DATAFRAME ==========")
+print(f"Shape of df_for_surprise: {df_for_surprise.shape}")
 
 # Prepare data
 reader = Reader(rating_scale=(0, 5))
 data = Dataset.load_from_df(df_for_surprise, reader)
 
 
-# HYPERPARAMETER TUNING AND GRID SEARCH
-##############################################################
+
+# ==========================================================
+# ALGORITHM COMPARISON (SVD, KNN, BASELINE, NMF)
+# ==========================================================
+
+algorithms = {
+    "SVD": SVD(),
+    "KNNBasic": KNNBasic(),
+    "BaselineOnly": BaselineOnly(),
+    "NMF": NMF()
+}
+metrics = defaultdict(list)
+kf = KFold(n_splits=3, random_state=42, shuffle=True)
+
+for name, algo in algorithms.items():
+    print(f"\n=== Evaluating {name} ===")
+    for fold, (trainset, testset) in enumerate(kf.split(data)):
+        algo.fit(trainset)
+        predictions = algo.test(testset)
+        rmse = accuracy.rmse(predictions, verbose=False)
+        mae  = accuracy.mae(predictions, verbose=False)
+        mse  = accuracy.mse(predictions, verbose=False)
+        fcp  = accuracy.fcp(predictions)
+        metrics['algorithm'].append(name)
+        metrics['fold'].append(fold+1)
+        metrics['rmse'].append(rmse)
+        metrics['mae'].append(mae)
+        metrics['mse'].append(mse)
+        metrics['fcp'].append(fcp)
+
+summary_df = pd.DataFrame(metrics).groupby("algorithm").agg({
+    "rmse":"mean",
+    "mae":"mean",
+    "mse":"mean",
+    "fcp":"mean"
+}).reset_index()
+print("\n========== ALGORITHM COMPARISON SUMMARY ==========")
+print(summary_df)
+summary_df.to_excel(tabs_path / "algorithm_comparison.xlsx", index=False)
+plt.figure(figsize=(8,5))
+plt.bar(summary_df["algorithm"], summary_df["rmse"], color="lightblue")
+plt.ylabel("Average RMSE")
+plt.title("Povprečni RMSE za algoritme")
+plt.tight_layout()
+plt.show()
+
+
+
+# ==========================================================
+# SVD TUNING + AND GRID SEARCH
+# ==========================================================
 
 # # Define hyperparameter search space for the SVD algorithm (from Surprise library)
 # param_grid = {
@@ -432,23 +499,30 @@ profile.enable()
 # Run grid search to find the best combination of hyperparameters
 gs = erst.grid_search(data, 'SVD', param_grid)
 best_params = gs.best_params['rmse']
+print("\n========== GRID SEARCH COMPLETED ==========")
+print(f"Best params: {best_params}")
+print("Best RMSE score:", gs.best_score['rmse'])
 
 profile.disable()
-profile.print_stats(sort='cumtime')  
+# profile.print_stats(sort='cumtime')  
 
 
+
+# ==========================================================
 # CROSS-VALIDATION AND METRIC EVALUATION
-##############################################################
+# ==========================================================
+
 profile = cProfile.Profile()
 profile.enable()
 cv_results_df = erst.perform_cross_validation(
     data=data, 
     model_class=lambda: SVD(**best_params),  # tovarna za nov model
-    n_splits=10, 
+    n_splits=2, 
     random_state=42
 )
 profile.disable()
-profile.print_stats(sort='cumtime')
+# profile.print_stats(sort='cumtime')
+print("\n========== CROSS-VALIDATION RESULTS ==========")
 print(cv_results_df)
 
 # Izvlečemo srednje vrednosti iz vrstice 'Mean'
@@ -470,14 +544,20 @@ print("\nAverage metrics across folds:")
 print(results_list)
 
 
+
+# ==========================================================
 # INITIALIZE MODEL / TRAIN FINAL MODEL ON FULL DATASET OR SPLIT DATASET
-##############################################################
+# ==========================================================
 
 # # Train the model on the full training set
 # trainset = data.build_full_trainset()
 
 # Train the model on the training set
 trainset, testset = train_test_split(data, test_size=0.2)
+print("\n========== TRAINSET INFO ==========")
+print(f"Number of users in trainset: {trainset.n_users}")
+print(f"Number of items in trainset: {trainset.n_items}")
+print(f"Testset length: {len(testset)}")
 
 # Inicializacija modela z najboljšimi parametri
 model = SVD(**best_params)
@@ -491,40 +571,63 @@ model.fit(trainset)
 # predict ratings for the testset
 predictions = model.test(testset)
 
+print("\n========== MATRIX FACTORIZATION FACTORS ==========")
+print(f"Shape of user factors: {model.pu.shape}")
+print(f"Shape of item factors: {model.qi.shape}")
+
 profile.disable()
-profile.print_stats(sort='cumtime')
+# profile.print_stats(sort='cumtime')
 
 # Izračun osnovnih metrik na testnem delu
-print("Test set evaluation:")
+print("\n========== TEST SET EVALUATION ==========")
 print(f"RMSE: {accuracy.rmse(predictions)}")
 print(f"MAE:  {accuracy.mae(predictions)}")
 print(f"MSE:  {accuracy.mse(predictions)}")
 print(f"FCP:  {accuracy.fcp(predictions)}")
 
+print("\n========== MODEL SUMMARY ==========")
+print(f"Number of users in trainset: {trainset.n_users}")
+print(f"Number of items in trainset: {trainset.n_items}")
+print(f"Total unique actions in D_lst: {len(set(x[1] for x in D_lst))}")
+
+
+
+# ==========================================================
 # EXTRACT USER AND ITEM FACTORS (P, Q)
-##############################################################
+# ==========================================================
 
 # Build user and item factor dicts
 user_factors = {trainset.to_raw_uid(uid): model.pu[uid] for uid in range(trainset.n_users)}
 item_factors = {trainset.to_raw_iid(iid): model.qi[iid] for iid in range(trainset.n_items)}
+print("\n========== FACTORS INFO ==========")
+print(f"User factors: {len(user_factors)} extracted")
+print(f"Item factors: {len(item_factors)} extracted")
 
+
+
+# ===========================================================
 # GENERATE EXPLAINABLE RECOMMENDATIONS FOR EACH USER
-##############################################################
+# ===========================================================
 
-dc_lst = []
-
-all_recommendations = []  # <- Zbiramo priporočila za vse uID-je
+dc_lst_41 = []   # za 4.1
+dc_lst_42 = []   # za 4.2
+all_recommendations = []           # top-20 brez konteksta
+all_final_recommendations = []     # top-5 filtriranih s kontekstom
 
 for uID in uIDsIn:
 
+    print(f"\n========== Generating recommendations for user {uID} ==========")
+
     # get qaIDs
     c_anws_a = dict(uID_qID_answers_df.loc[uID,:])
+    print(f"User context answers keys: {list(c_anws_a.keys())}")
 
     # Get corresponding answer texts
     c_anws_txt = {qID:qID_qtxt_dc[qID] for qID in c_anws_a}
 
     # Get user score for the current aspect (e.g., 'activity')
     c_score = uID_scores_dc['activity'][uID]
+    print(f"User score on activity: {c_score}")
 
     # Dummy placeholders for Matrix Factorization vectors (can be replaced with real ones)
     # get P and Q
@@ -538,9 +641,14 @@ for uID in uIDsIn:
     except KeyError:
         c_MF_P = [0.0] * M  # fallback
 
+
+    
+    
+    
+
     # GET RECOMMENDATIONS FOR ONE USER (WITHOUT CONTEXT, WITHOUT CONTEXT - USING SURPRISE LIBRARY AND WITH CONTEXT)
     # Get top `m` recommendations for the current user - # GET RECOMMENDATIONS - WITHOUT CONTEXT
-    best_act_trp_lst = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=m)
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=m)
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=m)
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
 
@@ -552,6 +660,22 @@ for uID in uIDsIn:
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
     #                 context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
 
+
+    # najprej 20 kandidatov brez filtriranja
+    top20_recs = erst.get_recommendations(
+        uID=uID,
+        trainset=trainset,
+        model=model,
+        n_recommendations=20
+    )
+    # potem filtriraj po kontekstu in vzemi 5
+    filtered_recs = [
+        rec for rec in top20_recs
+        if erst.is_action_context_feasibleQ(rec[1], context, actID_context_dc)
+    ]
+    final_recs = filtered_recs[:m]
+
+
     # all_recommendations.extend(best_act_trp_lst)  # <- Dodamo v glavni seznam
 
     # Pred tem:
@@ -560,52 +684,156 @@ for uID in uIDsIn:
     # Namesto tega:
     # all_recommendations.extend([(uID, act_seq, score) for act_seq, score in best_act_trp_lst])
 
-    all_recommendations.extend([
-        (uid, act_seq, score) for uid, act_seq, context, score in best_act_trp_lst
-    ])
+    # all_recommendations.extend([
+    #     (uid, act_seq, score) for uid, act_seq, context, score in best_act_trp_lst
+    # ])
+
+    all_recommendations.extend(top20_recs)
+    all_final_recommendations.extend(final_recs)
+
+    # print(f"\n========== TOP RECOMMENDATIONS FOR USER {uID} ==========")
+    # for rec in best_act_trp_lst[:3]:  # da jih ne zasuje
+    #     print(f"Action: {rec[1]}, Score: {rec[-1]:.3f}")
+
+    for uid, act_id, score in top20_recs:
+        try:
+            c_MF_Q = item_factors[act_id]
+        except KeyError:
+            c_MF_Q = [0.0] * M
+
+        cntx_data = actID_context_dc.get(act_id, {})
+        c_cntx = erst.get_one_random_context(cntx_data)
+
+        dc_lst_41.append({
+            'uID': uid,
+            'ActID': act_id,
+            'Score': score,
+            'Context_T': c_cntx['act_C_T'],
+            'Context_P': c_cntx['act_C_P'],
+            'Anws_a': c_anws_a,
+            'Anws_txt': c_anws_txt,
+            'UserScore': c_score,
+            'MF_P': c_MF_P,
+            'MF_Q': c_MF_Q
+        })
     
-    for act_trp in best_act_trp_lst:
+    # za poglavje 4.2 (s kontekstom)
+    for uid, act_id, score in final_recs:
+        try:
+            c_MF_Q = item_factors[act_id]
+        except KeyError:
+            c_MF_Q = [0.0] * M
+        cntx_data = actID_context_dc.get(act_id, {})
+        c_cntx = erst.get_one_random_context(cntx_data)
+        dc_lst_42.append({
+            'uID': uid,
+            'ActID': act_id,
+            'Score': score,
+            'Context_T': c_cntx['act_C_T'],
+            'Context_P': c_cntx['act_C_P'],
+            'Anws_a': c_anws_a,
+            'Anws_txt': c_anws_txt,
+            'UserScore': c_score,
+            'MF_P': c_MF_P,
+            'MF_Q': c_MF_Q
+        }) 
 
-        c_acts = act_trp[1] # Get the action sequence (could be more than 1 action)
+# %%
+# ===========================================================
+# EXPORT PRIPOROČIL V EXCEL
+# ===========================================================
 
-        if not isinstance(c_acts, (list, tuple)):
-            c_acts = [c_acts]
+rec_X_df_41 = pd.DataFrame(dc_lst_41)
+rec_X_df_41.to_excel(tabs_path / 'recommendations_4_1.xlsx', index=False)
 
-        # Get action props
-        for c_act in c_acts: # Go through each individual action in the sequence
-            try:
-                c_MF_Q = item_factors[c_act]
-            except KeyError:
-                c_MF_Q = [0.0] * M
-            
-            c_act_c = c_act
-            c_act_txt = actID_singleAct_dc[c_act] # Human-readable name of the action
-            c_act_prop = actID_props_dc[c_act] # Properties of the action
-        
-            # Get one possible context for this recommendation
-            full_cntx = actID_context_dc[c_act]
-            c_cntx = erst.get_one_random_context(full_cntx)
+rec_X_df_42 = pd.DataFrame(dc_lst_42)
+rec_X_df_42.to_excel(tabs_path / 'recommendations_4_2.xlsx', index=False)
 
-            # Combine all the extracted information into a dictionary
-            c_dc = {'uID': uID, 'Act_c:':c_act_c, 'Act_txt':c_act_txt, 'Act_prop': c_act_prop, 'Cntx': c_cntx, 'Anws_a': c_anws_a, 'Anws_txt':c_anws_txt, 'Score':c_score, 'MF_P':c_MF_P, 'MF_Q':c_MF_Q}
-            dc_lst.append(c_dc)
-
-# Convert the list of recommendation dictionaries into a DataFrame
-rec_X_df = pd.DataFrame(dc_lst)
-
-# Export the DataFrame to Excel for further use or visualization in reports
-rec_X_df.to_excel(tabs_path / 'recom_acts_sample.xlsx')
+print(f"Exported {len(rec_X_df_41)} rows for 4.1 recommendations to recommendations_4_1.xlsx")
+print(f"Exported {len(rec_X_df_42)} rows for 4.2 recommendations to recommendations_4_2.xlsx")
 
 
-# EVALUATE FINAL RECOMMENDATION QUALITY
-##############################################################
+
+# ===========================================================
+# EVALUATION METRICS
+# ===========================================================
 
 # Pretvori D_lst iz četverčkov v trojčke, ki jih funkcija pričakuje --> to damo sam za hitro testiranje brez kontesta
 D_triplets = [(uid, iid, rating) for uid, iid, context, rating in D_lst]
 
-# Izračunaj metrike po koncu zanke:
-p, r, f = erst.evaluate_recommender_metrics(D_triplets, all_recommendations, top_n_groundtruth=5, k_eval=m)
 
-# print(f"Precision: {p:.3f}, Recall: {r:.3f}, F1-score: {f:.3f}")
-print(f"Precision: {p}, Recall: {r}, F1-score: {f}")
-print("Sample recommendation:", best_act_trp_lst[0])
+# 4.1: brez konteksta (standardna matrika)
+##############################################################
+p41, r41, f41 = erst.evaluate_recommender_metrics(
+    D_triplets,
+    all_recommendations,   # to so tvoje brez-kontekstne priporočila
+    top_n_groundtruth=5,
+    k_eval=m
+)
+
+if all_recommendations:
+    avg_score_41  = sum(rec[-1] for rec in all_recommendations) / len(all_recommendations)
+    print(f"Average score: {avg_score_41 :.3f}")
+    print(f"Total recommendations generated: {len(all_recommendations)}")
+else:
+    print("No recommendations generated.") 
+
+# shrani v Excel
+eval_41_df = pd.DataFrame({
+    'Precision': [p41],
+    'Recall': [r41],
+    'F1': [f41],
+    'AverageScore': [avg_score_41 ]
+})
+eval_41_df.to_excel(tabs_path / 'evaluation_metrics_4_1.xlsx', index=False)
+
+print("\n========== 4.1 METRICS ==========")
+print(eval_41_df)
+
+
+
+
+# 4.2: s kontekstom (po filtriranju)
+##############################################################
+p42, r42, f42 = erst.evaluate_recommender_metrics(
+    D_triplets,
+    all_final_recommendations,    # to so kontekst filtrirana priporočila
+    top_n_groundtruth=5,
+    k_eval=m
+)
+
+print(f"final_recs: {len(all_final_recommendations)}")
+if all_final_recommendations:
+    avg_score_42 = sum(rec[-1] for rec in all_final_recommendations) / len(all_final_recommendations)
+else:
+    avg_score_42 = 0.0
+
+# shrani v Excel
+eval_42_df = pd.DataFrame({
+    'Precision': [p42],
+    'Recall': [r42],
+    'F1': [f42],
+    'AverageScore': [avg_score_42]
+})
+eval_42_df.to_excel(tabs_path / 'evaluation_metrics_4_2.xlsx', index=False)
+
+print("\n========== 4.2 METRICS ==========")
+print(eval_42_df)
+
+
+
+
+
+
+
+print("\n========== SAMPLE RECOMMENDATION ==========")
+if top20_recs:
+    print(f"First sample recommendation:\n{top20_recs[0]}")
+else:
+    print("No sample recommendations available.")
+
+
+print(f"\n========== DETAILS FOR USER {uID} ==========")
+print(f"Number of recommendations for user {uID}: {len(top20_recs)}")
+
+# %%

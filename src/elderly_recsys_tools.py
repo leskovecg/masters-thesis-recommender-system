@@ -33,12 +33,12 @@ def load_context_data(activityContextGen_df):
         actID = row['actID']
         context_dc[actID] = {
             'qID': row['qID'],
-            'C_T1': row['C_T1'],
-            'C_T2': row['C_T2'],
-            'C_T3': row['C_T3'],
-            'C_P1': row['C_P1'],
-            'C_P2': row['C_P2'],
-            'C_P3': row['C_P3']
+            'act_C_T1': row['act_C_T1'],
+            'act_C_T2': row['act_C_T2'],
+            'act_C_T3': row['act_C_T3'],
+            'act_C_P1': row['act_C_P1'],
+            'act_C_P2': row['act_C_P2'],
+            'act_C_P3': row['act_C_P3']
         }
 
     return context_dc
@@ -124,8 +124,8 @@ def get_random_context(all_contexts):
     """
 
     full_cntx = random.choice(all_contexts)
-    C_T = random.choice(['C_T1', 'C_T2', 'C_T3'])
-    C_P = random.choice(['C_P1', 'C_P2', 'C_P3'])
+    C_T = random.choice(['act_C_T1', 'act_C_T2', 'act_C_T3'])
+    C_P = random.choice(['act_C_P1', 'act_C_P2', 'act_C_P3'])
 
     c_cntx = {'qID': full_cntx['qID'], 'C_T': full_cntx[C_T], 'C_P': full_cntx[C_P], 'C_A':''}
     
@@ -182,8 +182,8 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
     
     f_cntx = actID_context_dc[actID] # Full context
     f_cntx = actID_context_dc[actID]
-    C_Ts = [f_cntx[k].strip() for k in ['C_T1', 'C_T2', 'C_T3'] if isinstance(f_cntx[k], str)]
-    C_Ps = [f_cntx[k].strip() for k in ['C_P1', 'C_P2', 'C_P3'] if isinstance(f_cntx[k], str)]
+    C_Ts = [f_cntx[k].strip() for k in ['act_C_T1', 'act_C_T2', 'act_C_T3'] if isinstance(f_cntx[k], str)]
+    C_Ps = [f_cntx[k].strip() for k in ['act_C_P1', 'act_C_P2', 'act_C_P3'] if isinstance(f_cntx[k], str)]
 
     if (cntx['C_T'] in C_Ts) and (cntx['C_P'] in C_Ps):
         return True 
@@ -197,7 +197,7 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
 ##############################################################
 #@brief returns m best actions triples
 def get_recommendations(uID, 
-                        n_recommendations=5, 
+                        n_recommendations=20, 
                         D_lst=None, 
                         trainset=None, 
                         model=None, 
@@ -222,16 +222,21 @@ def get_recommendations(uID,
 
     Returns:
     - List of top-N recommendations: [(uID, item, score), ...]
+    - First returns top-20 candidates, then you can filter afterwards
     """
 
+    # predfiltrianje
     if D_lst is not None:
         # Method 1: Use precomputed matrix
         user_entries = [x for x in D_lst if x[0] == uID]
-        print(D_lst)
-        print(user_entries)
+        # print(D_lst)
+        print(f"D_lst length: {len(D_lst)}")
+        # print(user_entries)
+        print(f"user_entries found for uID {uID}: {len(user_entries)}")
         sorted_entries = sorted(user_entries, key=lambda x: x[3], reverse=True)
         return sorted_entries[:n_recommendations]
 
+    # post filtriranje
     elif model is not None and trainset is not None:
         # Method 2: Use model prediction
         all_iids = trainset._raw2inner_id_items.keys()
@@ -239,12 +244,6 @@ def get_recommendations(uID,
 
         for raw_iid in all_iids:
             act_id = raw_iid[0] if isinstance(raw_iid, tuple) else raw_iid
-
-            # Context filtering
-            if context and actID_context_dc:
-                if not is_action_context_feasibleQ(act_id, context, actID_context_dc):
-                    continue  # Skip actions not matching the context
-
             est = model.predict(uid=str(uID), iid=act_id).est
             predictions.append((uID, act_id, est))
 
@@ -436,8 +435,6 @@ def grid_search(data, algorithm_name, param_grid):
     algo_class = SVD  # Add other algorithms here if needed
     gs = GridSearchCV(algo_class, param_grid, measures=['rmse'], cv=3)
     gs.fit(data)
-    print("Best RMSE score:", gs.best_score['rmse'])
-    print("Best params:", gs.best_params['rmse'])
     
     return gs
     
