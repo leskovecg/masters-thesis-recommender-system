@@ -1,5 +1,37 @@
-#%% Import required libraries
+"""
+EXPLAINABLE ELDERLY RECOMMENDER SYSTEM PIPELINE
+===================================================
+This script builds an explainable, context-aware recommender system for elderly users.
+It processes user questionnaires, activity metadata, compatibility scores, and context definitions
+to generate tailored daily activity suggestions.
+
+The pipeline includes the following major steps:
+
+STEP 1: 
+STEP 2: 
+STEP 3: 
+STEP 4: 
+STEP 5: 
+STEP 6:
+STEP 7: 
+STEP 8:
+STEP 9: 
+STEP 10: 
+STEP 11: 
+STEP 12: 
+STEP 13:
+STEP 14:
+STEP 15:
+STEP 16:
+STEP 17:
+STEP 18:
+STEP 19:
+"""
+
+#%% STEP 1: IMPORT LIBRARIES
 ##==================================================================================
+print("========== STEP 1: IMPORTING LIBRARIES ==========")
+
 import numpy as np
 import cProfile
 import seaborn as sns
@@ -14,19 +46,18 @@ from pathlib import Path
 import datetime
 import pickle
 import elderly_recsys_tools as erst
+import time
 
-#%% Define file paths for input data and output results
+#%% STEP 2: LOAD DATA FROM EXCEL
 ##==================================================================================
+print("========== STEP 2: LOADING DATA FROM EXCEL FILES ==========")
 
-# Get base directory
-BASE_DIR = Path(__file__).resolve().parents[1]  
+#Define file paths for input data and output results
+BASE_DIR = Path(__file__).resolve().parents[1]  # Get base directory
 
 data_path = BASE_DIR / 'data'
 figs_path = BASE_DIR / 'latex' / 'figs'
 tabs_path = BASE_DIR / 'latex' / 'tabs'
-
-#%% Load data from Excel files
-##==================================================================================
 
 # Load activity data, replace -1 with NaN, and rename columns with 'Ac_' prefix
 activities_df = pd.read_excel(data_path / 'Activities.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
@@ -57,8 +88,12 @@ scores_and_wgt_df = pd.read_excel(data_path / 'ml_data_scores_and_wgt.xlsx', she
 # Merge all user responses (activities + mental + physical + social) into a single DataFrame
 all_answers_df = activities_df.join(mentalHealth_df).join(physicalHealth_df, rsuffix='_r').join(socialHealth_df, rsuffix='_r')
 
-# %% Create sets and dicts
+# Load handcrafted compatibility matrix (with continuous values between 0 and 1)
+action_compat_df = pd.read_excel(data_path / 'ActivityContextGen_v10.xlsx', sheet_name='ActionCompatibilities', index_col=0)
+
+#%% STEP 3: BUILD DICTIONARIES & STRUCTURES
 ##==================================================================================
+print("========== STEP 3: BUILDING DICTIONARIES & STRUCTURES ==========")
 
 # Extract user IDs from the scores DataFrame
 uIDs = list(np.sort(scores_and_wgt_df.index))
@@ -158,7 +193,12 @@ uID_phyHealNacin_scores_dc = dict(zip(scores_and_wgt_df.index, scores_and_wgt_df
 uID_phyHealOrganski_scores_dc = dict(zip(scores_and_wgt_df.index, scores_and_wgt_df['ph_organskiSistemi_F1']))
 
 # Aggregate all score dictionaries into one by category
-#aspect_groups_lst = ['activity', 'phy_health', 'ment_helath', 'soc_helath']
+
+# Select which aspect groups to include in the recommendation process
+# Available options include: 'activity', 'phy_health', 'ment_helath', 'soc_helath'
+# Here, only the 'activity' aspect is used for simplicity
+aspect_groups_lst = ['activity'] #, 'phy_health'] #, 'ment_helath', 'soc_helath']
+
 #score_groups_lst = ['activity', 'menHealOsn', 'menHealVisje2', 'menHealVisje4', 'phyHealNacin', 'phyHealOrganski']
 uID_scores_dc = {}
 uID_scores_dc['activity'] = uID_activity_scores_dc
@@ -168,20 +208,17 @@ uID_scores_dc['menHealVisje4'] = uID_menHealVisje4_scores_dc
 uID_scores_dc['phyHealNacin'] = uID_phyHealNacin_scores_dc
 uID_scores_dc['phyHealOrganski'] = uID_phyHealOrganski_scores_dc
 
-#%% Settings
-##==================================================================================
-
-# Select which aspect groups to include in the recommendation process
-# Available options include: 'activity', 'phy_health', 'ment_helath', 'soc_helath'
-
-# Here, only the 'activity' aspect is used for simplicity
-aspect_groups_lst = ['activity'] #, 'phy_health'] #, 'ment_helath', 'soc_helath']
-
 # Display the activity score dictionary for inspection (optional line)
 # uID_scores_dc['activity']
 
-#%% Set lists of users and actions accoring to selected aspect 
+#%% STEP 4: SELECT ACTIONS FOR GIVEN ASPECTS
 ##==================================================================================
+print("========== STEP 4: SELECTING ACTIONS FOR GIVEN ASPECTS ==========")
+
+"""
+We filter actions and actIDs based on the selected aspect group(s),
+e.g. only actions related to the 'activity' aspect.
+"""
 
 #single_act_lst = [g for g in singleAct_qID_dc]
 
@@ -205,15 +242,19 @@ for group in aspect_groups_lst:
             if qID in actID:
                 single_actID_lst.append(actID)
 
-#%% Load contexts
+#%% STEP 5: PROCESS CONTEXT STRINGS
 ##==================================================================================
+print("========== STEP 5: PROCESS CONTEXT STRINGS ==========")
 
-# Reload the custom module in case it was modified (useful during development)
-importlib.reload(erst)
+"""
+Generates a simplified 'kontekst' string from C_T1–C_T3 columns and trims the last invalid rows.
+"""
 
 # Generate a new column 'kontekst' by combining valid time context values (C_T1, C_T2, C_T3)
 # The `get_context` function handles this by filtering and formatting time descriptions
-activityContextGen_df['kontekst'] = activityContextGen_df.apply(lambda row: erst.get_context(row['act_C_T1'], row['act_C_T2'], row['act_C_T3']), axis=1)
+activityContextGen_df['kontekst'] = activityContextGen_df.apply(
+    lambda row: erst.get_context(row['act_C_T1'], row['act_C_T2'], row['act_C_T3']), axis=1
+    )
 # print(df[['Single_action', 'C_T1', 'C_T2', 'C_T3', 'kontekst']])
 
 # Extract the context strings into a list for further use
@@ -222,51 +263,92 @@ context_lst = activityContextGen_df['kontekst'].tolist()
 # Remove the last 6 elements (likely placeholders or incomplete entries)
 context_lst = context_lst[:-6]
 
-#%% Generate sequence of actions
+#%% STEP 6: GENERATE SEQUENCES
 ##==================================================================================
+print("========== STEP 6: GENERATING SEQUENCES OF ACTIONS ==========")
 
-importlib.reload(erst)
+"""
+Creates all valid combinations of actions up to max length.
+"""
 
 # Define the maximum allowed length of action sequences
-act_max_len = 2
+act_max_len = 3
 
 # Generate all possible sequences of actions (represented by actIDs)
-# using the custom function `get_list_of_actions`. This function likely returns
-# combinations/permutations of actions from the provided list (up to the specified length).
 seq_actID_lst = erst.get_list_of_actions(single_actID_lst, act_max_len)
 
-#%%
-# @brief compute data matrix
+#%% STEP 7: TRIM USERS/ACTIONS FOR TESTING (reduced number of users and activities)
+##==================================================================================
+print("========== STEP 7: TRIM USERS/ACTIONS FOR TESTING ==========")
+
 """
-Assumptions:
-- each action belongs to a question => higher anwser to this question
-  means higher relevance to this activity for this user
-- each user has his score for each question and higher score to
-  this question means higher relevance to this group of activities (=question)
-- relevance r = score * anwser 
-- if obtained r is positive, we add it to the matrix
+For faster evaluation, we limit how many users/actions we consider.
 """
 
 # Settings for limiting the number of users and actions considered in the matrix.
-uIDs_n, acts_n = 100, 80
-uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n]
+# uIDs_n, acts_n = 100, 80    # Number of users and actions to consider
+uIDs_n, acts_n = len(uIDs), len(seq_actID_lst)       # Limit number of users and actions for faster testing
+
+# Select subset of users and action sequences
+uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n] 
 #uIDsIn, seq_actID_lstIn = uIDs, seq_actID_lst
 
 # Extract only single-action sequences for relevance computation.
 actID_lstIn = [act[0] for act in seq_actID_lstIn if len(act)==1]
 
+#%% STEP 8: COMPUTE ACTION RELEVANCE SCORES
+##==================================================================================
+print("========== STEP 8: COMPUTING ACTION RELEVANCE SCORES ==========")
+
+"""
+Calculates how relevant each action is for each user based on scores and answers.
+"""
+
 # Method for relevance computation and threshold for inclusion.
 meth_code = 'score'
-r_T = 0.3 # Threshold
-
-# === Precomputation steps ===
+r_T = 0.3 
 
 # Precomputed data frames
 # Scores for each action and user based on their responses and associated scores.
-actID_score_df = erst.get_actID_score_df(uIDsIn, actID_lstIn, actID_qID_dc, uID_scores_dc, all_answers_df, aspect_groups_lst, meth_code)
+actID_score_df = erst.get_actID_score_df(
+    uIDsIn, actID_lstIn, actID_qID_dc, 
+    uID_scores_dc, all_answers_df, 
+    aspect_groups_lst, meth_code
+    )
 
-# Compatibility data between pairs of actions, which likely evaluates how well different actions fit together.
-actID_compat_df = erst.get_actIDPair_compat_df(actID_lstIn, qID_Group_dc, actID_qID_dc)
+# TO SPODAJ JE AVTOMATSKO DELALO....
+# # Compatibility data between pairs of actions, which likely evaluates how well different actions fit together.
+# actID_compat_df = erst.get_actIDPair_compat_df(actID_lstIn, qID_Group_dc, actID_qID_dc)
+
+print("action_compat_df.head():")
+print(action_compat_df.head())
+print("action_compat_df.index:")
+print(action_compat_df.index)
+print(len(action_compat_df.index))
+print("actID_lstIn:")
+print(actID_lstIn)
+print(len(actID_lstIn))
+
+#%% STEP 9: LOAD AND FILTER COMPATIBILITY MATRIX
+##==================================================================================
+print("========== STEP 9: LOAD AND FILTER COMPATIBILITY MATRIX ==========")
+
+"""
+We take the full handcrafted matrix and filter to keep only actions we're working with.
+"""
+
+# Filter handcrafted matrix to include only relevant actions
+actID_compat_df = action_compat_df.loc[actID_lstIn, actID_lstIn]
+print("\nFiltered action compatibility matrix (actID_compat_df):")
+print(actID_compat_df.head())
+
+#%% STEP 10: BUILD USER-ACTION RESPONSE MATRIX
+##==================================================================================
+print("========== STEP 10: BUILDING USER-ACTION RESPONSE MATRIX ==========")
+
+"""
+This builds a matrix where each cell is user's answer to the question linked to an action.
+"""
 
 # User responses to the questions linked to each action, used to compute the relevance of the action.
 uID_qID_answers_df = erst.get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst)
@@ -280,8 +362,7 @@ for actID in actID_lstIn:
     else:
         print ('Error:' + actID)
 
-#%% Test with plots
-## ====================================================================================================
+# Visualize Action-Relevance Heatmap (optional)
 
 # Visualize the user responses to each question (alternative: uncomment for question-level heatmap)
 # sns.heatmap(uID_qID_answers_df)
@@ -289,148 +370,148 @@ for actID in actID_lstIn:
 # Visualize the user responses to each action (rows = users, columns = actions)
 # Each cell shows how relevant a given action is to a specific user based on their original response to the associated question
 sns.heatmap(uID_actID_answers_df)
+plt.title("User vs Action Relevance (based on questionnaire answers)")
+plt.xlabel("Actions")
+plt.ylabel("Users")
+plt.tight_layout()
+plt.show()
 
-#%% Data matrix - D_lst
-## ====================================================================================================
+#%% STEP 11: BUILD D_lst MATRIX
+##==================================================================================
+print("========== STEP 11: BUILDING D_lst MATRIX ==========")
 
 """
-Generate the final data matrix D_lst, where each element is a tuple:
-(user_id, action_sequence, relevance_score)
-The function computes relevance scores based on:
-- user responses to questions (uID_actID_answers_df),
-- precomputed action scores (actID_score_df),
-- and optionally compatibility between actions (actID_compat_df).
+Generate the final data matrix `D_lst`, where each entry is a tuple:
+    (user_id, action_sequence, relevance_score)
+
+This matrix captures how relevant a given action sequence is for a particular user.
+
+Scoring logic and assumptions:
+- Each action is linked to a question (e.g., via actID → qID).
+- A user's *answer* to that question indicates their affinity for the action.
+- A user's *score* for the corresponding aspect group indicates overall importance.
+- Relevance is calculated as:
+      relevance = score * answer
+- If the sequence includes multiple actions, pairwise compatibility scores between them are also considered.
+- Only action sequences with relevance above a threshold `r_T` are kept in the final matrix.
+
+Input components:
+- `uID_actID_answers_df`: users’ responses to individual questions
+- `actID_score_df`: importance scores per user for each action
+- `actID_compat_df`: (optional) compatibility between action pairs
+
+The result is used for generating and evaluating personalized activity recommendations.
 """
 
-# # Only sequences with a relevance score above the defined threshold (r_T) are included.
-# D_lst = erst.get_dataMat(uIDsIn, seq_actID_lstIn, uID_actID_answers_df, actID_score_df, actID_compat_df, r_T, meth_code)
-
-# Mentor's new and laready built D_lst matrix: 
-with open(data_path / 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
-    D_lst = pickle.load(fp)
-
-D_lst = D_lst[:10000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
-
-ratings = [x[3] for x in D_lst]
-
-print("\n========== D_lst LOADED ==========")
-print(f"Total rows in D_lst: {len(D_lst)}")
-print(f"Unique users: {len(set(x[0] for x in D_lst))}")
-print(f"Unique actions: {len(set(x[1] for x in D_lst))}")
-print(f"Min rating: {min(ratings):.3f}, Max rating: {max(ratings):.3f}, Mean: {np.mean(ratings):.3f}")
-
-#%% Random context generator
-## ====================================================================================================
-
-""""
-Test
-This block tests whether a randomly generated context is feasible for a given action.
-"""
-
-importlib.reload(erst)
-
-# Step 1: Collect all possible contexts corresponding to the selected actions
-all_contexts = [actID_context_dc[actID] for actID in actID_lstIn]
-
-# Step 2: Generate a random context from the list of available contexts
-cntx = erst.get_random_context(all_contexts)
-
-# Step 3: Choose a specific action ID for testing feasibility
-actID = 'Ac_AB4_8_Act04'
-
-# Step 4: Check if the randomly generated context is feasible (i.e., valid) for the selected action
-erst.is_action_context_feasibleQ(actID, cntx, actID_context_dc)
-
-#%% Evaluation steps
-## ===================================================================================================
 
 """
 1. Generate data matrix
 2. Use Matrix factorisation to obtain full D. 
 3. Define test uIDs
-4. For uID in uIDs
-  - generate (select) contexts for uID
-  - generate recommnedation: ((a_i:i):j) = argmax (D(uID, :))
-  - filter out those compatible with the context
-  - recommend first three sequences: parametric form
-  - recommend first three sequences: textual form
+4. For uID in uIDs:
+    - generate (select) contexts for uID
+    - generate recommendation: argmax(D(uID, :))
+    - filter those compatible with the context
+    - recommend top-3 in parametric and textual form
 """
 
-#%% Export recommendations and corresponding contextual explanations
-## ==========================================================================================
-# STEP-BY-STEP PIPELINE: Load Data → Tune → Cross-Validate → Train Final Model
+start_time = time.time()
+
+# # Only sequences with a relevance score above the defined threshold (r_T) are included.
+# ZGRADI PODATKOVNO MATRICO Z UPORABO ROČNO VNESENE KOMPATIBILNOSTI
+D_lst = erst.get_dataMat(
+                         uIDsIn, 
+                         seq_actID_lstIn, 
+                         uID_actID_answers_df, 
+                         actID_score_df, 
+                         actID_compat_df, 
+                         r_T, 
+                         meth_code, 
+                         actID_context_dc=actID_context_dc, 
+                         normalize=True  
+                         )
+
+end_time = time.time()
+duration = end_time - start_time
+print(f"\n DONE: D_lst generated with {len(D_lst)} entries in {duration:.2f} seconds.")
+
+# SAVE .pkl:
+with open(data_path / "D_lst_full.pkl", "wb") as f:
+    pickle.dump(D_lst, f)
+print(f"Saved full D_lst to: {data_path / 'D_lst_full.pkl'}")
+
+# # Mentor's new and laready built D_lst matrix: 
+# with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
+#     D_lst = pickle.load(fp)
+
+# D_lst = D_lst[:10000]  # Take only the first 10000 entries — for faster testing
+
+
+ratings = [x[3] for x in D_lst]
+
+print("\n========== D_lst STATISTICS ==========")
+print(f"Total rows in D_lst: {len(D_lst)}")
+print(f"Unique users: {len(set(x[0] for x in D_lst))}")
+print(f"Unique actions: {len(set(x[1] for x in D_lst))}")
+print(f"Min rating: {min(ratings):.3f}")
+print(f"Max rating: {max(ratings):.3f}")
+print(f"Mean rating: {np.mean(ratings):.3f}")
+
+# ➕ Najvišje in najnižje ocene
+sorted_by_rating = sorted(D_lst, key=lambda x: x[3])
+print("\n🔽 Najnižje ocene:")
+for x in sorted_by_rating[:3]:
+    print(x)
+
+print("\n🔼 Najvišje ocene:")
+for x in sorted_by_rating[-3:]:
+    print(x)
+
+# ➕ Kontekstna analiza (C_T1 in C_P1)
+from collections import Counter
+context_counts = Counter(
+    (x[2][0].get("C_T1", "None"), x[2][0].get("C_P1", "None"))
+    for x in D_lst if isinstance(x[2], tuple) and isinstance(x[2][0], dict)
+)
+
+print("\n🧠 Top 10 kontekstov (C_T1, C_P1):")
+for ctx, count in context_counts.most_common(10):
+    print(f"{ctx}: {count}x")
+
+# ➕ Vizualizacija
+plt.hist(ratings, bins=20)
+plt.title("Distribucija ocen v D_lst")
+plt.xlabel("Ocena")
+plt.ylabel("Število vnosov")
+plt.grid(True)
+plt.show()
+
+#%% STEP 12: TRAIN SURPRISE MODEL
+##==================================================================================
+print("========== STEP 12: TRAIN SURPRISE MODEL ==========")
 
 """
-This section prepares a detailed export of recommended actions along with explanations 
-for why those actions are relevant to each user.
-
-What is included in the export:
- - uID: user ID
- - One recommended action per row (multiple recommendations per user, so uID may repeat)
- - Explanations include:
-   - Context: a relevant situation for the action 
-   - User’s answer for the question linked to the action
-   - User’s overall score for this aspect (e.g., physical activity)
-   - Explainability components from matrix factorization: latent feature vectors P and Q
-
-The goal is to construct interpretable recommendations such as:
-  - context: "It's nice weather and the right time to go outside"
-  - qaID: "You’ve previously shown a strong preference for this activity"
-  - scores: "You're physically capable and active, so this fits you well"
-  - P and Q: "Your profile aligns with others who also enjoy this action (based on P and Q vectors)"
+Models like SVD and KNN are trained using the Surprise library. Metrics like RMSE are logged.
 """
 
-importlib.reload(erst)
-
-# Settings - Omeji podatke za hitrejše testiranje
-# uIDs_n, acts_n = 100, 80 # Number of users and actions to consider
-uIDs_n, acts_n = 20, 20 # Number of users and actions to consider #users cca 600 # 
-M = 3 # Number of latent features for matrix factorization (dummy value here)
-m = 5 # Number of top recommended actions per user #20
-uIDsIn, seq_actID_lstIn = uIDs[:uIDs_n], seq_actID_lst[:acts_n] # Subset of users and actions
-
-
-
-# ==========================================================
-# LOAD CONTEXTUAL DATA AND MATRIX
-# ==========================================================
-
-# Mentor's new and laready built D_lst matrix: 
-with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
-    D_lst = pickle.load(fp)
-
-D_lst = D_lst[:10000]  # vzameš le prvih 1000 zapisov -- za namene hitrega testiranja 
-
-# Load context data from the specified file
-# This function reads the context definitions and returns a dictionary mapping action IDs to their context data
-actID_context_dc = erst.load_context_data(activityContextGen_df)
-
-# Define an example context for generating recommendations 
-context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
-
-
-
-# ==========================================================
 # PREPARE DATA FOR SURPRISE
 # ==========================================================
 
+print("\n========== PREPARED DATAFRAME ==========")
 df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'context', 'rating'])
 
-# Odstranimo 'context', ker ga Surprise ne podpira:
+# Remove 'context' because Surprise does not support it
 df_for_surprise = df[['user_id', 'item_id', 'rating']]
-print("\n========== PREPARED DATAFRAME ==========")
 print(f"Shape of df_for_surprise: {df_for_surprise.shape}")
 
 # Prepare data
 reader = Reader(rating_scale=(0, 5))
 data = Dataset.load_from_df(df_for_surprise, reader)
 
-
-
-# ==========================================================
 # ALGORITHM COMPARISON (SVD, KNN, BASELINE, NMF)
 # ==========================================================
 
+print("\n========== ALGORITHM COMPARISON SUMMARY (KFold) ==========")
 algorithms = {
     "SVD": SVD(),
     "KNNBasic": KNNBasic(),
@@ -448,7 +529,7 @@ for name, algo in algorithms.items():
         rmse = accuracy.rmse(predictions, verbose=False)
         mae  = accuracy.mae(predictions, verbose=False)
         mse  = accuracy.mse(predictions, verbose=False)
-        fcp  = accuracy.fcp(predictions)
+        fcp  = accuracy.fcp(predictions, verbose=False)
         metrics['algorithm'].append(name)
         metrics['fold'].append(fold+1)
         metrics['rmse'].append(rmse)
@@ -462,7 +543,6 @@ summary_df = pd.DataFrame(metrics).groupby("algorithm").agg({
     "mse":"mean",
     "fcp":"mean"
 }).reset_index()
-print("\n========== ALGORITHM COMPARISON SUMMARY ==========")
 print(summary_df)
 summary_df.to_excel(tabs_path / "algorithm_comparison.xlsx", index=False)
 plt.figure(figsize=(8,5))
@@ -472,12 +552,15 @@ plt.title("Povprečni RMSE za algoritme")
 plt.tight_layout()
 plt.show()
 
+#%% STEP 13: GRID SEARCH & SVD TUNING
+##==================================================================================
+print("========== STEP 13: GRID SEARCH & SVD TUNING ==========")
 
+"""
+SVD model is tuned using GridSearch to find optimal hyperparameters.
+"""
 
-# ==========================================================
-# SVD TUNING + AND GRID SEARCH
-# ==========================================================
-
+print("\n========== GRID SEARCH ==========")
 # # Define hyperparameter search space for the SVD algorithm (from Surprise library)
 # param_grid = {
 #     'n_factors': [50, 100, 150], # Number of latent factors
@@ -499,36 +582,37 @@ profile.enable()
 # Run grid search to find the best combination of hyperparameters
 gs = erst.grid_search(data, 'SVD', param_grid)
 best_params = gs.best_params['rmse']
-print("\n========== GRID SEARCH COMPLETED ==========")
 print(f"Best params: {best_params}")
 print("Best RMSE score:", gs.best_score['rmse'])
 
 profile.disable()
 # profile.print_stats(sort='cumtime')  
 
+#%% STEP 14: CROSS-VALIDATION
+##==================================================================================
+print("========== STEP 14: CROSS-VALIDATION ==========")
 
+"""
+CV is performed and results are saved and printed.
+"""
 
-# ==========================================================
-# CROSS-VALIDATION AND METRIC EVALUATION
-# ==========================================================
-
+print("\n========== CROSS-VALIDATION RESULTS (SVD ALGORITHM) ==========")
 profile = cProfile.Profile()
 profile.enable()
 cv_results_df = erst.perform_cross_validation(
     data=data, 
-    model_class=lambda: SVD(**best_params),  # tovarna za nov model
+    model_class=lambda: SVD(**best_params),  # factory for new model
     n_splits=2, 
     random_state=42
 )
 profile.disable()
 # profile.print_stats(sort='cumtime')
-print("\n========== CROSS-VALIDATION RESULTS ==========")
 print(cv_results_df)
 
-# Izvlečemo srednje vrednosti iz vrstice 'Mean'
+# Extract mean values from the 'Mean' row
 mean_metrics = cv_results_df[cv_results_df['Fold'] == 'Mean'].iloc[0]
 
-# Pripravimo seznam za prikaz
+# Prepare a summary list for display
 results_list = [
     {
         'Algorithm': 'SVD',
@@ -540,26 +624,35 @@ results_list = [
     }
 ]
 
-print("\nAverage metrics across folds:")
-print(results_list)
+# print("\nAverage metrics across folds:")
+# print(results_list)
 
+#%% STEP 15: FINAL TRAINING & EVALUATION (TRAIN FINAL MODEL ON FULL DATASET OR SPLIT DATASET)
+##==================================================================================
+print("========== STEP 15: FINAL TRAINING & EVALUATION ==========")
 
-
-# ==========================================================
-# INITIALIZE MODEL / TRAIN FINAL MODEL ON FULL DATASET OR SPLIT DATASET
-# ==========================================================
+"""
+Train the final SVD model on all data and evaluate its performance.
+"""
 
 # # Train the model on the full training set
 # trainset = data.build_full_trainset()
 
 # Train the model on the training set
 trainset, testset = train_test_split(data, test_size=0.2)
-print("\n========== TRAINSET INFO ==========")
+
+print("\n========== TRAIN(TEST)SET INFO ==========")
 print(f"Number of users in trainset: {trainset.n_users}")
 print(f"Number of items in trainset: {trainset.n_items}")
-print(f"Testset length: {len(testset)}")
+# print(f"Trainset length: {len(trainset)}")
+print(f"Trainset length: {trainset.n_ratings}")
 
-# Inicializacija modela z najboljšimi parametri
+print(f"Testset length: {len(testset)}")
+print(f"Total unique actions in D_lst: {len(set(x[1] for x in D_lst))}")
+print(dir(trainset))
+
+
+# Initialize the model with the best parameters
 model = SVD(**best_params)
 
 profile = cProfile.Profile()
@@ -578,21 +671,24 @@ print(f"Shape of item factors: {model.qi.shape}")
 profile.disable()
 # profile.print_stats(sort='cumtime')
 
-# Izračun osnovnih metrik na testnem delu
+# Compute basic metrics on the test sets
 print("\n========== TEST SET EVALUATION ==========")
 print(f"RMSE: {accuracy.rmse(predictions)}")
 print(f"MAE:  {accuracy.mae(predictions)}")
 print(f"MSE:  {accuracy.mse(predictions)}")
 print(f"FCP:  {accuracy.fcp(predictions)}")
 
-print("\n========== MODEL SUMMARY ==========")
-print(f"Number of users in trainset: {trainset.n_users}")
-print(f"Number of items in trainset: {trainset.n_items}")
-print(f"Total unique actions in D_lst: {len(set(x[1] for x in D_lst))}")
+#%% STEP 16: GENERATE CONTEXT-AWARE RECOMMENDATIONS
+##==================================================================================
+print("========== STEP 16: GENERATE CONTEXT-AWARE RECOMMENDATIONS ==========")
 
+"""
+For each user:
+- recommend top N actions based on model
+- filter based on context feasibility
+- save top 5 with explanations (answers, scores, MF vectors)
+"""
 
-
-# ==========================================================
 # EXTRACT USER AND ITEM FACTORS (P, Q)
 # ==========================================================
 
@@ -604,15 +700,45 @@ print(f"User factors: {len(user_factors)} extracted")
 print(f"Item factors: {len(item_factors)} extracted")
 
 
+# Settings 
+# ==============================================================================
 
-# ===========================================================
+M = 3                           # Number of latent features for matrix factorization (dummy value here)
+top_n_groundtruth = 5           # How many top ground-truth items to use for evaluation
+n_recommendations = 20          # Number of top candidates returned (before filtering)
+top_k_final_recommendations = 5 # Number of final context-aware recommendations
+
+
 # GENERATE EXPLAINABLE RECOMMENDATIONS FOR EACH USER
 # ===========================================================
 
-dc_lst_41 = []   # za 4.1
-dc_lst_42 = []   # za 4.2
+"""
+This section prepares a detailed export of recommended actions along with explanations 
+for why those actions are relevant to each user.
+
+What is included in the export:
+ - uID: user ID
+ - One recommended action per row (multiple recommendations per user, so uID may repeat)
+ - Explanations include:
+   - Context: a relevant situation for the action 
+   - User’s answer for the question linked to the action
+   - User’s overall score for this aspect (e.g., physical activity)
+   - Explainability components from matrix factorization: latent feature vectors P and Q
+
+The goal is to construct interpretable recommendations such as:
+  - context: "It's nice weather and the right time to go outside"
+  - qaID: "You’ve previously shown a strong preference for this activity"
+  - scores: "You're physically capable and active, so this fits you well"
+  - P and Q: "Your profile aligns with others who also enjoy this action (based on P and Q vectors)"
+"""
+
+dc_lst_41 = []   # for section 4.1
+dc_lst_42 = []   # for section 4.2
 all_recommendations = []           # top-20 brez konteksta
 all_final_recommendations = []     # top-5 filtriranih s kontekstom
+
+# Define an example context for generating recommendations 
+context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
 
 for uID in uIDsIn:
 
@@ -642,38 +768,43 @@ for uID in uIDsIn:
         c_MF_P = [0.0] * M  # fallback
 
 
-    
-    
-    
-
     # GET RECOMMENDATIONS FOR ONE USER (WITHOUT CONTEXT, WITHOUT CONTEXT - USING SURPRISE LIBRARY AND WITH CONTEXT)
     # Get top `m` recommendations for the current user - # GET RECOMMENDATIONS - WITHOUT CONTEXT
-    # best_act_trp_lst = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=m)
-    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=m)
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, D_lst=D_lst, n_recommendations=n_recommendations)
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=n_recommendations)
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
 
 
     # # GET RECOMMENDATIONS - WITHOUT CONTEXT - USING SURPRISE LIBRARY
-    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=m)
+    # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, n_recommendations=n_recommendations)
 
     # # GET RECOMMENDATIONS - WITH CONTEXT
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
-    #                 context=context, actID_context_dc=actID_context_dc, n_recommendations=m)
+    #                 context=context, actID_context_dc=actID_context_dc, n_recommendations=n_recommendations)
 
 
-    # najprej 20 kandidatov brez filtriranja
+    # first get top 20 candidates without filtering
     top20_recs = erst.get_recommendations(
         uID=uID,
         trainset=trainset,
         model=model,
-        n_recommendations=20
+        n_recommendations=n_recommendations
     )
-    # potem filtriraj po kontekstu in vzemi 5
+
+    # then filter by context and take top 5
     filtered_recs = [
         rec for rec in top20_recs
         if erst.is_action_context_feasibleQ(rec[1], context, actID_context_dc)
     ]
-    final_recs = filtered_recs[:m]
+    final_recs = filtered_recs[:top_k_final_recommendations]
+
+    print(f"\n--- Kandidatke za uporabnika {uID} (top {n_recommendations}) brez konteksta ---")
+    for i, (uid, act_id, score) in enumerate(top20_recs[:5]):
+        print(f"{i+1}. {act_id} (score: {score:.3f})")
+
+    print(f"--- Končna priporočila za uporabnika {uID} (m = {top_k_final_recommendations}) po kontekstu ---")
+    for i, (uid, act_id, score) in enumerate(final_recs):
+        print(f"{i+1}. {act_id} (score: {score:.3f})")
 
 
     # all_recommendations.extend(best_act_trp_lst)  # <- Dodamo v glavni seznam
@@ -681,25 +812,34 @@ for uID in uIDsIn:
     # Pred tem:
     # all_recommendations.extend(best_act_trp_lst)
 
-    # Namesto tega:
+    # Instead of this:
     # all_recommendations.extend([(uID, act_seq, score) for act_seq, score in best_act_trp_lst])
 
     # all_recommendations.extend([
     #     (uid, act_seq, score) for uid, act_seq, context, score in best_act_trp_lst
     # ])
 
-    all_recommendations.extend(top20_recs)
-    all_final_recommendations.extend(final_recs)
+    # all_recommendations.extend(top20_recs)
+    # all_final_recommendations.extend(final_recs)
+
+    # Convert action string to tuple to match D_lst format
+    all_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in top20_recs])
+    all_final_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in final_recs])
 
     # print(f"\n========== TOP RECOMMENDATIONS FOR USER {uID} ==========")
-    # for rec in best_act_trp_lst[:3]:  # da jih ne zasuje
+    # for rec in best_act_trp_lst[:3]:  # limit to avoid flooding the output
     #     print(f"Action: {rec[1]}, Score: {rec[-1]:.3f}")
 
     for uid, act_id, score in top20_recs:
-        try:
-            c_MF_Q = item_factors[act_id]
-        except KeyError:
-            c_MF_Q = [0.0] * M
+        # try:
+        #     c_MF_Q = item_factors[act_id]
+        # except KeyError:
+        #     c_MF_Q = [0.0] * M
+        
+        c_MF_Q = next(
+            (vec for key, vec in item_factors.items() if act_id in key),
+            [0.0] * M  # fallback if not found
+        )
 
         cntx_data = actID_context_dc.get(act_id, {})
         c_cntx = erst.get_one_random_context(cntx_data)
@@ -717,12 +857,17 @@ for uID in uIDsIn:
             'MF_Q': c_MF_Q
         })
     
-    # za poglavje 4.2 (s kontekstom)
+    # for section 4.2 (context-based)
     for uid, act_id, score in final_recs:
-        try:
-            c_MF_Q = item_factors[act_id]
-        except KeyError:
-            c_MF_Q = [0.0] * M
+        # try:
+        #     c_MF_Q = item_factors[act_id]
+        # except KeyError:
+        #     c_MF_Q = [0.0] * M
+
+        c_MF_Q = next(
+            (vec for key, vec in item_factors.items() if act_id in key),
+            [0.0] * M  # fallback if not found
+        )
         cntx_data = actID_context_dc.get(act_id, {})
         c_cntx = erst.get_one_random_context(cntx_data)
         dc_lst_42.append({
@@ -738,10 +883,13 @@ for uID in uIDsIn:
             'MF_Q': c_MF_Q
         }) 
 
-# %%
-# ===========================================================
-# EXPORT PRIPOROČIL V EXCEL
-# ===========================================================
+#%% STEP 17: EXPORT RECOMMENDATIONS
+##==================================================================================
+print("========== STEP 17: EXPORT RECOMMENDATIONS ==========")
+
+"""
+Save two recommendation tables (with and without context filtering) to Excel
+"""
 
 rec_X_df_41 = pd.DataFrame(dc_lst_41)
 rec_X_df_41.to_excel(tabs_path / 'recommendations_4_1.xlsx', index=False)
@@ -752,23 +900,39 @@ rec_X_df_42.to_excel(tabs_path / 'recommendations_4_2.xlsx', index=False)
 print(f"Exported {len(rec_X_df_41)} rows for 4.1 recommendations to recommendations_4_1.xlsx")
 print(f"Exported {len(rec_X_df_42)} rows for 4.2 recommendations to recommendations_4_2.xlsx")
 
+#%% STEP 18: EVALUATE PRECISION / RECALL / F1
+##==================================================================================
+print("========== STEP 18: EVALUATE PRECISION / RECALL / F1 ==========")
 
+"""
+Compute standard IR metrics (Precision, Recall, F1) by comparing model recs with ground truth D_lst
+"""
 
-# ===========================================================
-# EVALUATION METRICS
-# ===========================================================
-
-# Pretvori D_lst iz četverčkov v trojčke, ki jih funkcija pričakuje --> to damo sam za hitro testiranje brez kontesta
+# Convert D_lst from quadruples to triplets as expected by the function
 D_triplets = [(uid, iid, rating) for uid, iid, context, rating in D_lst]
+
+print("Sample from D_lst (ground truth):", D_triplets[0][1], type(D_triplets[0][1]))
+print("Sample from all_recommendations:", all_recommendations[0][1], type(all_recommendations[0][1]))
+
+print("\n=== Evaluacija priporočil ===")
+print(f"Stevilo ground truth akcij (top_n_groundtruth): {top_n_groundtruth}")
+print(f"Stevilo kandidatk brez konteksta (n_recommendations): {n_recommendations}")
+print(f"Stevilo končnih priporočil (m): {top_k_final_recommendations}")
+print("\n=== Ground Truth ===")
+for uid in list(set([r[0] for r in D_triplets]))[:3]:  # for the first 3 users
+    top_gt = sorted([r for r in D_triplets if r[0] == uid], key=lambda x: x[2], reverse=True)[:top_n_groundtruth]
+    print(f"Uporabnik {uid} – top {top_n_groundtruth} ocenjenih aktivnosti:")
+    for rec in top_gt:
+        print(f"  {rec[1]} (ocena: {rec[2]:.2f})")
 
 
 # 4.1: brez konteksta (standardna matrika)
 ##############################################################
 p41, r41, f41 = erst.evaluate_recommender_metrics(
     D_triplets,
-    all_recommendations,   # to so tvoje brez-kontekstne priporočila
-    top_n_groundtruth=5,
-    k_eval=m
+    all_recommendations,   # these are your non-contextual recommendations
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations
 )
 
 if all_recommendations:
@@ -778,7 +942,7 @@ if all_recommendations:
 else:
     print("No recommendations generated.") 
 
-# shrani v Excel
+# Save to Excel
 eval_41_df = pd.DataFrame({
     'Precision': [p41],
     'Recall': [r41],
@@ -797,9 +961,9 @@ print(eval_41_df)
 ##############################################################
 p42, r42, f42 = erst.evaluate_recommender_metrics(
     D_triplets,
-    all_final_recommendations,    # to so kontekst filtrirana priporočila
-    top_n_groundtruth=5,
-    k_eval=m
+    all_final_recommendations,    # these are context-filtered recommendations
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations
 )
 
 print(f"final_recs: {len(all_final_recommendations)}")
@@ -820,11 +984,13 @@ eval_42_df.to_excel(tabs_path / 'evaluation_metrics_4_2.xlsx', index=False)
 print("\n========== 4.2 METRICS ==========")
 print(eval_42_df)
 
+#%% STEP 19: PRINT SAMPLES FOR DEBUGGING
+##==================================================================================
+print("========== STEP 19: PRINT SAMPLES FOR DEBUGGING ==========")
 
-
-
-
-
+"""
+Shows sample recommendations, data structures, and types to validate logic.
+"""
 
 print("\n========== SAMPLE RECOMMENDATION ==========")
 if top20_recs:
@@ -836,4 +1002,11 @@ else:
 print(f"\n========== DETAILS FOR USER {uID} ==========")
 print(f"Number of recommendations for user {uID}: {len(top20_recs)}")
 
-# %%
+
+print("Ground truth example from D_lst:")
+for row in D_triplets[:3]:
+    print(f"user: {row[0]}, action: {row[1]}, type(action): {type(row[1])}")
+
+print("Recommendation example from all_recommendations:")
+for row in all_recommendations[:3]:
+    print(f"user: {row[0]}, action: {row[1]}, type(action): {type(row[1])}")

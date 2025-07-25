@@ -3,51 +3,12 @@ import pandas as pd
 import numpy as np
 import itertools
 from sklearn.preprocessing import MinMaxScaler
-from surprise import SVD, Dataset, Reader, accuracy
+from surprise import SVD, accuracy
 from surprise.model_selection import KFold, GridSearchCV
-import openpyxl
 import random
-from pathlib import Path
-from collections import defaultdict
 import time 
+from tqdm import tqdm
 
-##############################################################
-#
-# DATA LOADING AND PREPARATION
-#
-##############################################################
-
-def load_context_data(activityContextGen_df):
-    """
-    Loads contextual information from an Excel sheet and converts it to a dictionary.
-
-    Parameters:
-    - activityContextGen_df
-
-    Returns:
-    - context_dc (dict): Dictionary where keys are actIDs and values are context dictionaries
-    """
-
-    context_dc = {}
-    for _, row in activityContextGen_df.iterrows():
-        actID = row['actID']
-        context_dc[actID] = {
-            'qID': row['qID'],
-            'act_C_T1': row['act_C_T1'],
-            'act_C_T2': row['act_C_T2'],
-            'act_C_T3': row['act_C_T3'],
-            'act_C_P1': row['act_C_P1'],
-            'act_C_P2': row['act_C_P2'],
-            'act_C_P3': row['act_C_P3']
-        }
-
-    return context_dc
-
-##############################################################
-#
-# ACTION SEQUENCE GENERATION
-#
-##############################################################
 def get_list_of_actions(single_act_lst, act_max_len):
     """
     Generates all possible combinations of actions up to a given length.
@@ -73,9 +34,9 @@ def get_list_of_actions(single_act_lst, act_max_len):
 # @brief get data matrix, assumptions are given above
 # @par meth_code 
 #   'score': compatibility and score
-def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_df, r_T, meth_code, context_lst = 0):
+def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_df, r_T, meth_code, actID_context_dc=None, normalize=True):
     """
-    Builds a list of user-action sequence pairs with associated scores above a threshold.
+    Builds a list of user-action sequence triples with associated contexts and scores.
 
     Parameters:
     - uIDs (list): List of user IDs
@@ -85,28 +46,59 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
     - compat_df (DataFrame): Compatibility scores between actions
     - r_T (float): Threshold to include a recommendation
     - meth_code (str): Method to compute the rating
-    - context_lst (optional): Ignored (future use)
+    - actID_context_dc (dict): Dictionary with full context for each action ID
+    - normalize (bool): If True, normalize all ratings to range [0, 5]
 
     Returns:
-    - D_lst (list): List of (user_id, action_sequence, rating) tuples
+    - D_lst (list): List of [user_id, action_sequence, context_sequence, score]
     """
-
-    #D_df = pd.DataFrame(index=uIDs, columns=seq_act_lst, dtype=np.float16)
     D_lst = []
+    total = len(uIDs) * len(seq_act_lst)
 
-    #if context_lst is not 0:
-    #    context_cycle = itertools.cycle(context_lst)
+    with tqdm(total=total, desc="Building D_lst") as pbar:
+        for uID in uIDs:
+            for act_seq in seq_act_lst:
+                c_r = get_score_estimation(
+                    uID, act_seq, uID_actID_answers_df, actID_score_df, compat_df, meth_code
+                )
 
-    for uID in uIDs:
-        for act_seq in seq_act_lst:
+                if c_r > r_T:
+                    if actID_context_dc is not None:
+                        # pridobi kontekst za vsako aktivnost v sekvenci
+                        context_sequence = tuple([
+                            {
+                                'qID': actID_context_dc[act]['qID'],
+                                'C_T1': actID_context_dc[act]['act_C_T1'],
+                                'C_T2': actID_context_dc[act]['act_C_T2'],
+                                'C_T3': actID_context_dc[act]['act_C_T3'],
+                                'C_P1': actID_context_dc[act]['act_C_P1'],
+                                'C_P2': actID_context_dc[act]['act_C_P2'],
+                                'C_P3': actID_context_dc[act]['act_C_P3']
+                            }
+                            for act in act_seq
+                        ])
+                    else:
+                        context_sequence = ()
 
-            # Rating = score for this action
-            c_r = get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, compat_df, meth_code)
+                    D_lst.append([uID, act_seq, context_sequence, c_r])
+                
+                pbar.update(1)
 
-            if c_r > r_T:
-                D_lst.append([uID, act_seq, c_r])
-    
-    #return D_df
+        # Normalization
+        if normalize and D_lst:
+            scores = [x[3] for x in D_lst]
+            min_r, max_r = min(scores), max(scores)
+
+            min_target = r_T
+            max_target = 5.0
+
+            if max_r > min_r:
+                for entry in D_lst:
+                    entry[3] = min_target + (max_target - min_target) * (entry[3] - min_r) / (max_r - min_r)
+            else:
+                for entry in D_lst:
+                    entry[3] = (min_target + max_target) / 2  # če so vse ocene enake
+
     return D_lst
 
 # @brief Get random context 
@@ -190,11 +182,6 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
     else:
         return False
     
-##############################################################
-#
-# RECOMMENDATION LOGIC
-#
-##############################################################
 #@brief returns m best actions triples
 def get_recommendations(uID, 
                         n_recommendations=20, 
@@ -253,54 +240,30 @@ def get_recommendations(uID,
     else:
         raise ValueError("Provide either D_lst or both model and trainset.")
 
-##############################################################
-#
-# EVALUATION METRICS AND VALIDATION
-#
-##############################################################
-def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=5, k_eval=5):
-    """
-    Computes Precision, Recall, and F1-score by comparing recommended actions
-    (from best_act_trp_lst) with top-N relevant actions (from D_lst).
-    
-    Parameters:
-    - D_lst: list of [user_id, action_sequence, score] → all potential scored actions
-    - best_act_trp_lst: list of (user_id, action_sequence, score) → top recommendations from recommender
-    - top_n_groundtruth: how many top actions per user to consider as ground truth (default: 5)
-    - k_eval: number of top recommendations per user to consider (default: 5)
+def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=20, k_eval=5):
+    from collections import defaultdict
 
-    Returns:
-    - avg_p, avg_r, avg_f: average precision, recall, and F1-score
-    """
-
-    # STEP 1 – build ground truth dict: top-N scored actions per user
     user_action_scores = defaultdict(list)
     for uid, act_seq, score in D_lst:
-        user_action_scores[uid].append((act_seq, score))
+        user_action_scores[uid].append((tuple(act_seq), score))
 
     ground_truth_dict = {}
     for uid, scored_seqs in user_action_scores.items():
         top_gt = sorted(scored_seqs, key=lambda x: x[1], reverse=True)[:top_n_groundtruth]
-        ground_truth_dict[uid] = set([tuple(a) for a, _ in top_gt])  # ensure tuple format
+        ground_truth_dict[uid] = set([tuple(a) for a, _ in top_gt])
 
-    # STEP 2 – build recommended dict: top-K recommended actions per user
     recommended_dict = defaultdict(list)
     for uid, act_seq, score in best_act_trp_lst:
-        recommended_dict[uid].append((act_seq, score))
+        recommended_dict[uid].append((tuple(act_seq), score))
 
-    formatted_D_lst = []
-    for uid, recs in recommended_dict.items():
-        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
-        top_recs = [tuple(seq) for seq, _ in top_k]
-        formatted_D_lst.append({'user_id': uid, 'top_recommendations': top_recs})
-
-    # STEP 3 – compute metrics
     precision_list, recall_list, f1_list = [], [], []
 
-    for user in formatted_D_lst:
-        uid = user['user_id']
-        predicted = set(user['top_recommendations'])
+    for uid, recs in recommended_dict.items():
+        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
+        predicted = set([act for act, _ in top_k])
         actual = ground_truth_dict.get(uid, set())
+        if not actual:
+            continue
 
         tp = len(predicted & actual)
         fp = len(predicted - actual)
@@ -314,9 +277,12 @@ def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=5, k
         recall_list.append(recall)
         f1_list.append(f1)
 
-    avg_p = round(sum(precision_list) / len(precision_list), 3)
-    avg_r = round(sum(recall_list) / len(recall_list), 3)
-    avg_f = round(sum(f1_list) / len(f1_list), 3)
+    if precision_list:
+        avg_p = round(sum(precision_list) / len(precision_list), 3)
+        avg_r = round(sum(recall_list) / len(recall_list), 3)
+        avg_f = round(sum(f1_list) / len(f1_list), 3)
+    else:
+        avg_p = avg_r = avg_f = 0.0
 
     return avg_p, avg_r, avg_f
 
@@ -361,7 +327,7 @@ def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=1
         metrics['RMSE'].append(accuracy.rmse(predictions, verbose=False))
         metrics['MAE'].append(accuracy.mae(predictions, verbose=False))
         metrics['MSE'].append(accuracy.mse(predictions, verbose=False))
-        metrics['FCP'].append(accuracy.fcp(predictions))
+        metrics['FCP'].append(accuracy.fcp(predictions, verbose=False))
 
     # Create DataFrame with folds
     results = pd.DataFrame({
@@ -377,48 +343,8 @@ def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=1
 
     results = pd.concat([results, summary], ignore_index=True)
 
-    # Output formatted table
-    pd.set_option('display.precision', 4)
-    print(results.set_index('Fold'))
-
     return results
 
-def save_evaluation_results(results_list, save_path):
-    """
-    Saves model evaluation results to an Excel file.
-
-    Parameters:
-    - results_list (list): A list of dictionaries containing evaluation results
-    - save_path (str): Path to the folder where Excel should be saved (should end with '/')
-    """
-
-    df = pd.DataFrame(results_list)
-
-    # Prevod v slovenščino
-    df.rename(columns={
-        'Algorithm': 'Metoda',
-        'Average RMSE': 'Povprečni RMSE',
-        'Average MAE': 'Povprečni MAE',
-        'Average MSE': 'Povprečni MSE',
-        'Average FCP': 'Povprečni FCP',
-        'Average Training Time': 'Povprečni čas učenja (s)'
-    }, inplace=True)
-
-    # Zaokrožitev na 3 decimalke
-    df = df.round(3)
-
-    # Shrani kot Excel za preverjanje (opcijsko)
-    df.to_excel(save_path / 'evaluation_results_slo.xlsx', index=False)
-
-    # Shrani kot .tex za uporabo v LaTeX-u
-    with open(save_path / 'evaluation_results_slo.tex', 'w', encoding='utf-8') as f:
-        f.write(df.to_latex(index=False, float_format="%.3f", escape=False))
-
-##############################################################
-#
-# MODEL SELECTION AND TRAINING
-#
-##############################################################
 def grid_search(data, algorithm_name, param_grid):
     """
     Performs hyperparameter tuning using grid search with cross-validation.
@@ -437,23 +363,6 @@ def grid_search(data, algorithm_name, param_grid):
     gs.fit(data)
     
     return gs
-    
-##############################################################
-#
-# EXPORTING RESULTS
-#
-##############################################################
-def save_recommendations_to_excel(recommendations, file_path):
-    """
-    Saves a list of recommendations to an Excel file.
-
-    Parameters:
-    - recommendations (list): List of tuples (user_id, item_id, estimated_rating)
-    - file_path (str): Full file path for the Excel file output
-    """
-
-    df = pd.DataFrame(recommendations, columns=['user_id', 'item_id', 'estimated_rating'])
-    df.to_excel(str(file_path), index=False)  # Pandas zahteva str pot za Excel
 
 #uIDsIn, seq_act_lstIn = uIDs[:5], seq_act_lst[:5]
 #meth_code = 'score'
@@ -494,11 +403,6 @@ def get_rating_estimation(uID, act_seq, singleAct_qID_dc, uID_activity_scores_dc
     return c_r
 '''
 
-##############################################################
-#
-# CONTEXT PROCESSING AND TRANSFORMATION
-#
-##############################################################
 def get_context(c_T1, c_T2, c_T3):
     """
     Constructs a context string from three contextual time values.
@@ -523,11 +427,6 @@ def get_context(c_T1, c_T2, c_T3):
         return 'nd'
     return '-'.join(sorted(context))  
 
-##############################################################
-#
-# SCORE AND COMPATIBILITY MATRIX GENERATION
-#
-##############################################################
 # @brief copute single action score = rating compatibility
 def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores_dc, all_answers_df, aspect_groups_lst, meth_code):
     """
@@ -637,11 +536,6 @@ def get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, com
 
     return c_r
 
-##############################################################
-#
-# USER ANSWER PROCESSING
-#
-##############################################################
 # @brief get anwssers by users
 def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
     """
