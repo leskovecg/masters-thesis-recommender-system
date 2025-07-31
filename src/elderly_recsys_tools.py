@@ -4,12 +4,12 @@ import numpy as np
 import itertools
 from sklearn.preprocessing import MinMaxScaler
 from surprise import SVD, accuracy
-from surprise.model_selection import KFold, GridSearchCV
+from surprise.model_selection import KFold
 import random
 import time 
 from tqdm import tqdm
 
-def get_list_of_actions(single_act_lst, act_max_len):
+def get_list_of_actions(single_act_lst: list[str], act_max_len: int) -> list[tuple[str]]:
     """
     Generates all possible combinations of actions up to a given length.
 
@@ -28,12 +28,6 @@ def get_list_of_actions(single_act_lst, act_max_len):
 
     return seq_act_lst
 
-#single_act_lst, act_max_len = ['a','b','c','d','e'], 3
-#x = get_list_of_actions(single_act_lst, act_max_len)
-
-# @brief get data matrix, assumptions are given above
-# @par meth_code 
-#   'score': compatibility and score
 def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_df, r_T, meth_code, actID_context_dc=None, normalize=True):
     """
     Builds a list of user-action sequence triples with associated contexts and scores.
@@ -101,7 +95,6 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
 
     return D_lst
 
-# @brief Get random context 
 def get_random_context(all_contexts):
     """
     Selects a random simplified context from a list of full activity contexts.
@@ -123,14 +116,13 @@ def get_random_context(all_contexts):
     
     return c_cntx
 
-# @brief Get random context 
 def get_one_random_context(full_cntx):
     """
     Selects a random context (time and place) from a full context definition for a single activity.
 
     Parameters:
     - full_cntx (dict): Dictionary containing full context fields for one activity,
-                        including keys like 'qID', 'C_T1', 'C_T2', 'C_T3', 'C_P1', 'C_P2', 'C_P3'.
+                        including keys like 'qID', 'act_C_T1', 'act_C_T2', 'act_C_T3', 'act_C_P1', 'act_C_P2', 'act_C_P3'.
 
     Returns:
     - c_cntx (dict): A simplified context dictionary with one randomly selected time (C_T)
@@ -164,7 +156,7 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
                    - 'C_T' (context time), e.g., 'dopoldne'
                    - 'C_P' (context place), e.g., 'kjerkoli'
     - actID_context_dc (dict): A dictionary where each key is an action ID, and the value is
-                               a dict with keys like 'C_T1', 'C_T2', 'C_T3', 'C_P1', etc., 
+                               a dict with keys like 'act_C_T1', 'act_C_T2', 'act_C_T3', 'act_C_P1', etc., 
                                defining allowed times and places for that action.
 
     Returns:
@@ -173,7 +165,6 @@ def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
     """
     
     f_cntx = actID_context_dc[actID] # Full context
-    f_cntx = actID_context_dc[actID]
     C_Ts = [f_cntx[k].strip() for k in ['act_C_T1', 'act_C_T2', 'act_C_T3'] if isinstance(f_cntx[k], str)]
     C_Ps = [f_cntx[k].strip() for k in ['act_C_P1', 'act_C_P2', 'act_C_P3'] if isinstance(f_cntx[k], str)]
 
@@ -345,25 +336,6 @@ def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=1
 
     return results
 
-def grid_search(data, algorithm_name, param_grid):
-    """
-    Performs hyperparameter tuning using grid search with cross-validation.
-
-    Parameters:
-    - data (surprise.Dataset): The dataset to train on
-    - algorithm_name (str): Name of the algorithm (currently only 'SVD')
-    - param_grid (dict): Dictionary of hyperparameters to test
-
-    Returns:
-    - gs (GridSearchCV): The trained grid search object containing best parameters
-    """
-
-    algo_class = SVD  # Add other algorithms here if needed
-    gs = GridSearchCV(algo_class, param_grid, measures=['rmse'], cv=3)
-    gs.fit(data)
-    
-    return gs
-
 #uIDsIn, seq_act_lstIn = uIDs[:5], seq_act_lst[:5]
 #meth_code = 'score'
 #actID_lstIn = list(actID_qID_dc.keys())[:5]
@@ -403,12 +375,12 @@ def get_rating_estimation(uID, act_seq, singleAct_qID_dc, uID_activity_scores_dc
     return c_r
 '''
 
-def get_context(c_T1, c_T2, c_T3):
+def get_context(act_C_T1, act_C_T2, act_C_T3):
     """
     Constructs a context string from three contextual time values.
 
     Parameters:
-    - c_T1, c_T2, c_T3 (str or NaN): Contextual descriptors
+    - act_C_T1, act_C_T2, act_C_T3 (str or NaN): Contextual descriptors
 
     Returns:
     - str: Concatenated context string or 'nd' if none are valid
@@ -416,9 +388,9 @@ def get_context(c_T1, c_T2, c_T3):
 
     valid_contexts = {'dopoldne', 'popoldne', 'zvečer'}  
     context = []
-    
-    for c in [c_T1, c_T2, c_T3]:
-        if pd.isna(c):  
+
+    for c in [act_C_T1, act_C_T2, act_C_T3]:
+        if pd.isna(c):
             continue
         c = c.lower().strip()
         if c in valid_contexts:

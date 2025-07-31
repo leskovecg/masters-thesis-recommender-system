@@ -1,36 +1,38 @@
 """
 EXPLAINABLE ELDERLY RECOMMENDER SYSTEM PIPELINE
 ===================================================
-This script builds an explainable, context-aware recommender system for elderly users.
-It processes user questionnaires, activity metadata, compatibility scores, and context definitions
-to generate tailored daily activity suggestions.
 
-The pipeline includes the following major steps:
+This script implements a modular and explainable recommender system for suggesting daily activities to elderly users.
+It integrates multiple data sources (user responses, health dimensions, contextual metadata) and applies collaborative filtering 
+(SVD, KNN, NMF, BaselineOnly) to build personalized and context-aware recommendations.
 
-STEP 1: 
-STEP 2: 
-STEP 3: 
-STEP 4: 
-STEP 5: 
-STEP 6:
-STEP 7: 
-STEP 8:
-STEP 9: 
-STEP 10: 
-STEP 11: 
-STEP 12: 
-STEP 13:
-STEP 14:
-STEP 15:
-STEP 16:
-STEP 17:
-STEP 18:
-STEP 19:
+The main components of the pipeline are:
+
+STEP 0: Importing required libraries
+STEP 1: Configuration & parameter settings
+STEP 2: Loading user and activity data from Excel
+STEP 3: Building dictionaries from context definitions
+STEP 4: Selecting actions based on selected aspects
+STEP 5: Generating simplified context strings
+STEP 6: Generating sequences of actions
+STEP 7: Trimming users and actions (for testing)
+STEP 8: Computing action relevance scores
+STEP 9: Filtering the compatibility matrix
+STEP 10: Building the user-action response matrix
+STEP 11: Building D_lst data matrix for training
+STEP 12: Comparing multiple algorithms using Surprise
+STEP 13: Hyperparameter tuning (GridSearch for SVD)
+STEP 14: Cross-validation for tuned SVD
+STEP 15: Final model training and matrix factorization
+STEP 16: Generating explainable context-aware recommendations
+STEP 17: Exporting recommendations
+STEP 18: Evaluating recommendations with Precision / Recall / F1
+STEP 19: Printing samples and debugging outputs
 """
 
-#%% STEP 1: IMPORT LIBRARIES
+#%% STEP 0: IMPORT LIBRARIES
 ##==================================================================================
-print("========== STEP 1: IMPORTING LIBRARIES ==========")
+print("========== STEP 0: IMPORTING LIBRARIES ==========")
 
 import numpy as np
 import cProfile
@@ -40,24 +42,39 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from surprise import Dataset, Reader, SVD, KNNBasic, BaselineOnly, NMF, accuracy
 from sklearn.model_selection import ShuffleSplit
-from surprise.model_selection import train_test_split, cross_validate, KFold
+from surprise.model_selection import train_test_split, cross_validate, KFold, GridSearchCV
 from collections import defaultdict
 from pathlib import Path
 import datetime
 import pickle
 import elderly_recsys_tools as erst
 import time
+from tqdm import tqdm
+from collections import Counter
+
+#%% STEP 1: CONFIGURATION & SETTINGS
+##==================================================================================
+print("========== STEP 1: GLOBAL SETTINGS ==========")
+
+test_mode = False                # Enable test mode for debugging
+
+n_splits = 5                    # Number of splits for cross-validation
+M = 100                           # Number of latent features for matrix factorization (dummy value here)
+top_n_groundtruth = 5           # How many top ground-truth items to use for evaluation
+n_recommendations = 20          # Number of top candidates returned (before filtering)
+top_k_final_recommendations = 5 # Number of final context-aware recommendations
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+data_path = BASE_DIR / 'data'
+tabs_path = BASE_DIR / 'latex' / 'tabs'
+figs_path = BASE_DIR / 'latex' / 'figs'
+
+# Generate a timestamp (YYYYMMDD_HHMMSS) to version output files
+timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
 #%% STEP 2: LOAD DATA FROM EXCEL
 ##==================================================================================
 print("========== STEP 2: LOADING DATA FROM EXCEL FILES ==========")
-
-#Define file paths for input data and output results
-BASE_DIR = Path(__file__).resolve().parents[1]  # Get base directory
-
-data_path = BASE_DIR / 'data'
-figs_path = BASE_DIR / 'latex' / 'figs'
-tabs_path = BASE_DIR / 'latex' / 'tabs'
 
 # Load activity data, replace -1 with NaN, and rename columns with 'Ac_' prefix
 activities_df = pd.read_excel(data_path / 'Activities.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
@@ -374,6 +391,7 @@ plt.title("User vs Action Relevance (based on questionnaire answers)")
 plt.xlabel("Actions")
 plt.ylabel("Users")
 plt.tight_layout()
+plt.savefig(figs_path / f"user_action_relevance_heatmap_{timestamp}.png")
 plt.show()
 
 #%% STEP 11: BUILD D_lst MATRIX
@@ -381,8 +399,8 @@ plt.show()
 print("========== STEP 11: BUILDING D_lst MATRIX ==========")
 
 """
-Generate the final data matrix `D_lst`, where each entry is a tuple:
-    (user_id, action_sequence, relevance_score)
+D_lst = list of tuples: (user_id, action_seq, context, relevance_score)
+This matrix is the central object for training and evaluating the recommender
 
 This matrix captures how relevant a given action sequence is for a particular user.
 
@@ -435,10 +453,11 @@ end_time = time.time()
 duration = end_time - start_time
 print(f"\n DONE: D_lst generated with {len(D_lst)} entries in {duration:.2f} seconds.")
 
+d_lst_filename = f"D_lst_full_{timestamp}.pkl"
 # SAVE .pkl:
-with open(data_path / "D_lst_full.pkl", "wb") as f:
+with open(data_path / d_lst_filename, "wb") as f:
     pickle.dump(D_lst, f)
-print(f"Saved full D_lst to: {data_path / 'D_lst_full.pkl'}")
+print(f"Saved full D_lst to: {data_path / d_lst_filename}")
 
 # # Mentor's new and laready built D_lst matrix: 
 # with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
@@ -457,49 +476,54 @@ print(f"Min rating: {min(ratings):.3f}")
 print(f"Max rating: {max(ratings):.3f}")
 print(f"Mean rating: {np.mean(ratings):.3f}")
 
-# ➕ Najvišje in najnižje ocene
+# Najvišje in najnižje ocene
 sorted_by_rating = sorted(D_lst, key=lambda x: x[3])
-print("\n🔽 Najnižje ocene:")
+print("\n Najnižje ocene:")
 for x in sorted_by_rating[:3]:
     print(x)
 
-print("\n🔼 Najvišje ocene:")
+print("\n Najvišje ocene:")
 for x in sorted_by_rating[-3:]:
     print(x)
 
-# ➕ Kontekstna analiza (C_T1 in C_P1)
-from collections import Counter
+# Kontekstna analiza (C_T1 in C_P1)
 context_counts = Counter(
     (x[2][0].get("C_T1", "None"), x[2][0].get("C_P1", "None"))
     for x in D_lst if isinstance(x[2], tuple) and isinstance(x[2][0], dict)
 )
 
-print("\n🧠 Top 10 kontekstov (C_T1, C_P1):")
+print("\n Top 10 kontekstov (C_T1, C_P1):")
 for ctx, count in context_counts.most_common(10):
     print(f"{ctx}: {count}x")
 
-# ➕ Vizualizacija
+# Vizualizacija
 plt.hist(ratings, bins=20)
 plt.title("Distribucija ocen v D_lst")
 plt.xlabel("Ocena")
 plt.ylabel("Število vnosov")
 plt.grid(True)
+plt.savefig(figs_path / f"ratings_distribution_hist_{timestamp}.png")
 plt.show()
 
-#%% STEP 12: TRAIN SURPRISE MODEL
+#%% STEP 12: ALGORITHM COMPARISON (SVD, KNNBasic, BaselineOnly, NMF)
 ##==================================================================================
-print("========== STEP 12: TRAIN SURPRISE MODEL ==========")
+print("========== STEP 12: ALGORITHM COMPARISON ==========")
 
 """
-Models like SVD and KNN are trained using the Surprise library. Metrics like RMSE are logged.
+This step loads a sample of D_lst and prepares the rating data for Surprise.
+Then, several collaborative filtering algorithms are evaluated using KFold cross-validation.
 """
 
-# PREPARE DATA FOR SURPRISE
-# ==========================================================
+# Load D_lst and prepare DataFrame 
+# ========================================================== 
 
-print("\n========== PREPARED DATAFRAME ==========")
+print("\n========== Loading D_lst... ==========")
+with open(data_path / "D_lst_full.pkl", "rb") as f:
+    D_lst = pickle.load(f)
+# D_lst = D_lst[:1000]
+
+print("\n========== Preparing DataFrame for Surprise... ==========")
 df = pd.DataFrame(D_lst, columns=['user_id', 'item_id', 'context', 'rating'])
-
 # Remove 'context' because Surprise does not support it
 df_for_surprise = df[['user_id', 'item_id', 'rating']]
 print(f"Shape of df_for_surprise: {df_for_surprise.shape}")
@@ -508,48 +532,55 @@ print(f"Shape of df_for_surprise: {df_for_surprise.shape}")
 reader = Reader(rating_scale=(0, 5))
 data = Dataset.load_from_df(df_for_surprise, reader)
 
-# ALGORITHM COMPARISON (SVD, KNN, BASELINE, NMF)
+# Define algorithms and evaluate using CV
 # ==========================================================
 
-print("\n========== ALGORITHM COMPARISON SUMMARY (KFold) ==========")
 algorithms = {
-    "SVD": SVD(),
-    "KNNBasic": KNNBasic(),
-    "BaselineOnly": BaselineOnly(),
-    "NMF": NMF()
+    "SVD": SVD,
+    "KNNBasic": KNNBasic,
+    "BaselineOnly": BaselineOnly,
+    "NMF": NMF
 }
-metrics = defaultdict(list)
-kf = KFold(n_splits=3, random_state=42, shuffle=True)
 
-for name, algo in algorithms.items():
+metrics_summary = []
+
+print("\n Performing cross-validation for each algorithm...")
+for name, algo_class in tqdm(algorithms.items(), desc="Evaluating Algorithms"):
     print(f"\n=== Evaluating {name} ===")
-    for fold, (trainset, testset) in enumerate(kf.split(data)):
-        algo.fit(trainset)
-        predictions = algo.test(testset)
-        rmse = accuracy.rmse(predictions, verbose=False)
-        mae  = accuracy.mae(predictions, verbose=False)
-        mse  = accuracy.mse(predictions, verbose=False)
-        fcp  = accuracy.fcp(predictions, verbose=False)
-        metrics['algorithm'].append(name)
-        metrics['fold'].append(fold+1)
-        metrics['rmse'].append(rmse)
-        metrics['mae'].append(mae)
-        metrics['mse'].append(mse)
-        metrics['fcp'].append(fcp)
+    cv_df = erst.perform_cross_validation(
+        data=data,
+        model_class=algo_class,
+        algorithm_name=name,
+        n_splits=n_splits,
+        random_state=42
+    )
 
-summary_df = pd.DataFrame(metrics).groupby("algorithm").agg({
-    "rmse":"mean",
-    "mae":"mean",
-    "mse":"mean",
-    "fcp":"mean"
-}).reset_index()
+    mean_metrics = cv_df[cv_df['Fold'] == 'Mean'].iloc[0]
+
+    metrics_summary.append({
+        'algorithm': name,
+        'rmse': round(mean_metrics['RMSE'], 4),
+        'mae': round(mean_metrics['MAE'], 4),
+        'mse': round(mean_metrics['MSE'], 4),
+        'fcp': round(mean_metrics['FCP'], 4)
+    })
+
+# Save results and plot
+# ==========================================================
+
+# Convert to DataFrame and export
+summary_df = pd.DataFrame(metrics_summary)
+print("\n Cross-validation results summary:")
 print(summary_df)
-summary_df.to_excel(tabs_path / "algorithm_comparison.xlsx", index=False)
+
+summary_df.to_excel(tabs_path / f"algorithm_comparison_{timestamp}.xlsx", index=False)
+
 plt.figure(figsize=(8,5))
 plt.bar(summary_df["algorithm"], summary_df["rmse"], color="lightblue")
 plt.ylabel("Average RMSE")
 plt.title("Povprečni RMSE za algoritme")
 plt.tight_layout()
+plt.savefig(figs_path / f"algorithm_rmse_comparison_{timestamp}.png")
 plt.show()
 
 #%% STEP 13: GRID SEARCH & SVD TUNING
@@ -562,25 +593,21 @@ SVD model is tuned using GridSearch to find optimal hyperparameters.
 
 print("\n========== GRID SEARCH ==========")
 # # Define hyperparameter search space for the SVD algorithm (from Surprise library)
-# param_grid = {
-#     'n_factors': [50, 100, 150], # Number of latent factors
-#     'n_epochs': [10, 20, 30], # Number of training epochs
-#     'lr_all': [0.002, 0.005], # Learning rate
-#     'reg_all': [0.02, 0.1] # Regularization term
-# }
 
 param_grid = {
-    'n_factors': [10],      # namesto 50–150
-    'n_epochs': [5],        # namesto 10–30
-    'lr_all': [0.002],      # pusti eno vrednost
-    'reg_all': [0.02]
+    'n_factors': [10] if test_mode else [50, 100, 150],
+    'n_epochs': [5] if test_mode else [20, 30],
+    'lr_all': [0.002] if test_mode else [0.002, 0.005],
+    'reg_all': [0.02] if test_mode else [0.02, 0.1]
 }
 
 profile = cProfile.Profile() 
 profile.enable() 
 
 # Run grid search to find the best combination of hyperparameters
-gs = erst.grid_search(data, 'SVD', param_grid)
+gs = GridSearchCV(SVD, param_grid, measures=['rmse'], cv=n_splits)
+gs.fit(data)
+
 best_params = gs.best_params['rmse']
 print(f"Best params: {best_params}")
 print("Best RMSE score:", gs.best_score['rmse'])
@@ -588,25 +615,31 @@ print("Best RMSE score:", gs.best_score['rmse'])
 profile.disable()
 # profile.print_stats(sort='cumtime')  
 
-#%% STEP 14: CROSS-VALIDATION
+#%% STEP 14: CROSS-VALIDATION FOR TUNED SVD
 ##==================================================================================
-print("========== STEP 14: CROSS-VALIDATION ==========")
+print("========== STEP 14: CROSS-VALIDATION (TUNED SVD) ==========")
 
 """
-CV is performed and results are saved and printed.
+This step validates the performance of the tuned SVD model using n_splits-fold cross-validation.
 """
 
-print("\n========== CROSS-VALIDATION RESULTS (SVD ALGORITHM) ==========")
+# === Run cross-validation with tuned parameters ===
+print(f"\n Evaluating tuned SVD model with {n_splits}-fold CV...")
 profile = cProfile.Profile()
 profile.enable()
 cv_results_df = erst.perform_cross_validation(
     data=data, 
     model_class=lambda: SVD(**best_params),  # factory for new model
-    n_splits=2, 
+    n_splits=n_splits, 
     random_state=42
 )
 profile.disable()
 # profile.print_stats(sort='cumtime')
+
+cv_results_df.to_excel(tabs_path / f"cv_results_tuned_SVD_{timestamp}.xlsx", index=False)
+
+# === Extract and display average metrics ===
+print("\n Cross-validation results for tuned SVD:")
 print(cv_results_df)
 
 # Extract mean values from the 'Mean' row
@@ -700,15 +733,6 @@ print(f"User factors: {len(user_factors)} extracted")
 print(f"Item factors: {len(item_factors)} extracted")
 
 
-# Settings 
-# ==============================================================================
-
-M = 3                           # Number of latent features for matrix factorization (dummy value here)
-top_n_groundtruth = 5           # How many top ground-truth items to use for evaluation
-n_recommendations = 20          # Number of top candidates returned (before filtering)
-top_k_final_recommendations = 5 # Number of final context-aware recommendations
-
-
 # GENERATE EXPLAINABLE RECOMMENDATIONS FOR EACH USER
 # ===========================================================
 
@@ -740,7 +764,7 @@ all_final_recommendations = []     # top-5 filtriranih s kontekstom
 # Define an example context for generating recommendations 
 context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
 
-for uID in uIDsIn:
+for uID in tqdm(uIDsIn, desc="Generating recommendations"):
 
     print(f"\n========== Generating recommendations for user {uID} ==========")
 
@@ -799,7 +823,7 @@ for uID in uIDsIn:
     final_recs = filtered_recs[:top_k_final_recommendations]
 
     print(f"\n--- Kandidatke za uporabnika {uID} (top {n_recommendations}) brez konteksta ---")
-    for i, (uid, act_id, score) in enumerate(top20_recs[:5]):
+    for i, (uid, act_id, score) in enumerate(top20_recs[:top_k_final_recommendations]):
         print(f"{i+1}. {act_id} (score: {score:.3f})")
 
     print(f"--- Končna priporočila za uporabnika {uID} (m = {top_k_final_recommendations}) po kontekstu ---")
@@ -892,13 +916,13 @@ Save two recommendation tables (with and without context filtering) to Excel
 """
 
 rec_X_df_41 = pd.DataFrame(dc_lst_41)
-rec_X_df_41.to_excel(tabs_path / 'recommendations_4_1.xlsx', index=False)
+rec_X_df_41.to_excel(tabs_path / f"recommendations_4_1_{timestamp}.xlsx", index=False)
 
 rec_X_df_42 = pd.DataFrame(dc_lst_42)
-rec_X_df_42.to_excel(tabs_path / 'recommendations_4_2.xlsx', index=False)
+rec_X_df_42.to_excel(tabs_path / f"recommendations_4_2_{timestamp}.xlsx", index=False)
 
-print(f"Exported {len(rec_X_df_41)} rows for 4.1 recommendations to recommendations_4_1.xlsx")
-print(f"Exported {len(rec_X_df_42)} rows for 4.2 recommendations to recommendations_4_2.xlsx")
+print(f"Exported {len(rec_X_df_41)} rows for 4.1 recommendations to recommendations_4_1_{timestamp}.xlsx")
+print(f"Exported {len(rec_X_df_42)} rows for 4.2 recommendations to recommendations_4_2_{timestamp}.xlsx")
 
 #%% STEP 18: EVALUATE PRECISION / RECALL / F1
 ##==================================================================================
@@ -949,7 +973,7 @@ eval_41_df = pd.DataFrame({
     'F1': [f41],
     'AverageScore': [avg_score_41 ]
 })
-eval_41_df.to_excel(tabs_path / 'evaluation_metrics_4_1.xlsx', index=False)
+eval_41_df.to_excel(tabs_path / f"evaluation_metrics_4_1_{timestamp}.xlsx", index=False)
 
 print("\n========== 4.1 METRICS ==========")
 print(eval_41_df)
@@ -979,7 +1003,7 @@ eval_42_df = pd.DataFrame({
     'F1': [f42],
     'AverageScore': [avg_score_42]
 })
-eval_42_df.to_excel(tabs_path / 'evaluation_metrics_4_2.xlsx', index=False)
+eval_42_df.to_excel(tabs_path / f"evaluation_metrics_4_2_{timestamp}.xlsx", index=False)
 
 print("\n========== 4.2 METRICS ==========")
 print(eval_42_df)
@@ -1010,3 +1034,5 @@ for row in D_triplets[:3]:
 print("Recommendation example from all_recommendations:")
 for row in all_recommendations[:3]:
     print(f"user: {row[0]}, action: {row[1]}, type(action): {type(row[1])}")
+
+# %%
