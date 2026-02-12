@@ -1,13 +1,38 @@
+"""
+elderly_recsys_tools.py
+=======================
+
+Tools for the "Situation-aware elderly daily activity recommender system" project.
+
+Key features:
+- Build D_lst (sparse user-item matrix with optional context)
+- Context feasibility checks
+- Surprise-based recommendation helper
+- Cross-validation (ShuffleSplit is default for thesis)
+- Precision/Recall/F1 evaluation (with optional context-aware ground truth)
+- Export tables to LaTeX
+
+"""
+from __future__ import annotations
+from collections import defaultdict
+from typing import Callable, Iterable, Optional
+
 # File Tools for elderly recommender system
 import pandas as pd
 import numpy as np
 import itertools
 from sklearn.preprocessing import MinMaxScaler
 from surprise import SVD, accuracy
-from surprise.model_selection import KFold
+from surprise.model_selection import KFold, ShuffleSplit
 import random
 import time 
 from tqdm import tqdm
+from pathlib import Path
+
+
+# ======================================================================================
+# DATA GENERATION
+# ======================================================================================
 
 def get_list_of_actions(single_act_lst: list[str], act_max_len: int) -> list[tuple[str]]:
     """
@@ -95,6 +120,10 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
 
     return D_lst
 
+# ======================================================================================
+# CONTEXT
+# ======================================================================================
+
 def get_random_context(all_contexts):
     """
     Selects a random simplified context from a list of full activity contexts.
@@ -134,6 +163,8 @@ def get_one_random_context(full_cntx):
                          'C_A': ''
                      }
     """
+    if full_cntx is None:
+        full_cntx = {}
 
     C_T = random.choice(['act_C_T1', 'act_C_T2', 'act_C_T3'])
     C_P = random.choice(['act_C_P1', 'act_C_P2', 'act_C_P3'])
@@ -142,38 +173,64 @@ def get_one_random_context(full_cntx):
     
     return c_cntx
 
-# @brief test if a given action fits to a given context
-def is_action_context_feasibleQ(actID, cntx, actID_context_dc):
+
+def is_action_context_feasibleQ(
+    actID: str,
+    cntx: dict,
+    actID_context_dc: dict,
+    *,
+    relax_kjerkoli: bool = True,
+    relax_nd: bool = True
+) -> bool:
     """
-    Checks whether a given activity (identified by actID) is feasible within a given context.
+    Checks if actID is feasible in a given context.
 
-    This function compares a candidate context (e.g., 'dopoldne', 'doma') to the predefined
-    acceptable time and place values for that activity.
+    cntx expected keys:
+      - 'C_T' (time label)
+      - 'C_P' (place label)
 
-    Parameters:
-    - actID (str): The ID of the action to be evaluated.
-    - cntx (dict): The target context to check, with keys:
-                   - 'C_T' (context time), e.g., 'dopoldne'
-                   - 'C_P' (context place), e.g., 'kjerkoli'
-    - actID_context_dc (dict): A dictionary where each key is an action ID, and the value is
-                               a dict with keys like 'act_C_T1', 'act_C_T2', 'act_C_T3', 'act_C_P1', etc., 
-                               defining allowed times and places for that action.
-
-    Returns:
-    - bool: True if the context is compatible (both time and place match at least one of the
-            allowed ones), otherwise False.
+    actID_context_dc[actID] contains:
+      - act_C_T1..3, act_C_P1..3
     """
-    
-    f_cntx = actID_context_dc[actID] # Full context
-    C_Ts = [f_cntx[k].strip() for k in ['act_C_T1', 'act_C_T2', 'act_C_T3'] if isinstance(f_cntx[k], str)]
-    C_Ps = [f_cntx[k].strip() for k in ['act_C_P1', 'act_C_P2', 'act_C_P3'] if isinstance(f_cntx[k], str)]
-
-    if (cntx['C_T'] in C_Ts) and (cntx['C_P'] in C_Ps):
-        return True 
-    else:
+    if actID not in actID_context_dc:
         return False
-    
-#@brief returns m best actions triples
+
+    f_cntx = actID_context_dc[actID]
+    C_Ts = [f_cntx[k].strip() for k in ['act_C_T1', 'act_C_T2', 'act_C_T3']
+            if isinstance(f_cntx.get(k, None), str)]
+    C_Ps = [f_cntx[k].strip() for k in ['act_C_P1', 'act_C_P2', 'act_C_P3']
+            if isinstance(f_cntx.get(k, None), str)]
+
+    user_C_T = (cntx.get('C_T', '') or '').strip()
+    user_C_P = (cntx.get('C_P', '') or '').strip()
+
+    # relax 'nd' (unknown) => treat as feasible
+    if relax_nd and (user_C_T == 'nd' or user_C_P == 'nd'):
+        return True
+
+    time_ok = user_C_T in C_Ts if user_C_T else False
+    place_ok = user_C_P in C_Ps if user_C_P else False
+
+    # relax "kjerkoli"
+    if relax_kjerkoli:
+        if user_C_P == 'kjerkoli':
+            place_ok = True
+        if 'kjerkoli' in C_Ps:
+            place_ok = True
+
+    return bool(time_ok and place_ok)
+
+
+def is_action_in_context_group(actID: str, group_id: int, actID_to_group: dict) -> bool:
+    if actID not in actID_to_group:
+        return False
+    return int(actID_to_group[actID]) == int(group_id)
+
+
+# ======================================================================================
+# RECOMMENDATIONS
+# ======================================================================================
+
 def get_recommendations(uID, 
                         n_recommendations=20, 
                         D_lst=None, 
@@ -203,27 +260,20 @@ def get_recommendations(uID,
     - First returns top-20 candidates, then you can filter afterwards
     """
 
-    # predfiltrianje
+    # Method 1: Use precomputed D_lst
     if D_lst is not None:
-        # Method 1: Use precomputed matrix
         user_entries = [x for x in D_lst if x[0] == uID]
-        # print(D_lst)
-        print(f"D_lst length: {len(D_lst)}")
-        # print(user_entries)
-        print(f"user_entries found for uID {uID}: {len(user_entries)}")
         sorted_entries = sorted(user_entries, key=lambda x: x[3], reverse=True)
         return sorted_entries[:n_recommendations]
 
-    # post filtriranje
+    # Method 2: Use trained model for prediction
     elif model is not None and trainset is not None:
-        # Method 2: Use model prediction
         all_iids = trainset._raw2inner_id_items.keys()
         predictions = []
 
         for raw_iid in all_iids:
-            act_id = raw_iid[0] if isinstance(raw_iid, tuple) else raw_iid
-            est = model.predict(uid=str(uID), iid=act_id).est
-            predictions.append((uID, act_id, est))
+            est = model.predict(uid=uID, iid=raw_iid).est
+            predictions.append((uID, raw_iid, est))
 
         sorted_predictions = sorted(predictions, key=lambda x: x[2], reverse=True)
         return sorted_predictions[:n_recommendations]
@@ -232,10 +282,21 @@ def get_recommendations(uID,
         raise ValueError("Provide either D_lst or both model and trainset.")
 
 def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=20, k_eval=5):
-    from collections import defaultdict
-
+    """
+    Evaluate recommender metrics (Precision, Recall, F1) for action sequences.
+    
+    Parameters:
+    - D_lst: List of [uid, act_seq, context_seq, score] (4 elements per entry)
+    - best_act_trp_lst: List of recommended [uid, act_seq, score]
+    - top_n_groundtruth: Number of top items to consider as ground truth
+    - k_eval: Number of recommendations to evaluate (top-K)
+    
+    Returns:
+    - avg_p, avg_r, avg_f: Average precision, recall, F1 scores
+    """
     user_action_scores = defaultdict(list)
-    for uid, act_seq, score in D_lst:
+    for entry in D_lst:
+        uid, act_seq, context_seq, score = entry[0], entry[1], entry[2], entry[3]
         user_action_scores[uid].append((tuple(act_seq), score))
 
     ground_truth_dict = {}
@@ -277,19 +338,34 @@ def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=20, 
 
     return avg_p, avg_r, avg_f
 
-def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=10, random_state=42):
-    """
-    Performs k-fold cross-validation and prints evaluation metrics.
 
-    Parameters:
-    - data: surprise.Dataset
-    - model_class: function that returns a new model instance
-    - algorithm_name: str (e.g., 'SVD')
-    - n_splits: int, number of folds
-    - random_state: int
+# ======================================================================================
+# CROSS-VALIDATION
+# ======================================================================================
+
+def perform_cross_validation(
+    data,
+    model_class,
+    algorithm_name='SVD',
+    cv_type='shuffle',       # 'shuffle' for thesis 4.1; 'kfold' if needed
+    n_splits=10,
+    test_size=0.25,
+    random_state=42
+):
+    """
+    Performs cross-validation and returns metrics in a DataFrame.
+
+    cv_type:
+      - 'shuffle' -> Surprise ShuffleSplit (recommended for thesis 4.1)
+      - 'kfold'   -> Surprise KFold
     """
 
-    kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
+    if cv_type == 'shuffle':
+        cv = ShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
+    elif cv_type == 'kfold':
+        cv = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
+    else:
+        raise ValueError("cv_type must be 'shuffle' or 'kfold'")
 
     metrics = {
         'RMSE': [],
@@ -300,9 +376,7 @@ def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=1
         'Test time': []
     }
 
-    print(f"Evaluating RMSE, MAE, MSE, FCP of algorithm {algorithm_name} on {n_splits} split(s).\n")
-
-    for i, (trainset, testset) in enumerate(kf.split(data), 1):
+    for i, (trainset, testset) in enumerate(cv.split(data), 1):
         model = model_class()
 
         start_fit = time.time()
@@ -315,65 +389,29 @@ def perform_cross_validation(data, model_class, algorithm_name='SVD', n_splits=1
 
         metrics['Fit time'].append(round(end_fit - start_fit, 2))
         metrics['Test time'].append(round(end_test - start_test, 2))
+
         metrics['RMSE'].append(accuracy.rmse(predictions, verbose=False))
         metrics['MAE'].append(accuracy.mae(predictions, verbose=False))
         metrics['MSE'].append(accuracy.mse(predictions, verbose=False))
-        metrics['FCP'].append(accuracy.fcp(predictions, verbose=False))
+        try:
+            metrics['FCP'].append(accuracy.fcp(predictions, verbose=False))
+        except ValueError:
+            # happens when some users have <2 predictions in testset -> no pairs for FCP
+            metrics['FCP'].append(np.nan)
 
-    # Create DataFrame with folds
-    results = pd.DataFrame({
-        'Fold': [f'Fold {i+1}' for i in range(n_splits)],
-        **{key: metrics[key] for key in metrics}
+    df_metrics = pd.DataFrame({
+        'Algorithm': algorithm_name,
+        'Metric': list(metrics.keys()),
+        'Mean': [np.nanmean(v) for v in metrics.values()],
+        'Std': [np.nanstd(v) for v in metrics.values()]
     })
 
-    # Add mean and std rows
-    summary = pd.DataFrame({
-        'Fold': ['Mean', 'Std'],
-        **{key: [np.mean(metrics[key]), np.std(metrics[key])] for key in metrics}
-    })
-
-    results = pd.concat([results, summary], ignore_index=True)
-
-    return results
-
-#uIDsIn, seq_act_lstIn = uIDs[:5], seq_act_lst[:5]
-#meth_code = 'score'
-#actID_lstIn = list(actID_qID_dc.keys())[:5]
-#actID_score_df = erst.get_actID_score_df(uIDsIn, actID_lstIn, actID_qID_dc, uID_scores_dc, all_answers_df, group_str, meth_code)
-#print(actID_score_df)
-#compat_df = erst.get_actIDPair_compat_df(actID_lstIn, qID_Group_dc, actID_qID_dc)
-#print(comp_df)
-#uID, act_seq = uIDsIn[0], seq_act_lstIn[0]
-#c_rr = get_score_estimation(uID, act_seq, actID_score_df, compat_df, meth_code)
+    return df_metrics
 
 
-
-#uIDsIn = uIDs[:10]
-#actID_lstIn = list(actID_qID_dc.keys())[:5]
-#group_str = 'activity'
-#meth_code = 'score' 
-#actID_score_df = get_actID_score_df(uIDsIn, actID_lstIn, actID_qID_dc, uID_scores_dc, all_answers_df, group_str, meth_code)
-#print(actID_score_df)
-#comp_df = get_actIDPair_compat_df(actID_lstIn, qID_Group_dc, actID_qID_dc)
-#print(comp_df)
-
-'''
-def get_rating_estimation(uID, act_seq, singleAct_qID_dc, uID_activity_scores_dc, all_answers_df, meth_code):
-    
-    c_r = 0 
-    if meth_code == 'score':
-        for act in act_seq:   
-            c_qID = singleAct_qID_dc[act]
-            c_score = uID_activity_scores_dc[uID]
-            # c_loading = uID_activity_loading_dc[uID]  # ToDo: include loadings
-            c_qa = all_answers_df.at[uID, c_qID]
-            if not isinstance(c_qa, (int, float)):
-                c_qa = 0
-            #print (c_score, c_qa)
-            c_r += c_score * c_qa # * c_loading
-
-    return c_r
-'''
+# ======================================================================================
+# SCORES / COMPATIBILITY
+# ======================================================================================
 
 def get_context(act_C_T1, act_C_T2, act_C_T3):
     """
@@ -427,7 +465,7 @@ def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores_dc, all_answers
                 qID = actID_qID_dc[actID]
                 c_score = c_uID_activity_scores_dc[uID]
                 c_anws = all_answers_df.at[uID, qID]
-                if isinstance(c_score, (int, float)) & isinstance(c_anws, (int, float)):
+                if isinstance(c_score, (int, float)) and isinstance(c_anws, (int, float)):
                     Sc_df.at[uID, actID] = c_score * c_anws
                 else:
                     Sc_df.at[uID, actID] = 0
@@ -466,10 +504,7 @@ def get_actIDPair_compat_df(actID_lst, qID_Group_dc, actID_qID_dc):
 
     return Cmp_df
 
-# @brief estimate rating = score of a sequence of actions act_seq
-# Assumptions
-# 
-# ToDo: normalize contributions to [0,1]
+
 def get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, compat_df, meth_code):
     """
     Estimates a rating score for a sequence of actions for a user.
@@ -521,9 +556,6 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
     Returns:
     - scl_X_df (DataFrame): Scaled user responses by question
     """
-    # all_answers_df.replace(r'^([A-Za-z]|[0-9]|_)+$', np.nan, regex=True).astype(float)
-
-    # All qs
     all_qs_lst = []
     for group in aspect_groups_lst:
         all_qs_lst = all_qs_lst + group_qLst[group]
@@ -534,23 +566,18 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
 
     
     if aspect_groups_lst != []:
-        for group in aspect_groups_lst: # For each group
-
-            # Read anwsers
+        for group in aspect_groups_lst:
             c_X_df = pd.DataFrame(index=all_answers_df.index)
             for qID in group_qLst[group]:
                 c_X_df[qID] = all_answers_nums_df[qID]
-            
 
-            # Scale it
             scaler = MinMaxScaler(feature_range=(0, 1))
             c_scl_X_np = scaler.fit_transform(c_X_df.to_numpy())
             c_scl_X_np = pd.DataFrame(data=c_scl_X_np, index=all_answers_df.index, columns=group_qLst[group])
             
-            # Add it 
             X_df = X_df.add(c_X_df, fill_value=0)
 
-    # Scale all
+    # Scale all answers to [0, 1] range
     scaler = MinMaxScaler(feature_range=(0, 1))
     scl_X_np = scaler.fit_transform(X_df.to_numpy())
     scl_X_df = pd.DataFrame(data=scl_X_np, index = all_answers_df.index, columns=all_qs_lst)
@@ -559,3 +586,153 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
     return scl_X_df
 
 
+# ======================================================================================
+# EXPORT UTILITIES
+# ======================================================================================
+
+def save_df_as_latex_table(
+    df: pd.DataFrame,
+    out_dir: Path,
+    filename_stem: str,
+    caption: str,
+    label: str,
+    float_format: str = "{:.4f}",
+    index: bool = False
+) -> Path:
+    """
+    Save a DataFrame as a LaTeX table (.tex) in out_dir.
+
+    filename_stem: without extension
+    caption/label: used inside LaTeX table env
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"{filename_stem}.tex"
+
+    latex_tabular = df.to_latex(
+        index=index,
+        escape=True,  # keep safe for LaTeX
+        float_format=lambda x: float_format.format(x) if isinstance(x, (float, int)) else str(x),
+        longtable=False
+    )
+
+    latex_table = (
+        "\\begin{table}[h]\n"
+        "\\centering\n"
+        f"\\caption{{{caption}}}\n"
+        f"\\label{{{label}}}\n"
+        f"{latex_tabular}\n"
+        "\\end{table}\n"
+    )
+
+    out_path.write_text(latex_table, encoding="utf-8")
+    return out_path
+
+
+# ======================================================================================
+# EVALUATION UTILITIES
+# ======================================================================================
+
+def normalize_act_id(x):
+    return x[0] if isinstance(x, tuple) else x
+
+def build_D_triplets_from_Dlst(D_lst):
+    """Keep only single-action entries: (uid, (actID,), rating)"""
+    D_triplets = []
+    for uid, act_seq, context_seq, rating in D_lst:
+        if isinstance(act_seq, (list, tuple)) and len(act_seq) == 1:
+            D_triplets.append((uid, tuple(act_seq), float(rating)))
+    return D_triplets
+
+def evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets,
+    rec_triplets,
+    *,
+    top_n_groundtruth=20,
+    k_eval=5,
+    groundtruth_filter_fn=None
+):
+    """
+    Ranking metrics with OPTIONAL filtered ground truth (important for M3/M4/M5).
+    D_triplets: (uid, (actID,), rating)
+    rec_triplets: (uid, (actID,), score)
+    """
+    user_gt = defaultdict(list)
+    for uid, act_seq, rating in D_triplets:
+        if groundtruth_filter_fn is None or groundtruth_filter_fn(act_seq):
+            user_gt[uid].append((act_seq, rating))
+
+    gt_dict = {}
+    for uid, seqs in user_gt.items():
+        top_gt = sorted(seqs, key=lambda x: x[1], reverse=True)[:top_n_groundtruth]
+        gt_dict[uid] = set([a for a, _ in top_gt])
+
+    rec_dict = defaultdict(list)
+    for uid, act_seq, score in rec_triplets:
+        rec_dict[uid].append((act_seq, float(score)))
+
+    precision_list, recall_list, f1_list = [], [], []
+
+    for uid, recs in rec_dict.items():
+        if uid not in gt_dict or len(gt_dict[uid]) == 0:
+            continue
+
+        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
+        predicted = set([a for a, _ in top_k])
+        actual = gt_dict[uid]
+
+        tp = len(predicted & actual)
+        fp = len(predicted - actual)
+        fn = len(actual - predicted)
+
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        precision_list.append(precision)
+        recall_list.append(recall)
+        f1_list.append(f1)
+
+    if len(precision_list) == 0:
+        return 0.0, 0.0, 0.0
+
+    return (
+        round(float(np.mean(precision_list)), 3),
+        round(float(np.mean(recall_list)), 3),
+        round(float(np.mean(f1_list)), 3),
+    )
+
+
+
+# Fallback if you don't have erst.is_action_in_context_group
+def is_action_in_context_group_local(actID: str, group_id: int, actID_to_group: dict) -> bool:
+    if actID not in actID_to_group:
+        return False
+    try:
+        return int(actID_to_group[actID]) == int(group_id)
+    except Exception:
+        return str(actID_to_group[actID]) == str(group_id)
+
+
+
+# =============================================================================
+# Random context logic for 4.2 (switchable)
+# =============================================================================
+
+def build_context_pool(actID_context_dc: dict):
+    C_T_pool, C_P_pool = set(), set()
+    for _, f_cntx in actID_context_dc.items():
+        for k in ["act_C_T1", "act_C_T2", "act_C_T3"]:
+            v = f_cntx.get(k, None)
+            if isinstance(v, str) and v.strip():
+                C_T_pool.add(v.strip())
+        for k in ["act_C_P1", "act_C_P2", "act_C_P3"]:
+            v = f_cntx.get(k, None)
+            if isinstance(v, str) and v.strip():
+                C_P_pool.add(v.strip())
+    return sorted(list(C_T_pool)), sorted(list(C_P_pool))
+
+def sample_random_context(C_T_pool, C_P_pool):
+    return {
+        "C_T": random.choice(C_T_pool) if C_T_pool else "nd",
+        "C_P": random.choice(C_P_pool) if C_P_pool else "nd",
+    }

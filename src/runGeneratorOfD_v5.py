@@ -24,7 +24,7 @@ STEP 12: Comparing multiple algorithms using Surprise
 STEP 13: Hyperparameter tuning (GridSearch for SVD)
 STEP 14: Cross-validation for tuned SVD
 STEP 15: Final model training and matrix factorization
-STEP 16: Generating explainable context-aware recommendations
+STEP 16: GENERATE RECOMMENDATIONS (4.1/4.2/4.3)
 STEP 17: Exporting recommendations
 STEP 18: Evaluating recommendations with Precision / Recall / F1
 STEP 19: Printing samples and debugging outputs
@@ -63,11 +63,21 @@ M = 100                           # Number of latent features for matrix factori
 top_n_groundtruth = 5           # How many top ground-truth items to use for evaluation
 n_recommendations = 20          # Number of top candidates returned (before filtering)
 top_k_final_recommendations = 5 # Number of final context-aware recommendations
-
+ 
 BASE_DIR = Path(__file__).resolve().parents[1]
+
 data_path = BASE_DIR / 'data'
-tabs_path = BASE_DIR / 'latex' / 'tabs'
-figs_path = BASE_DIR / 'latex' / 'figs'
+annotaions_path = data_path / 'annotations'
+context_path = data_path / 'context'
+D_lst_path = data_path / 'D_lst'
+questionnaires_path = data_path / 'questionnaires'
+scores_path = data_path / 'scores'
+
+outputs_path = BASE_DIR / 'outputs'
+evaluation_path = outputs_path / 'evaluation'
+tabs_path = outputs_path / 'latex' / 'tabs'
+figs_path = outputs_path / 'latex' / 'figs'
+recommendations_path = outputs_path / 'recommendations'
 
 # Generate a timestamp (YYYYMMDD_HHMMSS) to version output files
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -77,26 +87,26 @@ timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 print("========== STEP 2: LOADING DATA FROM EXCEL FILES ==========")
 
 # Load activity data, replace -1 with NaN, and rename columns with 'Ac_' prefix
-activities_df = pd.read_excel(data_path / 'Activities.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
+activities_df = pd.read_excel(questionnaires_path / 'Activities.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
 activities_df.rename(columns={nm:'Ac_' + nm for nm in activities_df.columns}, inplace=True)
 
 # Load mental health data, replace -1 with NaN, and rename columns with 'Mh_' prefix
-mentalHealth_df = pd.read_excel(data_path / 'MentalHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
+mentalHealth_df = pd.read_excel(questionnaires_path / 'MentalHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
 mentalHealth_df.rename(columns={nm:'Mh_' + nm for nm in mentalHealth_df.columns}, inplace=True)
 
 # Load physical health data, replace -1 with NaN, and rename columns with 'Ph_' prefix
-physicalHealth_df = pd.read_excel(data_path / 'PhysicalHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
+physicalHealth_df = pd.read_excel(questionnaires_path / 'PhysicalHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
 physicalHealth_df.rename(columns={nm:'Ph_' + nm for nm in physicalHealth_df.columns}, inplace=True)
 
 # Load social health data, replace -1 with NaN, and rename columns with 'Sh_' prefix
-socialHealth_df = pd.read_excel(data_path / 'SocialHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
+socialHealth_df = pd.read_excel(questionnaires_path / 'SocialHealth.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
 socialHealth_df.rename(columns={nm:'Sh_' + nm for nm in socialHealth_df.columns}, inplace=True)
 
 # Load context definitions for activities (time and place conditions)
-activityContextGen_df = pd.read_excel(data_path / 'ActivityContextGen_v09.xlsx', sheet_name='ActionLst').replace(-1, np.nan)
+activityContextGen_df = pd.read_excel(context_path / 'ActivityContextGen_v12.xlsx', sheet_name='ActionLst').replace(-1, np.nan)
 
 # Load user-specific scores and weights (how suitable each activity is for each user)
-scores_and_wgt_df = pd.read_excel(data_path / 'ml_data_scores_and_wgt.xlsx', sheet_name='scores_and_wgt', header=1, index_col='person_id')
+scores_and_wgt_df = pd.read_excel(scores_path / 'ml_data_scores_and_wgt.xlsx', sheet_name='scores_and_wgt', header=1, index_col='person_id')
 
 # Optional: other versions of the score data (commented out for now)
 #scores_and_wgt_2_df = pd.read_excel(data_path + 'ml_data_with_scores_and_wgt_3_values.xlsx', sheet_name='scores_and_wgt_3_v', header=1)
@@ -106,7 +116,7 @@ scores_and_wgt_df = pd.read_excel(data_path / 'ml_data_scores_and_wgt.xlsx', she
 all_answers_df = activities_df.join(mentalHealth_df).join(physicalHealth_df, rsuffix='_r').join(socialHealth_df, rsuffix='_r')
 
 # Load handcrafted compatibility matrix (with continuous values between 0 and 1)
-action_compat_df = pd.read_excel(data_path / 'ActivityContextGen_v10.xlsx', sheet_name='ActionCompatibilities', index_col=0)
+action_compat_df = pd.read_excel(context_path / 'ActivityContextGen_v12.xlsx', sheet_name='ActionCompatibilities', index_col=0)
 
 #%% STEP 3: BUILD DICTIONARIES & STRUCTURES
 ##==================================================================================
@@ -290,6 +300,7 @@ Creates all valid combinations of actions up to max length.
 
 # Define the maximum allowed length of action sequences
 act_max_len = 3
+# act_max_len = 1
 
 # Generate all possible sequences of actions (represented by actIDs)
 seq_actID_lst = erst.get_list_of_actions(single_actID_lst, act_max_len)
@@ -455,9 +466,9 @@ print(f"\n DONE: D_lst generated with {len(D_lst)} entries in {duration:.2f} sec
 
 d_lst_filename = f"D_lst_full_{timestamp}.pkl"
 # SAVE .pkl:
-with open(data_path / d_lst_filename, "wb") as f:
+with open(data_path / 'D_lst' / d_lst_filename, "wb") as f:
     pickle.dump(D_lst, f)
-print(f"Saved full D_lst to: {data_path / d_lst_filename}")
+print(f"Saved full D_lst to: {data_path / 'D_lst' / d_lst_filename}")
 
 # # Mentor's new and laready built D_lst matrix: 
 # with open(data_path/ 'D_contx_a3_sparse_mat.pkl', "rb") as fp:
@@ -511,14 +522,14 @@ print("========== STEP 12: ALGORITHM COMPARISON ==========")
 
 """
 This step loads a sample of D_lst and prepares the rating data for Surprise.
-Then, several collaborative filtering algorithms are evaluated using KFold cross-validation.
+Then, several collaborative filtering algorithms are evaluated using ShuffleSplit cross-validation.
 """
 
 # Load D_lst and prepare DataFrame 
 # ========================================================== 
 
 print("\n========== Loading D_lst... ==========")
-with open(data_path / "D_lst_full.pkl", "rb") as f:
+with open(data_path / 'D_lst' / d_lst_filename, "rb") as f:
     D_lst = pickle.load(f)
 # D_lst = D_lst[:1000]
 
@@ -551,18 +562,21 @@ for name, algo_class in tqdm(algorithms.items(), desc="Evaluating Algorithms"):
         data=data,
         model_class=algo_class,
         algorithm_name=name,
-        n_splits=n_splits,
+        cv_type='shuffle',
+        n_splits=10,
+        test_size=0.25,
         random_state=42
     )
 
-    mean_metrics = cv_df[cv_df['Fold'] == 'Mean'].iloc[0]
+    # cv_df columns: Algorithm, Metric, Mean, Std
+    mean_metrics = cv_df.set_index('Metric')['Mean']
 
     metrics_summary.append({
         'algorithm': name,
-        'rmse': round(mean_metrics['RMSE'], 4),
-        'mae': round(mean_metrics['MAE'], 4),
-        'mse': round(mean_metrics['MSE'], 4),
-        'fcp': round(mean_metrics['FCP'], 4)
+        'rmse': round(float(mean_metrics['RMSE']), 4),
+        'mae': round(float(mean_metrics['MAE']), 4),
+        'mse': round(float(mean_metrics['MSE']), 4),
+        'fcp': round(float(mean_metrics['FCP']), 4)
     })
 
 # Save results and plot
@@ -573,7 +587,18 @@ summary_df = pd.DataFrame(metrics_summary)
 print("\n Cross-validation results summary:")
 print(summary_df)
 
-summary_df.to_excel(tabs_path / f"algorithm_comparison_{timestamp}.xlsx", index=False)
+summary_df.to_excel(evaluation_path / f"algorithm_comparison_{timestamp}.xlsx", index=False)
+
+# Save LaTeX table
+erst.save_df_as_latex_table(
+    df=summary_df,
+    out_dir=tabs_path,
+    filename_stem=f"algorithm_comparison_{timestamp}",
+    caption="Primerjava algoritmov (ShuffleSplit, 10 ponovitev, 25\\% test).",
+    label="tab:algorithm_comparison",
+    float_format="{:.4f}",
+    index=False
+)
 
 plt.figure(figsize=(8,5))
 plt.bar(summary_df["algorithm"], summary_df["rmse"], color="lightblue")
@@ -594,11 +619,13 @@ SVD model is tuned using GridSearch to find optimal hyperparameters.
 print("\n========== GRID SEARCH ==========")
 # # Define hyperparameter search space for the SVD algorithm (from Surprise library)
 
+test_mode = True
+
 param_grid = {
-    'n_factors': [10] if test_mode else [50, 100, 150],
-    'n_epochs': [5] if test_mode else [20, 30],
-    'lr_all': [0.002] if test_mode else [0.002, 0.005],
-    'reg_all': [0.02] if test_mode else [0.02, 0.1]
+    'n_factors': [50] if test_mode else [20, 50, 100, 150, 200],
+    'n_epochs': [20] if test_mode else [10, 20, 30, 40, 50],
+    'lr_all': [0.002] if test_mode else [0.0005, 0.001, 0.002, 0.005, 0.01],
+    'reg_all': [0.02] if test_mode else [0.001, 0.01, 0.02, 0.05, 0.1, 0.2]
 }
 
 profile = cProfile.Profile() 
@@ -620,42 +647,59 @@ profile.disable()
 print("========== STEP 14: CROSS-VALIDATION (TUNED SVD) ==========")
 
 """
-This step validates the performance of the tuned SVD model using n_splits-fold cross-validation.
+This step validates the performance of the tuned SVD model using shuffle split cross-validation.
 """
 
 # === Run cross-validation with tuned parameters ===
 print(f"\n Evaluating tuned SVD model with {n_splits}-fold CV...")
 profile = cProfile.Profile()
 profile.enable()
+# cv_results_df = erst.perform_cross_validation(
+#     data=data, 
+#     model_class=lambda: SVD(**best_params),  # factory for new model
+#     n_splits=n_splits, 
+#     random_state=42
+# )
 cv_results_df = erst.perform_cross_validation(
-    data=data, 
-    model_class=lambda: SVD(**best_params),  # factory for new model
-    n_splits=n_splits, 
+    data=data,
+    model_class=lambda: SVD(**best_params),
+    algorithm_name='SVD_tuned',
+    cv_type='shuffle',
+    n_splits=10,
+    test_size=0.25,
     random_state=42
 )
 profile.disable()
 # profile.print_stats(sort='cumtime')
 
-cv_results_df.to_excel(tabs_path / f"cv_results_tuned_SVD_{timestamp}.xlsx", index=False)
+cv_results_df.to_excel(evaluation_path / f"cv_results_tuned_SVD_{timestamp}.xlsx", index=False)
+
+# Save LaTeX table
+erst.save_df_as_latex_table(
+    df=cv_results_df,
+    out_dir=tabs_path,
+    filename_stem=f"cv_results_tuned_SVD_{timestamp}",
+    caption="Povprečni rezultati (Mean/Std) za prilagojeni SVD pri metodi ShuffleSplit.",
+    label="tab:cv_results_tuned_svd",
+    float_format="{:.4f}",
+    index=False
+)
 
 # === Extract and display average metrics ===
 print("\n Cross-validation results for tuned SVD:")
 print(cv_results_df)
 
 # Extract mean values from the 'Mean' row
-mean_metrics = cv_results_df[cv_results_df['Fold'] == 'Mean'].iloc[0]
+mean_metrics = cv_results_df.set_index('Metric')['Mean']
 
 # Prepare a summary list for display
-results_list = [
-    {
-        'Algorithm': 'SVD',
-        'Average RMSE': mean_metrics['RMSE'],
-        'Average MAE': mean_metrics['MAE'],
-        'Average MSE': mean_metrics['MSE'],
-        'Average FCP': mean_metrics['FCP'],
-        'Average Training Time': mean_metrics['Fit time']
-    }
-]
+results_list = [{
+    'Algorithm': 'SVD_tuned',
+    'Average RMSE': float(mean_metrics['RMSE']),
+    'Average MAE': float(mean_metrics['MAE']),
+    'Average MSE': float(mean_metrics['MSE']),
+    'Average FCP': float(mean_metrics['FCP']),
+}]
 
 # print("\nAverage metrics across folds:")
 # print(results_list)
@@ -694,6 +738,22 @@ profile.enable()
 # Train the algorithm on the trainset
 model.fit(trainset)
 
+
+
+# =============================================================================
+# EXTRACT P and Q from trained SVD
+# =============================================================================
+user_factors = {trainset.to_raw_uid(uid): model.pu[uid] for uid in range(trainset.n_users)}
+item_factors = {trainset.to_raw_iid(iid): model.qi[iid] for iid in range(trainset.n_items)}
+
+# normalize item keys (tuple -> first element)
+item_factors_norm = {}
+for k, v in item_factors.items():
+    k_norm = k[0] if isinstance(k, tuple) else k
+    item_factors_norm[k_norm] = v
+
+print(f"User factors: {len(user_factors)} | Item factors: {len(item_factors_norm)}")
+
 # predict ratings for the testset
 predictions = model.test(testset)
 
@@ -709,34 +769,18 @@ print("\n========== TEST SET EVALUATION ==========")
 print(f"RMSE: {accuracy.rmse(predictions)}")
 print(f"MAE:  {accuracy.mae(predictions)}")
 print(f"MSE:  {accuracy.mse(predictions)}")
-print(f"FCP:  {accuracy.fcp(predictions)}")
+try:
+    print(f"FCP:  {accuracy.fcp(predictions)}")
+except ValueError:
+    print("FCP:  N/A (premalo parov ocen na uporabnika v testsetu)")
 
-#%% STEP 16: GENERATE CONTEXT-AWARE RECOMMENDATIONS
+#%% STEP 16: GENERATE RECOMMENDATIONS (4.1 / 4.2 / 4.3) IN ONE RUN
 ##==================================================================================
-print("========== STEP 16: GENERATE CONTEXT-AWARE RECOMMENDATIONS ==========")
+print("========== STEP 16: GENERATE RECOMMENDATIONS (4.1/4.2/4.3) ==========")
+
 
 """
-For each user:
-- recommend top N actions based on model
-- filter based on context feasibility
-- save top 5 with explanations (answers, scores, MF vectors)
-"""
-
-# EXTRACT USER AND ITEM FACTORS (P, Q)
-# ==========================================================
-
-# Build user and item factor dicts
-user_factors = {trainset.to_raw_uid(uid): model.pu[uid] for uid in range(trainset.n_users)}
-item_factors = {trainset.to_raw_iid(iid): model.qi[iid] for iid in range(trainset.n_items)}
-print("\n========== FACTORS INFO ==========")
-print(f"User factors: {len(user_factors)} extracted")
-print(f"Item factors: {len(item_factors)} extracted")
-
-
-# GENERATE EXPLAINABLE RECOMMENDATIONS FOR EACH USER
-# ===========================================================
-
-"""
+todo spremeni opis
 This section prepares a detailed export of recommended actions along with explanations 
 for why those actions are relevant to each user.
 
@@ -762,9 +806,11 @@ all_recommendations = []           # top-20 brez konteksta
 all_final_recommendations = []     # top-5 filtriranih s kontekstom
 
 # Define an example context for generating recommendations 
-context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
+# context = {'C_T': 'ob kosilu', 'C_P': 'kjerkoli'}
 
-for uID in tqdm(uIDsIn, desc="Generating recommendations"):
+context = {'C_T': 'dopoldne', 'C_P': 'doma'}
+
+for uID in tqdm(uIDsIn, desc="Generating recs (one pass)"):
 
     print(f"\n========== Generating recommendations for user {uID} ==========")
 
@@ -806,7 +852,7 @@ for uID in tqdm(uIDsIn, desc="Generating recommendations"):
     # best_act_trp_lst = erst.get_recommendations(uID=uID, trainset=trainset, model=model, 
     #                 context=context, actID_context_dc=actID_context_dc, n_recommendations=n_recommendations)
 
-
+    
     # first get top 20 candidates without filtering
     top20_recs = erst.get_recommendations(
         uID=uID,
@@ -816,11 +862,17 @@ for uID in tqdm(uIDsIn, desc="Generating recommendations"):
     )
 
     # then filter by context and take top 5
-    filtered_recs = [
-        rec for rec in top20_recs
-        if erst.is_action_context_feasibleQ(rec[1], context, actID_context_dc)
-    ]
+    # filtered_recs = [
+    #     rec for rec in top20_recs
+    #     if erst.is_action_context_feasibleQ(rec[1], context, actID_context_dc)
+    # ]
+    filtered_recs = []
+    for uid, item_id, score in top20_recs:
+        act_id = item_id[0] if isinstance(item_id, tuple) else item_id
+        if erst.is_action_context_feasibleQ(act_id, context, actID_context_dc):
+            filtered_recs.append((uid, act_id, score))
     final_recs = filtered_recs[:top_k_final_recommendations]
+    
 
     print(f"\n--- Kandidatke za uporabnika {uID} (top {n_recommendations}) brez konteksta ---")
     for i, (uid, act_id, score) in enumerate(top20_recs[:top_k_final_recommendations]):
@@ -847,8 +899,18 @@ for uID in tqdm(uIDsIn, desc="Generating recommendations"):
     # all_final_recommendations.extend(final_recs)
 
     # Convert action string to tuple to match D_lst format
-    all_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in top20_recs])
-    all_final_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in final_recs])
+    # all_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in top20_recs])
+    # all_final_recommendations.extend([(uid, (act_id,), score) for uid, act_id, score in final_recs])
+
+    all_recommendations.extend([
+        (uid, (item_id[0] if isinstance(item_id, tuple) else item_id,), score)
+        for uid, item_id, score in top20_recs
+    ])
+
+    all_final_recommendations.extend([
+        (uid, (act_id,), score)
+        for uid, act_id, score in final_recs
+    ])
 
     # print(f"\n========== TOP RECOMMENDATIONS FOR USER {uID} ==========")
     # for rec in best_act_trp_lst[:3]:  # limit to avoid flooding the output
@@ -860,17 +922,19 @@ for uID in tqdm(uIDsIn, desc="Generating recommendations"):
         # except KeyError:
         #     c_MF_Q = [0.0] * M
         
-        c_MF_Q = next(
-            (vec for key, vec in item_factors.items() if act_id in key),
-            [0.0] * M  # fallback if not found
-        )
+        # Normalize act_id for factor lookup (if act_id comes as tuple, take first element)
+        act_id_norm = act_id[0] if isinstance(act_id, tuple) else act_id
 
-        cntx_data = actID_context_dc.get(act_id, {})
+        # Exact lookup (safe + deterministic)
+        c_MF_Q = item_factors_norm.get(act_id_norm, [0.0] * M)
+
+        # Context lookup should use same normalized id
+        cntx_data = actID_context_dc.get(act_id_norm, {})
         c_cntx = erst.get_one_random_context(cntx_data)
 
         dc_lst_41.append({
             'uID': uid,
-            'ActID': act_id,
+            'ActID': act_id_norm,
             'Score': score,
             'Context_T': c_cntx['act_C_T'],
             'Context_P': c_cntx['act_C_P'],
@@ -888,15 +952,19 @@ for uID in tqdm(uIDsIn, desc="Generating recommendations"):
         # except KeyError:
         #     c_MF_Q = [0.0] * M
 
-        c_MF_Q = next(
-            (vec for key, vec in item_factors.items() if act_id in key),
-            [0.0] * M  # fallback if not found
-        )
-        cntx_data = actID_context_dc.get(act_id, {})
+        # Normalize act_id for factor/context lookup
+        act_id_norm = act_id[0] if isinstance(act_id, tuple) else act_id
+
+        # Exact lookup in normalized dict
+        c_MF_Q = item_factors_norm.get(act_id_norm, [0.0] * M)
+
+        # Context (use normalized id)
+        cntx_data = actID_context_dc.get(act_id_norm, {})
         c_cntx = erst.get_one_random_context(cntx_data)
+        
         dc_lst_42.append({
             'uID': uid,
-            'ActID': act_id,
+            'ActID': act_id_norm,
             'Score': score,
             'Context_T': c_cntx['act_C_T'],
             'Context_P': c_cntx['act_C_P'],
@@ -916,10 +984,10 @@ Save two recommendation tables (with and without context filtering) to Excel
 """
 
 rec_X_df_41 = pd.DataFrame(dc_lst_41)
-rec_X_df_41.to_excel(tabs_path / f"recommendations_4_1_{timestamp}.xlsx", index=False)
+rec_X_df_41.to_excel(recommendations_path / f"recommendations_4_1_{timestamp}.xlsx", index=False)
 
 rec_X_df_42 = pd.DataFrame(dc_lst_42)
-rec_X_df_42.to_excel(tabs_path / f"recommendations_4_2_{timestamp}.xlsx", index=False)
+rec_X_df_42.to_excel(recommendations_path / f"recommendations_4_2_{timestamp}.xlsx", index=False)
 
 print(f"Exported {len(rec_X_df_41)} rows for 4.1 recommendations to recommendations_4_1_{timestamp}.xlsx")
 print(f"Exported {len(rec_X_df_42)} rows for 4.2 recommendations to recommendations_4_2_{timestamp}.xlsx")
@@ -973,7 +1041,17 @@ eval_41_df = pd.DataFrame({
     'F1': [f41],
     'AverageScore': [avg_score_41 ]
 })
-eval_41_df.to_excel(tabs_path / f"evaluation_metrics_4_1_{timestamp}.xlsx", index=False)
+eval_41_df.to_excel(evaluation_path / f"evaluation_metrics_4_1_{timestamp}.xlsx", index=False)
+
+erst.save_df_as_latex_table(
+    df=eval_41_df,
+    out_dir=tabs_path,
+    filename_stem=f"evaluation_metrics_4_1_{timestamp}",
+    caption="Metrike Precision/Recall/F1 za priporočilni sistem brez konteksta.",
+    label="tab:eval_metrics_4_1",
+    float_format="{:.3f}",
+    index=False
+)
 
 print("\n========== 4.1 METRICS ==========")
 print(eval_41_df)
@@ -1003,10 +1081,56 @@ eval_42_df = pd.DataFrame({
     'F1': [f42],
     'AverageScore': [avg_score_42]
 })
-eval_42_df.to_excel(tabs_path / f"evaluation_metrics_4_2_{timestamp}.xlsx", index=False)
+eval_42_df.to_excel(evaluation_path / f"evaluation_metrics_4_2_{timestamp}.xlsx", index=False)
+
+erst.save_df_as_latex_table(
+    df=eval_42_df,
+    out_dir=tabs_path,
+    filename_stem=f"evaluation_metrics_4_2_{timestamp}",
+    caption="Metrike Precision/Recall/F1 za priporočilni sistem s kontekstom (post-filtriranje).",
+    label="tab:eval_metrics_4_2",
+    float_format="{:.3f}",
+    index=False
+)
 
 print("\n========== 4.2 METRICS ==========")
 print(eval_42_df)
+
+# ==========================================================
+# PLOT: Precision / Recall / F1 comparison (4.1 vs 4.2)
+# ==========================================================
+
+labels = ["Precision", "Recall", "F1"]
+
+no_ctx = [
+    float(eval_41_df["Precision"].iloc[0]),
+    float(eval_41_df["Recall"].iloc[0]),
+    float(eval_41_df["F1"].iloc[0]),
+]
+
+ctx = [
+    float(eval_42_df["Precision"].iloc[0]),
+    float(eval_42_df["Recall"].iloc[0]),
+    float(eval_42_df["F1"].iloc[0]),
+]
+
+x = np.arange(len(labels))
+width = 0.35
+
+plt.figure(figsize=(7, 4))
+plt.bar(x - width/2, no_ctx, width, label="Brez konteksta")
+plt.bar(x + width/2, ctx, width, label="S kontekstom")
+
+plt.xticks(x, labels)
+plt.ylabel("Vrednost metrike")
+plt.title("Primerjava ranking metrik: brez konteksta vs s kontekstom")
+plt.legend()
+plt.tight_layout()
+
+plt.savefig(figs_path / f"prf_comparison_{timestamp}.png")
+plt.show()
+
+print(f"Saved PRF comparison plot to: {figs_path / f'prf_comparison_{timestamp}.png'}")
 
 #%% STEP 19: PRINT SAMPLES FOR DEBUGGING
 ##==================================================================================

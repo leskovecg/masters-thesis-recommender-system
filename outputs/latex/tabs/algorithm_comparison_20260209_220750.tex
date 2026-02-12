@@ -1,0 +1,16 @@
+\begin{table}[h]
+\centering
+\caption{Primerjava algoritmov (ShuffleSplit, 10 ponovitev, 25\% test).}
+\label{tab:algorithm_comparison}
+\begin{tabular}{lrrrr}
+\toprule
+algorithm & rmse & mae & mse & fcp \\
+\midrule
+SVD & 0.0916 & 0.0579 & 0.0084 & 0.9957 \\
+KNNBasic & 0.2736 & 0.1445 & 0.0749 & 0.9395 \\
+BaselineOnly & 0.4725 & 0.3652 & 0.2233 & 0.8784 \\
+NMF & 0.2740 & 0.1847 & 0.0751 & 0.9570 \\
+\bottomrule
+\end{tabular}
+
+\end{table}
