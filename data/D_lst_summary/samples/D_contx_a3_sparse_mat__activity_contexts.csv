@@ -1,0 +1,35 @@
+actID,qID,C_T1,C_T2,C_T3,C_P1,C_P2,C_P3,extra_keys,n_rows_containing
+Ac_AB4_1_Act01,Ac_AB4_1,ob kosilu,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act02,Ac_AB4_1,ob malici,ob malici,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act03,Ac_AB4_1,ob zajtrkui,ob večerji,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act04,Ac_AB4_1,ob kosilu,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act05,Ac_AB4_1,podnevi,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act06,Ac_AB4_1,podnevi,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act07,Ac_AB4_1,podnevi,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act08,Ac_AB4_1,podnevi,nan,nan,kjerkoli,nan,nan,[],210082
+Ac_AB4_1_Act09,Ac_AB4_1,dopoldne,popoldne,zvečer,kjerkoli,nan,nan,[],210082
+Ac_AB4_2_Act01,Ac_AB4_2,zjutraj,dopoldne,popoldne,v naravi,nan,nan,[],213035
+Ac_AB4_2_Act02,Ac_AB4_2,zjutraj,dopoldne,popoldne,v naravi,nan,nan,[],213035
+Ac_AB4_2_Act03,Ac_AB4_2,kadarkoli,nan,nan,kjerkoli,nan,nan,[],213035
+Ac_AB4_2_Act04,Ac_AB4_2,zjutraj,dopoldne,popoldne,kjerkoli,nan,nan,[],213035
+Ac_AB4_3_Act01,Ac_AB4_3,zjutraj,dopoldne,popoldne,v naravi,v telovadnici,doma,[],138908
+Ac_AB4_3_Act02,Ac_AB4_3,kadarkoli,nan,nan,doma,v telovadnici,nan,[],138908
+Ac_AB4_3_Act03,Ac_AB4_3,kadarkoli,nan,nan,doma,v telovadnici,nan,[],138908
+Ac_AB4_3_Act04,Ac_AB4_3,kadarkoli,nan,nan,kjerkoli,nan,nan,[],138908
+Ac_AB4_4_Act01,Ac_AB4_4,zjutraj,dopoldne,popoldne,v naravi,v telovadnici,doma,[],122464
+Ac_AB4_4_Act02,Ac_AB4_4,zjutraj,dopoldne,popoldne,v gozdu,v mestu,na sprehodu,[],122464
+Ac_AB4_4_Act03,Ac_AB4_4,zjutraj,dopoldne,popoldne,v gozdu,v mestu,v naselju,[],122464
+Ac_AB4_4_Act04,Ac_AB4_4,zjutraj,dopoldne,popoldne,v telovadnici,nan,nan,[],122464
+Ac_AB4_4_Act05,Ac_AB4_4,kadarkoli,nan,nan,v telovadnici,v naravi,nan,[],122464
+Ac_AB4_5_Act01,Ac_AB4_5,zjutraj,dopoldne,popoldne,doma,nan,nan,[],210612
+Ac_AB4_8_Act01,Ac_AB4_8,ob kosilu,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act02,Ac_AB4_8,dopoldne,popoldne,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act03,Ac_AB4_8,ob zajtrkui,ob večerji,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act04,Ac_AB4_8,ob kosilu,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act05,Ac_AB4_8,podnevi,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act06,Ac_AB4_8,podnevi,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act07,Ac_AB4_8,podnevi,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act08,Ac_AB4_8,podnevi,nan,nan,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act09,Ac_AB4_8,dopoldne,popoldne,zvečer,kjerkoli,nan,nan,[],111056
+Ac_AB4_8_Act10,Ac_AB4_8,zjutraj,dopoldne,zvečer,doma,v telovadnici,v parku,[],111056
+Ac_AB4_8_Act11,Ac_AB4_8,zjutraj,dopoldne,zvečer,doma,v telovadnici,v parku,[],111056

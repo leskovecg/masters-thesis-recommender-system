@@ -1,0 +1,2259 @@
+{
+ "generated_by": "src/tools/summarize_dlst.py v1.0",
+ "seed": 42,
+ "quantiles_pct": [
+  1,
+  5,
+  25,
+  50,
+  75,
+  95,
+  99
+ ],
+ "datasets": {
+  "D_lst_full_20260202_150312": {
+   "paths": [
+    "data/D_lst/D_lst_full_20260202_150312.pkl",
+    "data/D_lst/D_lst_full.pkl"
+   ],
+   "sha256": "9b8ae198de039fc07893c1231f3a55de74b7f0c2f7dd94416edd9401dd477203",
+   "sample_files": [
+    "D_lst_full_20260202_150312__first50.csv",
+    "D_lst_full_20260202_150312__last50.csv",
+    "D_lst_full_20260202_150312__random500_seed42.csv",
+    "D_lst_full_20260202_150312__users3_seed42_all_rows.csv",
+    "D_lst_full_20260202_150312__activity_contexts.csv",
+    "D_lst_full_20260202_150312__matrix_dense_block_50x50.csv",
+    "D_lst_full_20260202_150312__matrix_random200_nonzero_seed42.csv"
+   ],
+   "kind": "D_lst",
+   "counts": {
+    "rows": 3053029,
+    "users": 679,
+    "items_distinct_sequences": 6579,
+    "items_distinct_unordered": 6579,
+    "activities_distinct_actIDs": 34,
+    "context_segments": {
+     "M3": 3,
+     "M4": 4,
+     "M5": 5
+    },
+    "distinct_first_activity_contexts_CT1_CP1": 14,
+    "distinct_activity_contexts": 23,
+    "ratings_total": 3053029,
+    "unique_user_item_pairs": 3053029,
+    "density": 0.6834413778298021,
+    "sparsity": 0.3165586221701979
+   },
+   "rating": {
+    "n": 3053029,
+    "n_nan": 0,
+    "n_inf": 0,
+    "min": 0.3,
+    "max": 5.0,
+    "mean": 1.541340259085166,
+    "std": 0.8397230530582624,
+    "median": 1.272930063855819,
+    "quantiles": {
+     "p1": 0.33161382705002873,
+     "p5": 0.6086368259455305,
+     "p25": 0.9518489996175339,
+     "p50": 1.272930063855819,
+     "p75": 2.1384545797296357,
+     "p95": 3.192555719272239,
+     "p99": 4.112071091185461
+    },
+    "n_distinct": 258,
+    "histogram": {
+     "edges": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2,
+      1.3,
+      1.4,
+      1.5,
+      1.6,
+      1.7,
+      1.8,
+      1.9,
+      2.0,
+      2.1,
+      2.2,
+      2.3,
+      2.4,
+      2.5,
+      2.6,
+      2.7,
+      2.8,
+      2.9,
+      3.0,
+      3.1,
+      3.2,
+      3.3,
+      3.4,
+      3.5,
+      3.6,
+      3.7,
+      3.8,
+      3.9,
+      4.0,
+      4.1,
+      4.2,
+      4.3,
+      4.4,
+      4.5,
+      4.6,
+      4.7,
+      4.8,
+      4.9,
+      5.0
+     ],
+     "counts": [
+      0,
+      0,
+      0,
+      44970,
+      59910,
+      16912,
+      204941,
+      220682,
+      101733,
+      245281,
+      333358,
+      131462,
+      323128,
+      115434,
+      104772,
+      36731,
+      69489,
+      90906,
+      44004,
+      19834,
+      109161,
+      62260,
+      172649,
+      21831,
+      54227,
+      43206,
+      186800,
+      10948,
+      13077,
+      8421,
+      43835,
+      30039,
+      17538,
+      2675,
+      29578,
+      2526,
+      3314,
+      10084,
+      14061,
+      207,
+      12352,
+      26964,
+      0,
+      1377,
+      2682,
+      0,
+      9067,
+      0,
+      0,
+      603
+     ],
+     "below_range": 0,
+     "above_range": 0,
+     "note": "bins [e_i, e_i+1), last bin closed; width 0.1 on the Surprise rating scale (0, 5)"
+    }
+   },
+   "sequence_length": [
+    {
+     "seq_len": 1,
+     "n_items": 34,
+     "n_rows": 8312,
+     "rating_mean": 1.2587077481977684,
+     "rating_min": 0.49668960641712323,
+     "rating_max": 1.783349718869374
+    },
+    {
+     "seq_len": 2,
+     "n_items": 561,
+     "n_rows": 216804,
+     "rating_mean": 1.405652275156145,
+     "rating_min": 0.3,
+     "rating_max": 3.3916748594346866
+    },
+    {
+     "seq_len": 3,
+     "n_items": 5984,
+     "n_rows": 2827913,
+     "rating_mean": 1.5525736100044638,
+     "rating_min": 0.3,
+     "rating_max": 5.0
+    }
+   ],
+   "per_user": {
+    "rows_per_user": {
+     "n": 679,
+     "min": 342,
+     "median": 5018.0,
+     "mean": 4496.360824742268,
+     "max": 6565,
+     "quantiles": {
+      "p1": 562.0,
+      "p5": 2054.0,
+      "p25": 3954.0,
+      "p50": 5018.0,
+      "p75": 5229.0,
+      "p95": 6281.0,
+      "p99": 6348.0
+     }
+    },
+    "mean_rating_per_user": {
+     "n": 679,
+     "n_nan": 0,
+     "n_inf": 0,
+     "min": 0.40058871214438624,
+     "max": 4.013348260302289,
+     "mean": 1.4668215451552766,
+     "std": 0.4761131032005951,
+     "median": 1.4716099005666108,
+     "quantiles": {
+      "p1": 0.573267576711111,
+      "p5": 0.8405558248462445,
+      "p25": 1.1221186499274851,
+      "p50": 1.4716099005666108,
+      "p75": 1.6910085405688782,
+      "p95": 2.149107126345876,
+      "p99": 2.742558690110966
+     }
+    },
+    "users_with_constant_rating": 0,
+    "user_id_range": [
+     2,
+     2196
+    ]
+   },
+   "per_item": {
+    "rows_per_item": {
+     "n": 6579,
+     "min": 38,
+     "median": 509.0,
+     "mean": 464.0566955464356,
+     "max": 653,
+     "quantiles": {
+      "p1": 38.0,
+      "p5": 133.0,
+      "p25": 497.0,
+      "p50": 509.0,
+      "p75": 533.0,
+      "p95": 632.0,
+      "p99": 632.0
+     }
+    },
+    "items_with_constant_rating": 0,
+    "items_rated_by_one_user": 0
+   },
+   "per_activity": [
+    {
+     "actID": "Ac_AB4_1_Act01",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act02",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act03",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act04",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act05",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act06",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act07",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act08",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act09",
+     "n_items_containing": 562,
+     "n_rows": 304962,
+     "n_users": 679,
+     "rating_mean": 1.7444304209052617,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act01",
+     "n_items_containing": 562,
+     "n_rows": 320718,
+     "n_users": 679,
+     "rating_mean": 1.7176784111261136,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act02",
+     "n_items_containing": 562,
+     "n_rows": 320718,
+     "n_users": 679,
+     "rating_mean": 1.7176784111261136,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act03",
+     "n_items_containing": 562,
+     "n_rows": 320718,
+     "n_users": 679,
+     "rating_mean": 1.7176784111261136,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act04",
+     "n_items_containing": 562,
+     "n_rows": 320718,
+     "n_users": 679,
+     "rating_mean": 1.7176784111261136,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act01",
+     "n_items_containing": 562,
+     "n_rows": 242652,
+     "n_users": 679,
+     "rating_mean": 1.4335438138116647,
+     "rating_min": 0.3,
+     "rating_max": 4.168931003313495,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act02",
+     "n_items_containing": 562,
+     "n_rows": 242652,
+     "n_users": 679,
+     "rating_mean": 1.4335438138116647,
+     "rating_min": 0.3,
+     "rating_max": 4.168931003313495,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act03",
+     "n_items_containing": 562,
+     "n_rows": 242652,
+     "n_users": 679,
+     "rating_mean": 1.4335438138116647,
+     "rating_min": 0.3,
+     "rating_max": 4.168931003313495,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act04",
+     "n_items_containing": 562,
+     "n_rows": 242652,
+     "n_users": 679,
+     "rating_mean": 1.4335438138116647,
+     "rating_min": 0.3,
+     "rating_max": 4.168931003313495,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act01",
+     "n_items_containing": 562,
+     "n_rows": 229961,
+     "n_users": 679,
+     "rating_mean": 1.4357519179590337,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act02",
+     "n_items_containing": 562,
+     "n_rows": 229961,
+     "n_users": 679,
+     "rating_mean": 1.4357519179590337,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act03",
+     "n_items_containing": 562,
+     "n_rows": 229961,
+     "n_users": 679,
+     "rating_mean": 1.4357519179590337,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act04",
+     "n_items_containing": 562,
+     "n_rows": 229961,
+     "n_users": 679,
+     "rating_mean": 1.4357519179590337,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act05",
+     "n_items_containing": 562,
+     "n_rows": 229961,
+     "n_users": 679,
+     "rating_mean": 1.4357519179590337,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_5_Act01",
+     "n_items_containing": 562,
+     "n_rows": 323227,
+     "n_users": 679,
+     "rating_mean": 1.8343129874345119,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act01",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act02",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act03",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act04",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act05",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act06",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act07",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act08",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act09",
+     "n_items_containing": 562,
+     "n_rows": 223135,
+     "n_users": 679,
+     "rating_mean": 1.2886527203074878,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act10",
+     "n_items_containing": 562,
+     "n_rows": 223137,
+     "n_users": 679,
+     "rating_mean": 1.2932240115010563,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act11",
+     "n_items_containing": 562,
+     "n_rows": 223137,
+     "n_users": 679,
+     "rating_mean": 1.2932240115010563,
+     "rating_min": 0.3,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    }
+   ],
+   "segments": {
+    "source": "data/context/ActivityContextGen_v12.xlsx",
+    "source_sha256": "3cfa366ad18efa243156f41f5f96f953c8268a7e53ace031b5b437321ce5a66d",
+    "rule": "item belongs to group g iff every actID in the item maps to g (recommendation_items.item_in_group, used by runGeneratorOfD_v7 STEP 16/18)",
+    "layers": {
+     "M3": {
+      "column": "ContextG_act_3",
+      "groups": [
+       0,
+       1,
+       2
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 3,
+        "n_items": 7,
+        "n_rows": 2117,
+        "n_users": 508,
+        "rating_mean": 1.052213557626406,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 29,
+        "n_items": 4089,
+        "n_rows": 1968906,
+        "n_users": 679,
+        "rating_mean": 1.580368568882861,
+        "rating_min": 0.3,
+        "rating_max": 5.0
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 1.6487453945406891,
+        "rating_min": 0.6854442333176156,
+        "rating_max": 3.070009831321624
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 2480,
+        "n_rows": 1081712,
+        "n_users": 679,
+        "rating_mean": 1.471229943942715,
+        "rating_min": 0.3,
+        "rating_max": 5.0
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     },
+     "M4": {
+      "column": "ContextG_act_4",
+      "groups": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 8,
+        "n_items": 92,
+        "n_rows": 40066,
+        "n_users": 635,
+        "rating_mean": 1.4504570141907627,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 1027,
+        "n_users": 508,
+        "rating_mean": 1.0938322098092077,
+        "rating_min": 0.3,
+        "rating_max": 3.070009831321624
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 20,
+        "n_items": 1350,
+        "n_rows": 644492,
+        "n_users": 647,
+        "rating_mean": 1.5909504490288182,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": 3,
+        "n_actIDs_in_group_present": 4,
+        "n_items": 14,
+        "n_rows": 2186,
+        "n_users": 223,
+        "rating_mean": 1.5254580350604792,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 5120,
+        "n_rows": 2365258,
+        "n_users": 679,
+        "rating_mean": 1.5295708313361005,
+        "rating_min": 0.3,
+        "rating_max": 5.0
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     },
+     "M5": {
+      "column": "ContextG_act_5",
+      "groups": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 1.6487453945406891,
+        "rating_min": 0.6854442333176156,
+        "rating_max": 3.070009831321624
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 9,
+        "n_items": 129,
+        "n_rows": 54631,
+        "n_users": 635,
+        "rating_mean": 1.4460940035466099,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 19,
+        "n_items": 1159,
+        "n_rows": 560060,
+        "n_users": 641,
+        "rating_mean": 1.6172875048836608,
+        "rating_min": 0.3,
+        "rating_max": 4.678334971886938
+       },
+       {
+        "group": 3,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 1027,
+        "n_users": 508,
+        "rating_mean": 1.0938322098092077,
+        "rating_min": 0.3,
+        "rating_max": 3.070009831321624
+       },
+       {
+        "group": 4,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 1.6487453945406891,
+        "rating_min": 0.6854442333176156,
+        "rating_max": 3.070009831321624
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 5282,
+        "n_rows": 2436723,
+        "n_users": 679,
+        "rating_mean": 1.5261825330126428,
+        "rating_min": 0.3,
+        "rating_max": 5.0
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     }
+    }
+   },
+   "first_activity_context_CT1_CP1": [
+    {
+     "C_T1": "podnevi",
+     "C_P1": "kjerkoli",
+     "n_rows": 871302
+    },
+    {
+     "C_T1": "ob kosilu",
+     "C_P1": "kjerkoli",
+     "n_rows": 563363
+    },
+    {
+     "C_T1": "zjutraj ",
+     "C_P1": "v naravi",
+     "n_rows": 380449
+    },
+    {
+     "C_T1": "malica dopoldne",
+     "C_P1": "kjerkoli",
+     "n_rows": 287883
+    },
+    {
+     "C_T1": "ob zajtrku",
+     "C_P1": "kjerkoli",
+     "n_rows": 272692
+    },
+    {
+     "C_T1": "dopoldne",
+     "C_P1": "kjerkoli",
+     "n_rows": 183726
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "kjerkoli",
+     "n_rows": 174265
+    },
+    {
+     "C_T1": "zjutraj ",
+     "C_P1": "kjerkoli",
+     "n_rows": 122859
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "doma",
+     "n_rows": 92830
+    },
+    {
+     "C_T1": "zjutraj ",
+     "C_P1": "doma",
+     "n_rows": 31378
+    },
+    {
+     "C_T1": "zjutraj ",
+     "C_P1": "v gozdu",
+     "n_rows": 21328
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "v gozdu",
+     "n_rows": 19091
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "v telovadnici",
+     "n_rows": 16952
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "v telovadnici",
+     "n_rows": 14911
+    }
+   ],
+   "context_checks": {
+    "rows_len_context_ne_len_item": 0,
+    "actIDs_with_inconsistent_context": {},
+    "context_qID_not_prefix_of_actID": 0,
+    "value_types_in_activity_context_table": {
+     "str": 147,
+     "float NaN": 91
+    }
+   },
+   "ordering": {
+    "user_id_non_decreasing": true
+   },
+   "matrix_view": {
+    "definition": "rows = distinct user_id (sorted), columns = distinct item tuples (first-appearance order), value = rating; one stored entry per D_lst row",
+    "shape": [
+     679,
+     6579
+    ],
+    "nnz": 3053029,
+    "nnz_unique_pairs": 3053029,
+    "density": 0.6834413778298021,
+    "sparsity": 0.3165586221701979,
+    "dtype": "float64",
+    "row_nnz": {
+     "n": 679,
+     "min": 342,
+     "median": 5018.0,
+     "mean": 4496.360824742268,
+     "max": 6565,
+     "quantiles": {
+      "p1": 562.0,
+      "p5": 2054.0,
+      "p25": 3954.0,
+      "p50": 5018.0,
+      "p75": 5229.0,
+      "p95": 6281.0,
+      "p99": 6348.0
+     }
+    },
+    "row_nnz_histogram": {
+     "edges": [
+      342.0,
+      653.15,
+      964.3,
+      1275.4499999999998,
+      1586.6,
+      1897.75,
+      2208.8999999999996,
+      2520.0499999999997,
+      2831.2,
+      3142.35,
+      3453.5,
+      3764.6499999999996,
+      4075.7999999999997,
+      4386.95,
+      4698.099999999999,
+      5009.25,
+      5320.4,
+      5631.549999999999,
+      5942.7,
+      6253.849999999999,
+      6565.0
+     ],
+     "counts": [
+      33,
+      0,
+      0,
+      0,
+      0,
+      35,
+      70,
+      0,
+      3,
+      0,
+      4,
+      55,
+      54,
+      19,
+      1,
+      245,
+      6,
+      86,
+      23,
+      45
+     ]
+    },
+    "col_nnz": {
+     "n": 6579,
+     "min": 38,
+     "median": 509.0,
+     "mean": 464.0566955464356,
+     "max": 653,
+     "quantiles": {
+      "p1": 38.0,
+      "p5": 133.0,
+      "p25": 497.0,
+      "p50": 509.0,
+      "p75": 533.0,
+      "p95": 632.0,
+      "p99": 632.0
+     }
+    },
+    "col_nnz_histogram": {
+     "edges": [
+      38.0,
+      68.75,
+      99.5,
+      130.25,
+      161.0,
+      191.75,
+      222.5,
+      253.25,
+      284.0,
+      314.75,
+      345.5,
+      376.25,
+      407.0,
+      437.75,
+      468.5,
+      499.25,
+      530.0,
+      560.75,
+      591.5,
+      622.25,
+      653.0
+     ],
+     "counts": [
+      231,
+      25,
+      0,
+      440,
+      14,
+      390,
+      30,
+      220,
+      0,
+      0,
+      0,
+      0,
+      0,
+      67,
+      248,
+      2418,
+      1191,
+      30,
+      744,
+      531
+     ]
+    },
+    "value_histogram": {
+     "edges": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2,
+      1.3,
+      1.4,
+      1.5,
+      1.6,
+      1.7,
+      1.8,
+      1.9,
+      2.0,
+      2.1,
+      2.2,
+      2.3,
+      2.4,
+      2.5,
+      2.6,
+      2.7,
+      2.8,
+      2.9,
+      3.0,
+      3.1,
+      3.2,
+      3.3,
+      3.4,
+      3.5,
+      3.6,
+      3.7,
+      3.8,
+      3.9,
+      4.0,
+      4.1,
+      4.2,
+      4.3,
+      4.4,
+      4.5,
+      4.6,
+      4.7,
+      4.8,
+      4.9,
+      5.0
+     ],
+     "counts": [
+      0,
+      0,
+      0,
+      44970,
+      59910,
+      16912,
+      204941,
+      220682,
+      101733,
+      245281,
+      333358,
+      131462,
+      323128,
+      115434,
+      104772,
+      36731,
+      69489,
+      90906,
+      44004,
+      19834,
+      109161,
+      62260,
+      172649,
+      21831,
+      54227,
+      43206,
+      186800,
+      10948,
+      13077,
+      8421,
+      43835,
+      30039,
+      17538,
+      2675,
+      29578,
+      2526,
+      3314,
+      10084,
+      14061,
+      207,
+      12352,
+      26964,
+      0,
+      1377,
+      2682,
+      0,
+      9067,
+      0,
+      0,
+      603
+     ],
+     "below_range": 0,
+     "above_range": 0,
+     "note": "bins [e_i, e_i+1), last bin closed; width 0.1 on the Surprise rating scale (0, 5)"
+    }
+   },
+   "flags": [
+    "info: only 258 distinct rating values over 3,053,029 rows (many ties)",
+    "info: min rating 0.3 occurs 2314x, max 5.0 occurs 603x"
+   ]
+  },
+  "D_contx_a3_sparse_mat": {
+   "paths": [
+    "data/D_lst/D_contx_a3_sparse_mat.pkl"
+   ],
+   "sha256": "b28b40e35594b259de544e1fc0b94be7772bdd7f1e4c2192d7af166991620c27",
+   "sample_files": [
+    "D_contx_a3_sparse_mat__first50.csv",
+    "D_contx_a3_sparse_mat__last50.csv",
+    "D_contx_a3_sparse_mat__random500_seed42.csv",
+    "D_contx_a3_sparse_mat__users3_seed42_all_rows.csv",
+    "D_contx_a3_sparse_mat__activity_contexts.csv",
+    "D_contx_a3_sparse_mat__matrix_dense_block_50x50.csv",
+    "D_contx_a3_sparse_mat__matrix_random200_nonzero_seed42.csv"
+   ],
+   "kind": "D_lst",
+   "counts": {
+    "rows": 1850178,
+    "users": 679,
+    "items_distinct_sequences": 6579,
+    "items_distinct_unordered": 6579,
+    "activities_distinct_actIDs": 34,
+    "context_segments": {
+     "M3": 3,
+     "M4": 4,
+     "M5": 5
+    },
+    "distinct_first_activity_contexts_CT1_CP1": 13,
+    "distinct_activity_contexts": 23,
+    "ratings_total": 1850178,
+    "unique_user_item_pairs": 1850178,
+    "density": 0.4141749723145072,
+    "sparsity": 0.5858250276854928
+   },
+   "rating": {
+    "n": 1850178,
+    "n_nan": 0,
+    "n_inf": 0,
+    "min": 0.30979554250135954,
+    "max": 5.0,
+    "mean": 1.2891755404571352,
+    "std": 0.8174694274301575,
+    "median": 1.231805850643041,
+    "quantiles": {
+     "p1": 0.33312303934478404,
+     "p5": 0.3425561519211241,
+     "p25": 0.5381577979437545,
+     "p50": 1.231805850643041,
+     "p75": 1.7601894783204295,
+     "p95": 3.002815440982824,
+     "p99": 3.5131950619321084
+    },
+    "n_distinct": 237,
+    "histogram": {
+     "edges": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2,
+      1.3,
+      1.4,
+      1.5,
+      1.6,
+      1.7,
+      1.8,
+      1.9,
+      2.0,
+      2.1,
+      2.2,
+      2.3,
+      2.4,
+      2.5,
+      2.6,
+      2.7,
+      2.8,
+      2.9,
+      3.0,
+      3.1,
+      3.2,
+      3.3,
+      3.4,
+      3.5,
+      3.6,
+      3.7,
+      3.8,
+      3.9,
+      4.0,
+      4.1,
+      4.2,
+      4.3,
+      4.4,
+      4.5,
+      4.6,
+      4.7,
+      4.8,
+      4.9,
+      5.0
+     ],
+     "counts": [
+      0,
+      0,
+      0,
+      132966,
+      312810,
+      88944,
+      80894,
+      23605,
+      80431,
+      118889,
+      35848,
+      29820,
+      73112,
+      131027,
+      184244,
+      10574,
+      52185,
+      34694,
+      56616,
+      151726,
+      7255,
+      10474,
+      3447,
+      29557,
+      33439,
+      24241,
+      3340,
+      33037,
+      9583,
+      2396,
+      7700,
+      16953,
+      2291,
+      13569,
+      31521,
+      7560,
+      495,
+      1430,
+      19,
+      78,
+      9971,
+      1778,
+      0,
+      241,
+      1206,
+      0,
+      27,
+      0,
+      0,
+      185
+     ],
+     "below_range": 0,
+     "above_range": 0,
+     "note": "bins [e_i, e_i+1), last bin closed; width 0.1 on the Surprise rating scale (0, 5)"
+    }
+   },
+   "sequence_length": [
+    {
+     "seq_len": 1,
+     "n_items": 34,
+     "n_rows": 8312,
+     "rating_mean": 3.3689803838818375,
+     "rating_min": 1.0,
+     "rating_max": 5.0
+    },
+    {
+     "seq_len": 2,
+     "n_items": 561,
+     "n_rows": 190852,
+     "rating_mean": 1.3806197570264238,
+     "rating_min": 0.3310699893323287,
+     "rating_max": 4.1
+    },
+    {
+     "seq_len": 3,
+     "n_items": 5984,
+     "n_rows": 1651014,
+     "rating_mean": 1.2681341383374523,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 4.001
+    }
+   ],
+   "per_user": {
+    "rows_per_user": {
+     "n": 679,
+     "min": 4,
+     "median": 2569.0,
+     "mean": 2724.8571428571427,
+     "max": 6565,
+     "quantiles": {
+      "p1": 34.0,
+      "p5": 314.0,
+      "p25": 1254.0,
+      "p50": 2569.0,
+      "p75": 4255.0,
+      "p95": 5550.0,
+      "p99": 6348.0
+     }
+    },
+    "mean_rating_per_user": {
+     "n": 679,
+     "n_nan": 0,
+     "n_inf": 0,
+     "min": 0.39430844517831193,
+     "max": 3.435107387661952,
+     "mean": 1.1582775273997847,
+     "std": 0.4053067473958,
+     "median": 1.1501205086578425,
+     "quantiles": {
+      "p1": 0.39430844517831193,
+      "p5": 0.5898277219847086,
+      "p25": 0.8402334810580788,
+      "p50": 1.1501205086578425,
+      "p75": 1.4181920290340817,
+      "p95": 1.6757280864912725,
+      "p99": 2.073389240506356
+     }
+    },
+    "users_with_constant_rating": 2,
+    "user_id_range": [
+     2,
+     2196
+    ]
+   },
+   "per_item": {
+    "rows_per_item": {
+     "n": 6579,
+     "min": 38,
+     "median": 247.0,
+     "mean": 281.2248062015504,
+     "max": 559,
+     "quantiles": {
+      "p1": 38.0,
+      "p5": 48.0,
+      "p25": 162.0,
+      "p50": 247.0,
+      "p75": 429.0,
+      "p95": 495.0,
+      "p99": 516.0
+     }
+    },
+    "items_with_constant_rating": 0,
+    "items_rated_by_one_user": 0
+   },
+   "per_activity": [
+    {
+     "actID": "Ac_AB4_1_Act01",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act02",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act03",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act04",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act05",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act06",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act07",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act08",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_1_Act09",
+     "n_items_containing": 562,
+     "n_rows": 210082,
+     "n_users": 673,
+     "rating_mean": 1.440378221604998,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act01",
+     "n_items_containing": 562,
+     "n_rows": 213035,
+     "n_users": 656,
+     "rating_mean": 1.441583608984643,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act02",
+     "n_items_containing": 562,
+     "n_rows": 213035,
+     "n_users": 656,
+     "rating_mean": 1.441583608984643,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act03",
+     "n_items_containing": 562,
+     "n_rows": 213035,
+     "n_users": 656,
+     "rating_mean": 1.441583608984643,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_2_Act04",
+     "n_items_containing": 562,
+     "n_rows": 213035,
+     "n_users": 656,
+     "rating_mean": 1.441583608984643,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act01",
+     "n_items_containing": 562,
+     "n_rows": 138908,
+     "n_users": 675,
+     "rating_mean": 1.1224856677291815,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 4.138784217480644,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act02",
+     "n_items_containing": 562,
+     "n_rows": 138908,
+     "n_users": 675,
+     "rating_mean": 1.1224856677291815,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 4.138784217480644,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act03",
+     "n_items_containing": 562,
+     "n_rows": 138908,
+     "n_users": 675,
+     "rating_mean": 1.1224856677291815,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 4.138784217480644,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_3_Act04",
+     "n_items_containing": 562,
+     "n_rows": 138908,
+     "n_users": 675,
+     "rating_mean": 1.1224856677291815,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 4.138784217480644,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act01",
+     "n_items_containing": 562,
+     "n_rows": 122464,
+     "n_users": 637,
+     "rating_mean": 1.2179252667093234,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act02",
+     "n_items_containing": 562,
+     "n_rows": 122464,
+     "n_users": 637,
+     "rating_mean": 1.2179252667093234,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act03",
+     "n_items_containing": 562,
+     "n_rows": 122464,
+     "n_users": 637,
+     "rating_mean": 1.2179252667093234,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act04",
+     "n_items_containing": 562,
+     "n_rows": 122464,
+     "n_users": 637,
+     "rating_mean": 1.2179252667093234,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_4_Act05",
+     "n_items_containing": 562,
+     "n_rows": 122464,
+     "n_users": 637,
+     "rating_mean": 1.2179252667093234,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_5_Act01",
+     "n_items_containing": 562,
+     "n_rows": 210612,
+     "n_users": 636,
+     "rating_mean": 1.4165395534667984,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act01",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act02",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act03",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act04",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act05",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act06",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act07",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act08",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act09",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act10",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    },
+    {
+     "actID": "Ac_AB4_8_Act11",
+     "n_items_containing": 562,
+     "n_rows": 111056,
+     "n_users": 636,
+     "rating_mean": 0.995824071317813,
+     "rating_min": 0.30979554250135954,
+     "rating_max": 5.0,
+     "context_consistent_across_rows": true
+    }
+   ],
+   "segments": {
+    "source": "data/context/ActivityContextGen_v12.xlsx",
+    "source_sha256": "3cfa366ad18efa243156f41f5f96f953c8268a7e53ace031b5b437321ce5a66d",
+    "rule": "item belongs to group g iff every actID in the item maps to g (recommendation_items.item_in_group, used by runGeneratorOfD_v7 STEP 16/18)",
+    "layers": {
+     "M3": {
+      "column": "ContextG_act_3",
+      "groups": [
+       0,
+       1,
+       2
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 3,
+        "n_items": 7,
+        "n_rows": 1584,
+        "n_users": 508,
+        "rating_mean": 1.7664143765108646,
+        "rating_min": 0.30979554250135977,
+        "rating_max": 5.0
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 29,
+        "n_items": 4089,
+        "n_rows": 1237658,
+        "n_users": 679,
+        "rating_mean": 1.3214211965059466,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 5.0
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 3.386154121762254,
+        "rating_min": 0.6868049380678917,
+        "rating_max": 5.0
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 2480,
+        "n_rows": 610642,
+        "n_users": 672,
+        "rating_mean": 1.2215720146707136,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 4.1
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     },
+     "M4": {
+      "column": "ContextG_act_4",
+      "groups": [
+       0,
+       1,
+       2,
+       3
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 8,
+        "n_items": 92,
+        "n_rows": 27743,
+        "n_users": 635,
+        "rating_mean": 1.4151454262216647,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 5.0
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 933,
+        "n_users": 508,
+        "rating_mean": 2.2622722093243968,
+        "rating_min": 0.3310699893323287,
+        "rating_max": 5.0
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 20,
+        "n_items": 1350,
+        "n_rows": 425780,
+        "n_users": 647,
+        "rating_mean": 1.37464291169253,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 5.0
+       },
+       {
+        "group": 3,
+        "n_actIDs_in_group_present": 4,
+        "n_items": 14,
+        "n_rows": 1679,
+        "n_users": 223,
+        "rating_mean": 2.3101083293701685,
+        "rating_min": 0.34249649672260263,
+        "rating_max": 5.0
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 5120,
+        "n_rows": 1394043,
+        "n_users": 677,
+        "rating_mean": 1.258683564807884,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 4.1
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     },
+     "M5": {
+      "column": "ContextG_act_5",
+      "groups": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "table": [
+       {
+        "group": 0,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 3.386154121762254,
+        "rating_min": 0.6868049380678917,
+        "rating_max": 5.0
+       },
+       {
+        "group": 1,
+        "n_actIDs_in_group_present": 9,
+        "n_items": 129,
+        "n_rows": 37178,
+        "n_users": 635,
+        "rating_mean": 1.3601231902523547,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 5.0
+       },
+       {
+        "group": 2,
+        "n_actIDs_in_group_present": 19,
+        "n_items": 1159,
+        "n_rows": 378444,
+        "n_users": 641,
+        "rating_mean": 1.3998522371612954,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 5.0
+       },
+       {
+        "group": 3,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 933,
+        "n_users": 508,
+        "rating_mean": 2.2622722093243968,
+        "rating_min": 0.3310699893323287,
+        "rating_max": 5.0
+       },
+       {
+        "group": 4,
+        "n_actIDs_in_group_present": 2,
+        "n_items": 3,
+        "n_rows": 294,
+        "n_users": 98,
+        "rating_mean": 3.386154121762254,
+        "rating_min": 0.6868049380678917,
+        "rating_max": 5.0
+       },
+       {
+        "group": "none (mixed / unmapped)",
+        "n_actIDs_in_group_present": null,
+        "n_items": 5282,
+        "n_rows": 1433035,
+        "n_users": 677,
+        "rating_mean": 1.2566128004476769,
+        "rating_min": 0.30979554250135954,
+        "rating_max": 4.1
+       }
+      ],
+      "actIDs_missing_from_mapping": []
+     }
+    }
+   },
+   "first_activity_context_CT1_CP1": [
+    {
+     "C_T1": "podnevi",
+     "C_P1": "kjerkoli",
+     "n_rows": 524664
+    },
+    {
+     "C_T1": "ob kosilu",
+     "C_P1": "kjerkoli",
+     "n_rows": 378091
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "v naravi",
+     "n_rows": 217509
+    },
+    {
+     "C_T1": "ob malici",
+     "C_P1": "kjerkoli",
+     "n_rows": 194500
+    },
+    {
+     "C_T1": "ob zajtrkui",
+     "C_P1": "kjerkoli",
+     "n_rows": 180805
+    },
+    {
+     "C_T1": "dopoldne",
+     "C_P1": "kjerkoli",
+     "n_rows": 100794
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "kjerkoli",
+     "n_rows": 88272
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "kjerkoli",
+     "n_rows": 61454
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "doma",
+     "n_rows": 41840
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "v gozdu",
+     "n_rows": 25340
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "doma",
+     "n_rows": 17793
+    },
+    {
+     "C_T1": "zjutraj",
+     "C_P1": "v telovadnici",
+     "n_rows": 10287
+    },
+    {
+     "C_T1": "kadarkoli",
+     "C_P1": "v telovadnici",
+     "n_rows": 8829
+    }
+   ],
+   "context_checks": {
+    "rows_len_context_ne_len_item": 0,
+    "actIDs_with_inconsistent_context": {},
+    "context_qID_not_prefix_of_actID": 0,
+    "value_types_in_activity_context_table": {
+     "str": 147,
+     "string 'nan'": 91
+    }
+   },
+   "ordering": {
+    "user_id_non_decreasing": true
+   },
+   "matrix_view": {
+    "definition": "rows = distinct user_id (sorted), columns = distinct item tuples (first-appearance order), value = rating; one stored entry per D_lst row",
+    "shape": [
+     679,
+     6579
+    ],
+    "nnz": 1850178,
+    "nnz_unique_pairs": 1850178,
+    "density": 0.4141749723145072,
+    "sparsity": 0.5858250276854928,
+    "dtype": "float64",
+    "row_nnz": {
+     "n": 679,
+     "min": 4,
+     "median": 2569.0,
+     "mean": 2724.8571428571427,
+     "max": 6565,
+     "quantiles": {
+      "p1": 34.0,
+      "p5": 314.0,
+      "p25": 1254.0,
+      "p50": 2569.0,
+      "p75": 4255.0,
+      "p95": 5550.0,
+      "p99": 6348.0
+     }
+    },
+    "row_nnz_histogram": {
+     "edges": [
+      4.0,
+      332.05,
+      660.1,
+      988.1500000000001,
+      1316.2,
+      1644.25,
+      1972.3000000000002,
+      2300.35,
+      2628.4,
+      2956.4500000000003,
+      3284.5,
+      3612.55,
+      3940.6000000000004,
+      4268.650000000001,
+      4596.7,
+      4924.75,
+      5252.8,
+      5580.85,
+      5908.900000000001,
+      6236.95,
+      6565.0
+     ],
+     "counts": [
+      60,
+      59,
+      19,
+      52,
+      38,
+      3,
+      55,
+      140,
+      4,
+      1,
+      13,
+      49,
+      37,
+      5,
+      18,
+      89,
+      4,
+      7,
+      14,
+      12
+     ]
+    },
+    "col_nnz": {
+     "n": 6579,
+     "min": 38,
+     "median": 247.0,
+     "mean": 281.2248062015504,
+     "max": 559,
+     "quantiles": {
+      "p1": 38.0,
+      "p5": 48.0,
+      "p25": 162.0,
+      "p50": 247.0,
+      "p75": 429.0,
+      "p95": 495.0,
+      "p99": 516.0
+     }
+    },
+    "col_nnz_histogram": {
+     "edges": [
+      38.0,
+      64.05,
+      90.1,
+      116.15,
+      142.2,
+      168.25,
+      194.3,
+      220.35,
+      246.4,
+      272.45000000000005,
+      298.5,
+      324.55,
+      350.6,
+      376.65000000000003,
+      402.7,
+      428.75,
+      454.8,
+      480.85,
+      506.90000000000003,
+      532.95,
+      559.0
+     ],
+     "counts": [
+      451,
+      275,
+      450,
+      110,
+      495,
+      374,
+      755,
+      110,
+      762,
+      178,
+      50,
+      0,
+      0,
+      143,
+      740,
+      505,
+      673,
+      279,
+      180,
+      49
+     ]
+    },
+    "value_histogram": {
+     "edges": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.1,
+      1.2,
+      1.3,
+      1.4,
+      1.5,
+      1.6,
+      1.7,
+      1.8,
+      1.9,
+      2.0,
+      2.1,
+      2.2,
+      2.3,
+      2.4,
+      2.5,
+      2.6,
+      2.7,
+      2.8,
+      2.9,
+      3.0,
+      3.1,
+      3.2,
+      3.3,
+      3.4,
+      3.5,
+      3.6,
+      3.7,
+      3.8,
+      3.9,
+      4.0,
+      4.1,
+      4.2,
+      4.3,
+      4.4,
+      4.5,
+      4.6,
+      4.7,
+      4.8,
+      4.9,
+      5.0
+     ],
+     "counts": [
+      0,
+      0,
+      0,
+      132966,
+      312810,
+      88944,
+      80894,
+      23605,
+      80431,
+      118889,
+      35848,
+      29820,
+      73112,
+      131027,
+      184244,
+      10574,
+      52185,
+      34694,
+      56616,
+      151726,
+      7255,
+      10474,
+      3447,
+      29557,
+      33439,
+      24241,
+      3340,
+      33037,
+      9583,
+      2396,
+      7700,
+      16953,
+      2291,
+      13569,
+      31521,
+      7560,
+      495,
+      1430,
+      19,
+      78,
+      9971,
+      1778,
+      0,
+      241,
+      1206,
+      0,
+      27,
+      0,
+      0,
+      185
+     ],
+     "below_range": 0,
+     "above_range": 0,
+     "note": "bins [e_i, e_i+1), last bin closed; width 0.1 on the Surprise rating scale (0, 5)"
+    }
+   },
+   "flags": [
+    "missing context values are stored as the STRING 'nan' (not float NaN): 91 occurrences in the per-activity context table",
+    "2 users have a constant rating over all their rows",
+    "info: only 237 distinct rating values over 1,850,178 rows (many ties)",
+    "info: min rating 0.30979554250135954 occurs 2448x, max 5.0 occurs 185x"
+   ]
+  }
+ }
+}
