@@ -1,0 +1,1772 @@
+\documentclass[a4paper,twoside,openright,12pt,slovene]{book}
+\usepackage[pdftex]{./Izgled/UNI-LJ-FE-Diploma} % stil zaključnega dela UL FE
+\usepackage[utf8]{inputenc} % predloga uporablja standardno kodiranje Unicode UTF-8, ki podpira šumnike
+\usepackage[greek,english,slovene]{babel} % seznam uporabljenih jezikov (zadnji na seznamu je primarni)
+\usepackage{amsfonts}
+\tolerance=2000
+
+% PDF/A %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{filecontents}
+\begin{filecontents*}{\jobname.xmpdata}
+    \Title{Kontekstualiziran priporočilni sistem za dnevne aktivnosti starejših} % Mora biti enak kot je v prijavi teme!
+    \Author{Gašper Leskovec}
+\end{filecontents*}
+\usepackage[a-1b]{pdfx}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% LaTeX PAKETI %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Dodatni simboli
+\usepackage{textcomp}                               % dodatni simboli (kot npr. €)
+\usepackage{gensymb}                                % dodatni simboli \de­gree, \cel­sius, \pert­hou­sand, \mi­cro, \ohm
+\newcommand{\uppi}{\textrm{\greektext p\latintext}} % velika grška črka P z \uppi, alternativa simbolu \Pi
+
+% Osnovno oblikovanje
+\hypersetup{unicode,hidelinks,breaklinks,hyperindex} % dodatne možnosti hiperpovezav
+\usepackage[normalem]{ulem}                          % podčrtavanje in prečrtavanje teksta
+\usepackage{float}                                   % dodatne možnosti oblikovanja objektov
+\usepackage{enumitem}                                % dodatne možnosti oblikovanja seznamov
+\usepackage{booktabs}                                % lepe horizontalne črte v tabelah
+
+% Dodatno oblikovanje
+\usepackage{longtable}      % večstranske tabele
+\usepackage{caption}        % dodatne možnosti označevanja objektov
+
+% Matematična orodja
+\usepackage{mathtools} % http://mirrors.ctan.org/macros/LaTeX/contrib/mathtools/mathtools.pdf
+\usepackage{bm}        % ukaz za odebeljeni tisk \bm v matematičnih okoljih
+
+% Grafična orodja
+\usepackage{graphicx}                 % vključevanje bitnih slik z ukazom \includegraphics
+\usepackage{grffile}                  % podpora presledkom pri ukazu \includegraphics
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+% Vključevanje datotek
+\usepackage{pdfpages} % vključevanje PDF datotek z ukazom \includegraphics
+\usepackage{epstopdf} % vključevanje EPS datotek z ukazom \includegraphics
+\usepackage{listings} % orodja za izpisovanje programske kode
+\lstset{              % nastavitve orodja za izpisovanje programske kode
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    numbers=left,
+    numberstyle=\scriptsize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{unilj},
+    stringstyle=\color{olive},
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% DEKLARACIJE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\naslov{Kontekstualiziran priporočilni sistem za dnevne aktivnosti starejših} 
+\avtor{Gašper Leskovec} 
+\mentor{prof. dr. Andrej Košir}
+\date{Ljubljana, \the\year}
+\univerza{Univerza v Ljubljani}
+\definecolor{unilj}{cmyk}{0.00, 0.94, 0.94, 0.06} % barva Univerze v Ljubljani
+
+\delo{Magistrsko delo\\~\\Magistrski študijski program druge stopnje Elektrotehnika}
+\fakulteta{Fakulteta za elektrotehniko}
+
+% DOKUMENT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\frontmatter
+
+\selectlanguage{slovene}
+
+%******************************* NASLOVNICA ************************************
+\maketitle
+
+%******************************* ZAHVALA ***************************************
+\zahvala
+Pri magistrskem delu se zahvaljujem mentorju prof. dr. Andreju Koširju za strokovno vodenje, jasne usmeritve ter konstruktivne komentarje pri načrtovanju in izvedbi eksperimentov. Posebna zahvala gre družini in prijateljem za podporo in razumevanje v času nastajanja magistrskega dela.
+
+%******************************* POVZETEK IN KLJUČNE BESEDE ********************
+\povzetek
+Magistrsko delo obravnava priporočanje kombinacij dnevnih
+aktivnosti starejšim uporabnikom. Sistem uporablja modelno
+osnovano sodelovalno filtriranje z matrično faktorizacijo
+(SVD), implementirano v Pythonu s knjižnico Surprise.
+Časovni in prostorski kontekst upošteva z naknadnim
+filtriranjem kandidatnih kombinacij.
+
+Algoritme in hiperparametre izberemo na razvojnem delu,
+končno vrednotenje pa izvedemo na odloženem testnem delu.
+Napovedi izračunanih ocen ovrednotimo z RMSE, MAE, MSE
+in FCP, izbor kombinacij pa z natančnostjo, priklicem
+in F1-mero. Kontekstni filter zahteva skladnost vseh
+aktivnosti z izbranim simuliranim časom in krajem.
+Vrednotenje ne potrjuje neposredne uporabnosti priporočil.
+
+Eksperiment vključuje 679 uporabnikov, 6\,579 kombinacij
+aktivnosti in 3\,053\,029 izračunanih ocen.
+Končni model SVD na odloženem testnem delu doseže
+RMSE $0{,}0819$ in MAE $0{,}0531$.
+Različica brez konteksta vrne 3\,395 priporočil
+in doseže F1-mero $0{,}339$, kontekstna različica
+pa vrne 250 priporočil za 79 uporabnikov
+in doseže F1-mero $0{,}006$. Interpretacijo F1-mere omejujejo pogosta izenačenja
+referenčnih ocen na meji top-5, ki se razrešujejo
+leksikografsko po identifikatorjih kombinacij.
+Rezultati kažejo, da nizka napaka napovedovanja ocen
+ne zagotavlja razpoložljivosti priporočil pri strogem
+naknadnem kontekstnem filtriranju.
+
+
+\kljucnebesede
+priporočilni sistemi, sodelovalno filtriranje, matrična faktorizacija, SVD, kontekstno priporočanje, razložljiva umetna inteligenca, starejši uporabniki
+
+
+\selectlanguage{english}
+
+%******************************* ABSTRACT AND KEYWORDS *************************
+
+\abstract
+This thesis investigates recommendations of daily activity
+combinations for elderly users. The system uses model-based
+collaborative filtering with matrix factorization (SVD),
+implemented in Python using the Surprise library. Temporal
+and spatial context is incorporated through post-filtering
+of candidate activity combinations.
+
+Algorithms and hyperparameters are selected using the
+development set, with final evaluation on a held-out
+test set. Predictions of computed ratings are evaluated
+using RMSE, MAE, MSE and FCP; combination selection is
+evaluated using precision, recall and F1-score.
+Contextual filtering requires all activities to match
+the simulated time and location. The evaluation does
+not establish practical usefulness for users.
+
+The experiment includes 679 users, 6,579 activity combinations
+and 3,053,029 computed ratings.
+The final SVD model achieves an RMSE of 0.0819 and
+an MAE of 0.0531 on the held-out test set.
+The version without context returns 3,395 recommendations
+and achieves an F1-score of 0.339, while contextual filtering
+returns 250 recommendations for 79 users and achieves
+an F1-score of 0.006. Interpretation of the F1-score is limited by frequent
+ties at the reference top-5 boundary, which are
+resolved lexicographically by combination identifiers.
+The results show that low rating prediction error does not
+ensure recommendation availability under strict contextual
+post-filtering.
+
+
+\keywords
+recommender systems, collaborative filtering, matrix factorization, SVD, context-aware recommendation, explainable AI, elderly users
+
+
+\selectlanguage{slovene}
+
+%******************************* KAZALO ****************************************
+\tableofcontents
+
+%******************************* SEZNAM SLIK, SEZNAM TABEL *********************
+\seznamslik
+\seznamtabel
+
+%******************************* SEZNAM SIMBOLOV *******************************
+\seznamsimbolov
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item[$u$] uporabnik (identifikator uporabnika)
+  \item[$i$] priporočilni element: kombinacija od ene do treh aktivnosti
+  \item[$c$] kontekst (npr.\ časovni in prostorski kontekst)
+  \item[$r_{u,i}$] izračunana normalizirana ocena kombinacije $i$ za uporabnika $u$
+  \item[$\hat{r}_{u,i}$] napovedana ocena kombinacije $i$ za uporabnika $u$
+  \item[$R$] matrika ocen uporabnikov in kombinacij aktivnosti
+  \item[$P$] matrika latentnih faktorjev uporabnikov
+  \item[$Q$] matrika latentnih faktorjev kombinacij aktivnosti
+  \item[$k$] število latentnih dimenzij (latentnih faktorjev)
+  \item[$\mu$] globalno povprečje ocen
+  \item[$b_u$] odmik (bias) uporabnika $u$
+  \item[$b_i$] odmik (bias) kombinacije $i$
+  \item[$C_T$] časovni kontekst
+  \item[$C_P$] prostorski kontekst
+  \item[$n$] število primerov v testni množici (pri izračunu metrik)
+\end{itemize}
+
+\seznamkratic
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item[RS] priporočilni sistem (Recommender System)
+  \item[CF] sodelovalno filtriranje (Collaborative Filtering)
+  \item[SVD] singularna dekompozicija (Singular Value Decomposition; v kontekstu RS: matrična faktorizacija)
+  \item[MF] matrična faktorizacija (Matrix Factorization)
+  \item[XAI] razložljiva umetna inteligenca (Explainable AI)
+  \item[XRS] razložljivi priporočilni sistemi (Explainable Recommender Systems)
+  \item[RMSE] koren srednje kvadratne napake (Root Mean Squared Error)
+  \item[MAE] srednja absolutna napaka (Mean Absolute Error)
+  \item[MSE] srednja kvadratna napaka (Mean Squared Error)
+  \item[FCP] delež skladnih parov (Fraction of Concordant Pairs)
+  \item[NLP] obdelava naravnega jezika (Natural Language Processing)
+\end{itemize}
+
+\mainmatter
+
+%******************************* UVOD ******************************************
+\chapter{Uvod} \label{uvod}
+Priporočilni sistemi so v zadnjih desetletjih postali sestavni del sodobnih
+informacijskih sistemov in se pogosto uporabljajo za podporo odločanju v
+različnih domenah, kot so e-trgovina, multimedija, izobraževanje in zdravstvo.
+Njihov osnovni namen je uporabnikom ponuditi relevantne elemente na podlagi
+njihovih preteklih interakcij, preferenc ali drugih razpoložljivih informacij.
+Z razvojem strojnega učenja in povečanjem razpoložljivih podatkov so se
+priporočilni sistemi razvili v kompleksne modele, ki omogočajo učenje
+latentnih vzorcev uporabniškega vedenja in napovedovanje neopaženih
+interakcij.
+
+V realnih okoljih pa uporabniške preference pogosto niso statične, temveč
+močno odvisne od trenutnih okoliščin. Relevanca določene aktivnosti se lahko
+spreminja glede na čas dneva, lokacijo ali trenutno stanje uporabnika. Zaradi
+tega so se v zadnjih letih uveljavili kontekstno zavedni priporočilni sistemi,
+ki klasične pristope razširjajo z dodatnimi kontekstualnimi informacijami.
+Kljub dokazani uporabnosti takšnih pristopov pa neposredna vključitev
+konteksta v modele pogosto poveča njihovo kompleksnost ter oteži
+interpretacijo rezultatov.
+
+Posebej občutljiva domena za uporabo priporočilnih sistemov je področje
+starejših uporabnikov, kjer imajo predlagane aktivnosti lahko neposreden
+vpliv na zdravje, dobrobit in kakovost življenja. Starejša populacija je
+heterogena in se razlikuje v telesnih, kognitivnih ter socialnih zmožnostih,
+zato morajo biti priporočila prilagojena posamezniku, razumljiva in skladna z
+dejanskim kontekstom uporabe. Poleg natančnosti priporočil je v takšnih
+sistemih ključnega pomena tudi razložljivost, saj povečuje zaupanje
+uporabnikov in omogoča boljše razumevanje odločitev sistema.
+
+V tej magistrski nalogi je predstavljen razvoj kontekstualiziranega
+priporočilnega sistema za dnevne aktivnosti starejših uporabnikov. Jedro
+sistema predstavlja modelno osnovan pristop sodelovalnega filtriranja z
+uporabo matrične faktorizacije (SVD), ki se uporablja za učenje vzorcev v izračunanih ocenah in napovedovanje ocen kombinacij aktivnosti. Kontekstualne informacije
+(čas in lokacija) niso vključene neposredno v fazi učenja modela, temveč se
+upoštevajo v fazi generiranja priporočil z naknadnim filtriranjem
+(post-filtering). Takšen modularen pristop omogoča jasno ločitev med
+napovedovanjem izračunanih ocen in obravnavo konteksta ter poenostavi analizo vpliva
+kontekstualnih omejitev na kakovost priporočil.
+
+Sistem je ovrednoten na naboru izračunanih ocen kombinacij
+aktivnosti. Ocene temeljijo na uporabniških odgovorih na
+vprašalnike, pripadajočih utežeh in združljivosti aktivnosti.
+Eksperiment preverja napovedovanje zadržanih ocen ter izbor
+kombinacij brez konteksta in z naknadnim filtriranjem.
+Tako dobljeni rezultati ne predstavljajo neposrednega
+vrednotenja zadovoljstva uporabnikov.
+
+Glavni cilji magistrske naloge so:
+\begin{itemize}
+    \item zasnovati in implementirati priporočilni sistem za dnevne aktivnosti
+    starejših uporabnikov na osnovi matrične faktorizacije,
+    \item razviti postopek generiranja ocen aktivnosti iz uporabniških
+    vprašalnikov in uteži,
+    \item analizirati vpliv kontekstualnega filtriranja na kakovost
+    priporočil,
+    \item omogočiti pregled izhodnih priporočil, napovedanih ocen
+in pripadajočih parametrov modela.
+\end{itemize}
+
+\paragraph{Uporaba orodij umetne inteligence.}
+Pri pripravi dela so bila uporabljena orodja ChatGPT,
+Claude in Claude Code za pomoč pri oblikovanju in
+jezikovnem urejanju besedila, preverjanju literature,
+pregledu in popravljanju programske kode ter analizi
+in interpretaciji rezultatov. Uporabljena so bila tudi
+pri prevajanju oznak slik in pregledih skladnosti
+besedila, kode in rezultatov.
+Za končno vsebino in pravilnost dela odgovarja avtor.
+
+Magistrsko delo je strukturirano na naslednji način. V drugem poglavju je
+predstavljen pregled sorodnih del s področja priporočilnih sistemov,
+kontekstnega priporočanja in razložljivih pristopov, s poudarkom na aplikacijah
+za starejše uporabnike. Tretje poglavje opisuje uporabljene podatke,
+metodologijo in arhitekturo sistema. V četrtem poglavju so predstavljeni
+eksperimentalni rezultati in analiza vpliva konteksta na delovanje sistema.
+Zaključno poglavje povzema glavne ugotovitve in nakaže možne smeri nadaljnjega
+raziskovalnega dela.
+
+
+
+%******************************* POGLAVJA **************************************
+
+\chapter{Trenutno stanje na področju} 
+\label{sec:state_of_the_art}
+V tem poglavju predstavimo sodelovalno filtriranje,
+kontekstno priporočanje in razložljivost ter izbrana
+sorodna dela, povezana s priporočanjem aktivnosti
+starejšim uporabnikom. 
+
+\section{Priporočilni sistemi in sodelovalno filtriranje} 
+\label{sec:sota_cf}
+
+Med osnovne pristope priporočanja sodijo vsebinsko
+filtriranje, sodelovalno filtriranje, pristopi na osnovi
+znanja in hibridne rešitve. Peng \cite{peng2022survey}
+predstavi te pristope ter izzive redkosti podatkov,
+razširljivosti in raznolikosti priporočil.
+
+Sodelovalno filtriranje uporablja vzorce ocen oziroma
+interakcij več uporabnikov. V tej nalogi uporabimo
+model SVD iz knjižnice Surprise \cite{hug2020surprise}.
+
+\section{Kontekstno zavedni priporočilni sistemi}
+\label{sec:sota_context}
+
+V realnih okoljih uporabniške preference pogosto niso statične, temveč so odvisne od trenutnega konteksta, kot so čas, lokacija ali uporabnikovo stanje. Kontekstno zavedni priporočilni sistemi razširjajo klasične modele z vključevanjem teh informacij. Kontekst je lahko vključen neposredno v model ali pa uporabljen v fazi generiranja oziroma filtriranja priporočil. Primer neposredne vključitve konteksta v model predstavlja
+CA-KGCN, ki kontekst povezuje z informacijami iz grafa
+znanja. Njegovo vrednotenje kaže izboljšanje napovedovanja
+in razvrščanja na uporabljenih podatkovnih naborih,
+kar pa ni neposredna meritev zaznane relevantnosti
+pri uporabnikih \cite{zhong2023context}.
+
+\section{Razložljivi priporočilni sistemi}
+\label{sec:sota_xrs}
+
+Z naraščajočo uporabo priporočilnih sistemov v domenah, kjer so posledice odločitev lahko pomembne za uporabnika, se je povečala potreba po razložljivosti priporočil. Razložljivi priporočilni sistemi (ang. \textit{Explainable Recommender Systems}) uporabnikom ponujajo utemeljitve, zakaj je bilo določeno priporočilo podano, s čimer povečujejo zaupanje, sprejemanje sistema in zaznano uporabnost. Raziskave poudarjajo, da razložljivost ni le tehnični dodatek, temveč ključni dejavnik pri uporabi sistemov v zdravstvu in socialnih aplikacijah \cite{zhang2020explainable,musto2021justifications,rostami2022food}.
+
+\section{Priporočilni sistemi za starejše uporabnike}
+\label{sec:sota_elderly}
+
+Področje priporočilnih sistemov za starejše uporabnike predstavlja poseben izziv, saj vključuje heterogeno populacijo z raznolikimi potrebami, sposobnostmi in omejitvami. Raziskave v domeni zdravega staranja poudarjajo pomen celostnega pristopa, ki upošteva telesne, kognitivne in socialne vidike staranja. Strojno učenje in priporočilni sistemi se vse pogosteje uporabljajo kot orodja za podporo odločanju in izboljševanje kakovosti življenja starejših uporabnikov \cite{gasperlin2024healthyageing}.
+
+Pri tem je treba ločiti modeliranje zdravega staranja
+od neposrednega priporočanja aktivnosti.
+Gašperlin Stepančič in sodelavci
+\cite{gasperlin2024healthyageing} obravnavajo
+napovedovanje strokovnih ocen zdravega staranja
+iz vprašalniških podatkov. Takšen model lahko
+predstavlja podlago za opis uporabnika, vendar
+njegovo vrednotenje samo po sebi ne potrjuje
+ustreznosti aktivnosti, ki bi jih priporočil
+drug sistem.
+
+\section{Priporočilni sistemi na osnovi grafov}
+\label{sec:sota_graphs}
+
+Grafovni priporočilni sistemi predstavljajo uporabnike,
+elemente in njihove povezave z vozlišči in povezavami grafa.
+Poleg interakcij med uporabniki in elementi lahko vključujejo
+grafe znanja z dodatnimi lastnostmi elementov in semantičnimi
+odnosi. Takšna predstavitev omogoča uporabo povezav, ki jih
+sama matrika ocen ne opisuje. Grafovne in nevronske metode
+se pri tem prekrivajo, saj grafovne nevronske mreže
+združujejo oba pristopa \cite{zhong2023context}.
+
+Zhong in Negre \cite{zhong2023context} obravnavata problem,
+da razlage priporočil na podlagi grafov znanja pogosto
+niso prilagojene uporabnikovemu kontekstu. Predlagata
+model CA-KGCN, ki združuje grafovne konvolucije z
+mehanizmom pozornosti na kontekst in lastnosti elementov.
+Kontekst je vključen v modeliranje preferenc, ne zgolj
+v naknadno filtriranje rezultatov.
+
+Model ovrednotita na naborih Frappé, Yelp-CO in Yelp-WA.
+Pri napovedovanju ocen uporabita RMSE in MAE, pri
+razvrščanju pa med drugim HR in NDCG.
+Različica CA-KGCN-NFM na Yelp-CO doseže RMSE
+$0{,}961$, medtem ko primerjani model matrične
+faktorizacije doseže $1{,}311$.
+Na naboru Frappé doseže NDCG@10 $0{,}453$,
+primerjani model NFM pa $0{,}386$.
+Rezultati kažejo korist skupnega modeliranja konteksta
+in grafa znanja v obravnavanih eksperimentih.
+Razlage so dodatno predstavljene s študijo primera
+\cite{zhong2023context}.
+
+
+\section{Priporočilni sistemi na osnovi nevronskih mrež}
+\label{sec:sota_neural}
+
+Nevronski priporočilni modeli omogočajo učenje nelinearnih
+povezav med uporabniki, elementi in njihovimi dodatnimi
+lastnostmi. Pri večmodalnih pristopih se lahko združujejo
+besedilni opisi, slike in kategorični podatki, grafovne
+nevronske mreže pa dodatno upoštevajo strukturo povezav
+med uporabniki in elementi
+\cite{hassanzadeh2025lgkat,jiao2025multitask}.
+
+Hassanzadeh in sodelavca \cite{hassanzadeh2025lgkat}
+predlagajo model LGKAT, ki združuje LightGCN za
+obravnavo interakcij uporabnik--element in podmrežo
+s personalizirano pozornostjo nad grafom znanja.
+Cilj je vključiti podrobnejše semantične informacije
+v predstavitve elementov. Model preverijo na naborih
+MovieLens-20M, Book-Crossing, Last.FM in Dianping-Food,
+uspešnost pa merijo s priklicem pri različnih dolžinah
+priporočilnega seznama in s F1-mero.
+
+Rezultati niso enotno najboljši pri vseh metrikah
+in naborih. Na glasbenem naboru LGKAT doseže
+F1-mero $0{,}7418$, LightGCN pa $0{,}7414$.
+Na filmskem naboru LGKAT doseže $0{,}9375$,
+kar je manj od $0{,}9459$ pri primerjanem modelu GCMC.
+Ugotovitve zato kažejo prednosti pristopa v določenih
+nastavitvah, ne njegove splošne prevlade
+\cite{hassanzadeh2025lgkat}.
+
+Jiao in sodelavca \cite{jiao2025multitask} predstavijo
+MTMM-GNN, večopravilni in večmodalni model, ki poleg
+interakcij obravnava povezave med naučenimi predstavitvami
+in dodatnimi lastnostmi elementov. Model združuje
+grafovne nevronske mreže, mehanizem pozornosti in
+učenje podobnosti dodatnih informacij.
+Ovrednoten je na naborih Amazon, ModCloth in MovieLens
+z metrikami Natančnost@K, Priklic@K in NDCG@K.
+
+Na uporabljenem naboru Amazon MTMM-GNN doseže
+Priklic@10 $0{,}4082$, primerjani MRSI-GAT pa
+$0{,}3551$. Na istem naboru doseže NDCG@10
+$0{,}2429$ v primerjavi z $0{,}2108$ pri MRSI-GAT.
+Delo ponazarja uporabo dodatnih vsebinskih informacij
+pri učenju priporočilnega modela
+\cite{jiao2025multitask}.
+
+
+\section{Priporočilni sistemi na osnovi agentov}
+\label{sec:sota_agents}
+
+Agentski priporočilni sistemi lahko poleg neposrednega
+izračuna priporočil izvajajo tudi večstopenjske postopke:
+razumejo zahtevo, pridobijo dodatne podatke, uporabijo
+priporočilna orodja in oblikujejo odgovor.
+Jezikovni model ima pri tem lahko vlogo krmilnika,
+medtem ko specializirani modeli izvajajo iskanje
+in razvrščanje elementov \cite{huang2024agent}.
+
+Huang in sodelavci \cite{huang2024agent} predstavijo
+InteRecAgent, ki povezuje veliki jezikovni model
+s priporočilnimi modeli in orodji za poizvedovanje.
+Zasnova vključuje pomnilnik, načrtovanje uporabe orodij
+in preverjanje izvedbe. S tem naslavlja omejeno
+poznavanje konkretnih katalogov pri splošnih
+jezikovnih modelih.
+
+V obravnavani različici dela avtorji uporabijo
+nabore Steam, MovieLens in Amazon Beauty.
+Pogovorno priporočanje ovrednotijo z uporabniškim
+simulatorjem ter metrikama uspešnosti priporočanja
+ciljnega elementa v omejenem številu pogovornih
+izmenjav in povprečnega števila izmenjav.
+Na naboru Steam InteRecAgent doseže Hit@5 $0{,}87$,
+samostojni GPT-4 pa $0{,}78$.
+V tem eksperimentu Hit@5 pomeni uspešno priporočilo
+v največ petih pogovornih izmenjavah, ne zadetka
+med petimi elementi enega seznama.
+Rezultat temelji na simulaciji pogovora in ne na
+vrednotenju z dejanskimi uporabniki
+\cite{huang2024agent}.
+
+Khalil in sodelavca \cite{khalil2025elderly} obravnavajo
+možnosti agentske umetne inteligence pri oskrbi
+starejših, med drugim spremljanje zdravja,
+kognitivno podporo in upravljanje bivalnega okolja.
+Delo je pregled priložnosti in izzivov, ne primerjalni
+eksperiment novega priporočilnega modela.
+Poudarja zasebnost, varnost, avtonomijo uporabnikov
+in potrebo po človeškem nadzoru. Za to magistrsko
+delo predstavlja širši okvir možne uporabe,
+ne neposredne primerjave doseženih metrik.
+
+
+\section{Priporočilni sistemi na osnovi velikih jezikovnih modelov}
+\label{sec:sota_llm}
+
+Veliki jezikovni modeli se lahko vključijo v različne
+dele priporočilnega postopka. Lin in sodelavci
+\cite{lin2025llmsurvey} v preglednem članku razlikujejo
+njihove vloge pri pripravi značilk, kodiranju podatkov,
+ocenjevanju oziroma razvrščanju elementov, interakciji
+z uporabnikom in krmiljenju celotnega postopka.
+Ločujejo tudi pristope, ki jezikovni model dodatno
+učijo, od pristopov brez prilagajanja njegovih
+parametrov. Jezikovni model torej ni nujno nadomestilo
+za klasični priporočilni model, temveč ga lahko
+dopolnjuje.
+
+Pregled izpostavlja vprašanja računske učinkovitosti,
+kakovosti priporočil in etičnih tveganj.
+Ker gre za pregled različnih raziskav, delo ne
+predstavlja enega samega modela z eno skupno
+eksperimentalno oceno \cite{lin2025llmsurvey}.
+
+Z vidika uporabe lahko velike jezikovne modele vključimo
+v več vlog. Kot pogovorni vmesnik omogočajo opis zahtev
+v naravnem jeziku. Pri modeliranju uporabnikov in
+aktivnosti lahko iz besedilnih opisov pridobivajo
+značilke ali povzemajo uporabnikove preference.
+Z dodatnimi vprašanji uporabniku lahko razjasnijo
+nepopolne zahteve. Uporabljajo se lahko tudi za
+oblikovanje jezikovnih utemeljitev priporočil,
+pri čemer je treba pravilnost razlage preverjati
+ločeno od njene razumljivosti. V vlogi krmilnika
+pa lahko načrtujejo in usklajujejo uporabo
+specializiranih orodij oziroma agentov
+\cite{lin2025llmsurvey,huang2024agent,fiori2025activity}.
+Te vloge predstavljajo možnosti uporabe, ne
+funkcionalnosti sistema, implementiranega v tej nalogi.
+
+
+Sorodno vprašanje uporabe jezikovnih modelov za
+razlage dnevnih aktivnosti obravnavajo Fiori in
+sodelavci \cite{fiori2025activity}. Njihovo delo
+se nanaša na prepoznavanje aktivnosti iz senzorskih
+podatkov v pametnem domu, ne na priporočanje
+aktivnosti. Preučujejo uporabo jezikovnega modela
+za prepoznavanje brez dodatnega učenja na označenih
+primerih in za tvorjenje razlag obstoječih modelov.
+
+Ovrednotenje vključuje nabora MARBLE in UCI ADL,
+uteženo F1-mero prepoznavanja ter uporabniško
+ocenjevanje razlag. Na naboru MARBLE pristop
+LLMe2e doseže uteženo F1-mero $0{,}80$,
+primerjani DeXAR pa $0{,}86$.
+Avtorji opozarjajo, da lahko tudi napačno napoved
+spremlja prepričljiva razlaga.
+Za priporočilne sisteme je zato pomembno ločeno
+preverjanje pravilnosti izhoda in ustreznosti
+njegove jezikovne utemeljitve
+\cite{fiori2025activity}.
+
+
+\section{Priporočilni sistemi in etika}
+\label{sec:sota_ethics}
+
+Pri priporočanju aktivnosti starejšim uporabnikom
+napovedna uspešnost ni edino merilo ustreznosti
+sistema. Priporočila lahko vplivajo na posameznikove
+odločitve, njegovo samostojnost in uporabo osebnih
+podatkov. Tiribelli in Calvaresi
+\cite{tiribelli2024autonomy} zdravstvene priporočilne
+sisteme za aktivno staranje obravnavata z vidika
+avtonomije uporabnika.
+
+Njuna analiza opozarja, da lahko sistem uporabnika
+podpira pri odločanju, lahko pa njegove izbire
+tudi neupravičeno usmerja. Predlagani etični okvir
+poudarja ohranjanje smiselnih možnosti izbire,
+varovanje zasebnosti in prilagajanje interakcije
+zmožnostim uporabnika. Delo je konceptualna etična
+analiza in ne eksperiment, ovrednoten z metrikami
+napovedne točnosti \cite{tiribelli2024autonomy}.
+
+Za obravnavano magistrsko delo to pomeni, da
+kontekstne skladnosti in visoke napovedane ocene
+ne enačimo z zdravstveno koristnostjo aktivnosti.
+Pred uporabo v praksi bi bilo treba preveriti
+ustreznost priporočil za ciljne uporabnike ter
+zagotoviti, da priporočilo ostane podpora
+njihovemu odločanju.
+
+
+\section{Umestitev magistrskega dela}
+\label{sec:sota_positioning}
+
+Predstavljena dela obravnavajo različne načine uporabe
+konteksta, dodatnih lastnosti elementov, jezikovnih
+modelov in razlag. Njihovih številčnih rezultatov
+ne primerjamo neposredno z rezultati te magistrske
+naloge, saj uporabljajo drugačne podatke, ciljne
+spremenljivke in postopke vrednotenja.
+
+V tej nalogi uporabimo model SVD za napovedovanje
+izračunanih ocen kombinacij aktivnosti. Časovni
+in prostorski kontekst upoštevamo z naknadnim
+filtriranjem kandidatnih kombinacij. Grafov znanja,
+nevronskih večmodalnih modelov, agentskega vodenja
+in velikih jezikovnih modelov ne vključujemo
+v implementacijo.
+
+Poudarek dela je na ločeni obravnavi napovedovanja
+ocen in kontekstnih omejitev ter na vrednotenju
+njunega vpliva na končni izbor priporočil.
+Izpis modelskih parametrov omogoča tehnični
+vpogled v delovanje modela, ne predstavlja pa
+sam po sebi uporabniške razlage priporočila.
+
+
+\chapter{Materiali in metode} 
+\label{chap:methods}
+V tem poglavju so predstavljeni materiali in metode, uporabljeni pri razvoju in evalvaciji priporo\-čilnega sistema za dnevne aktivnosti starejših uporabnikov. Najprej opišemo uporabljeni podatkovni nabor in postopek generiranja ocen aktivnosti. Nato predstavimo osnovne tipe algoritmov za priporočilne sisteme ter utemeljimo izbiro modelno osnovanega pristopa z uporabo matrične faktorizacije. V nadaljevanju so opisane uporabljene metrike za ovrednotenje uspešnosti sistema ter eksperimentalna metodologija. Poglavje se zaključi s pregledom programskih knjižnic, uporabljenih pri implementaciji sistema in izvedbi eksperimentov.
+
+
+\section{Podatki} \label{sec:data}
+Podatkovni nabor povezuje uporabniške odgovore na vprašalnike,
+pripadajoče uteži ter katalog aktivnosti z opisi konteksta in
+medsebojne združljivosti. Ocene kombinacij aktivnosti so izračunane
+s predpisanim postopkom in niso neposredne ocene zadovoljstva
+uporabnikov.
+
+V polnem eksperimentu je uporabljen predhodno generiran nabor
+\texttt{D\_lst\_full\_20260202\_150312.pkl}, ki vsebuje
+3\,053\,029 zapisov za 679 uporabnikov. Posamezen zapis povezuje
+uporabnika, kombinacijo aktivnosti, kontekstne opise njenih članov
+in izračunano oceno. Kombinacije vsebujejo od ene do treh aktivnosti.
+
+Nabor vsebuje 6\,579 različnih priporočilnih elementov,
+pri čemer posamezen element predstavlja kombinacijo od ene
+do treh aktivnosti. Razvojni del vsebuje 2\,289\,771 ocen,
+odloženi testni del pa 763\,258 ocen.
+V končni učni množici je zastopanih vseh 679 uporabnikov
+in vseh 6\,579 kombinacij.
+
+\subsection{Uporabniki}
+\label{sec:data_users}
+Izhodiščni vprašalniški podatki izvirajo iz raziskave
+Inštituta Antona Trstenjaka za gerontologijo in
+medgeneracijsko sožitje. Raziskava je obravnavala potrebe,
+zmožnosti in stališča prebivalcev Slovenije, starih
+50 let in več, podatki pa so bili zbrani z osebnimi
+intervjuji. Izvorni nabor in njegova uporaba pri
+modeliranju zdravega staranja sta opisana v delu
+Gašperlin Stepančič in sodelavcev
+\cite{gasperlin2024healthyageing}.
+
+Izvorna raziskava je podrobneje predstavljena v
+monografiji \emph{Staranje v Sloveniji}
+\cite{ramovs2013staranje}, njen zdravstveni del
+pa v analizi Voljča \cite{voljc2012zdravje}.
+
+Vprašalniške odgovore je treba ločiti od ocen
+priporočilnih elementov: odgovori izhajajo iz raziskave,
+ocene kombinacij aktivnosti pa so v tem delu
+izračunane s postopkom iz
+razdelka~\ref{sec:data_rating_gen}.
+Vhodna tabela ocen in uteži je vsebovala 696 uporabnikov,
+končni nabor, uporabljen v eksperimentih, pa 679.
+Naknadno preverjanje vhodnih podatkov je pokazalo, da je
+imelo vseh 17 uporabnikov, ki niso zastopani v končnem
+naboru, pri vseh šestih uporabljenih vprašanjih o
+aktivnostih odgovor 0. Pri teh uporabnikih niso manjkali
+odgovori na uporabljena vprašanja ali vrednost uteži
+\texttt{a\_F2}.
+
+To je skladno z opisanim postopkom generiranja ocen:
+pri ničelnih odgovorih so prispevki posameznih aktivnosti
+enaki 0, ocena kombinacije pa ob kompatibilnostih na
+intervalu $[0,1]$ ne preseže 0. Takšni zapisi zato ne
+izpolnijo pogoja $r_{u,\mathbf{s}} > r_T$, kjer je
+$r_T=0{,}3$.
+
+\subsection{Aktivnosti}
+\label{sec:data_activities}
+
+
+Opisi aktivnosti in njihove kontekstne omejitve se pri trenutnem eksperimentu berejo iz datoteke \texttt{ActivityContextGen\_v12.xlsx}. Vsaka aktivnost je opisana z naslednjimi lastnostmi:
+\begin{itemize}
+    \item tip aktivnosti (npr. telesna, kognitivna, socialna),
+    \item pripadajoče uteži oziroma prispevki k posameznim zdravstvenim vidikom,
+    \item časovni kontekst (npr. dopoldne, popoldne, kadarkoli),
+    \item prostorski kontekst (npr. doma, zunaj, kjerkoli).
+\end{itemize}
+
+Aktivnosti so zasnovane tako, da pokrivajo širok spekter vsakodnevnih opravil, primernih za starejšo populacijo, in omogočajo kontekstualno prilagajanje priporočil.
+
+Osnovni element priporočilnega modela ni nujno posamezna aktivnost,
+temveč kombinacija od ene do treh aktivnosti. Kombinacijo označimo
+z $i=(a_1,\ldots,a_m)$, kjer je $1 \leq m \leq 3$.
+Vsaka različna kombinacija ima lasten identifikator in lastni vektor
+latentnih faktorjev. Kombinacije z istim prvim članom zato niso
+obravnavane kot isti element.
+
+Kombinacije so ustvarjene brez ponavljanja aktivnosti.
+Zapis članov v terki je uporabljen za identifikacijo kombinacije
+in ne določa časovnega vrstnega reda izvedbe. Sistem tako ne sestavlja
+urnika aktivnosti.
+
+Celotni katalog vsebuje 106 posameznih aktivnosti.
+V uporabljenem eksperimentalnem naboru je zastopanih
+34 posameznih aktivnosti, iz katerih je sestavljenih
+6\,579 različnih kombinacij dolžine od ena do tri.
+Število aktivnosti v katalogu zato ni enako številu
+priporočilnih elementov, ki jih uporablja model.
+
+Izbor aktivnosti je v uporabljeni konfiguraciji omejen
+na vidik \texttt{activity}. Ta vključuje vprašanja
+\texttt{Ac\_AB4\_1}, \texttt{Ac\_AB4\_2},
+\texttt{Ac\_AB4\_3}, \texttt{Ac\_AB4\_4},
+\texttt{Ac\_AB4\_5} in \texttt{Ac\_AB4\_8},
+ki jim v katalogu pripada skupaj 34 aktivnosti.
+
+
+
+\section{Algoritmi za priporočilne sisteme} 
+\label{sec:recommender_algorithms}
+
+Priporočilni sistemi so razred algoritmov, katerih cilj je uporabnikom predlagati elemente, ki so zanje najverjetneje relevantni, na podlagi preteklih interakcij, preferenc ali dodatnih informacij. Glede na vrsto razpoložljivih podatkov in način modeliranja lahko priporočilne sisteme razdelimo v več osnovnih skupin.
+
+\subsection{Vsebinsko osnovani sistemi}
+
+Vsebinsko osnovani priporočilni sistemi (ang. \textit{content-based filtering}) temeljijo na lastnostih elementov in profilu posameznega uporabnika. Sistem gradi model uporabnikovih interesov na podlagi preteklih interakcij ter priporoča elemente, ki so po svojih lastnostih podobni tistim, ki jih je uporabnik v preteklosti že izbral. Prednost takšnega pristopa je dobra prilagodljivost posameznemu uporabniku, slabost pa omejena zmožnost odkrivanja novih vsebin ter odvisnost od kakovosti opisnih atributov elementov.
+
+\subsection{Sodelovalno filtriranje}
+
+Sodelovalno filtriranje (ang. \textit{collaborative filtering}) temelji na predpostavki, da imajo uporabniki s podobnimi vzorci obnašanja podobne preference. Priporočila se generirajo na podlagi ocen ali interakcij več uporabnikov, brez neposrednega upoštevanja lastnosti elementov. Ta pristop je razširjen v praksi, saj omogoča odkrivanje skritih vzorcev in implicitnih povezav med uporabniki in elementi, vendar se sooča s težavami, kot sta redkost podatkov in problem hladnega zagona.
+
+\subsection{Modelno osnovani sistemi}
+
+Modelno osnovani priporočilni sistemi uporabljajo formalne matematične ali strojno-učne modele za učenje latentnih vzorcev v podatkih. Med najbolj razširjene pristope sodi matrična faktorizacija, pri kateri se matrika ocen dekomponira na nizkorazsežne latentne faktorje uporabnikov in elementov. Takšni modeli omogočajo dobro generalizacijo in učinkovito napovedovanje neopaženih ocen, zato so primerni za obravnavo kompleksnih priporočilnih problemov.
+
+\subsection{Kontekstno zavedni priporočilni sistemi}
+
+Kontekstno zavedni priporočilni sistemi razširjajo klasične pristope z vključevanjem dodatnih informacij, kot so čas, lokacija ali stanje uporabnika. Kontekst je lahko vključen neposredno v model ali pa se uporabi v fazi generiranja priporočil, na primer z naknadnim filtriranjem rezultatov. Takšni sistemi so posebej primerni za aplikacije, kjer je relevantnost priporočila močno odvisna od trenutnih okoliščin uporabnika.
+
+\subsection{Izbira pristopa v tej nalogi}
+
+V okviru te magistrske naloge smo uporabili modelno osnovan pristop sodelovalnega filtriranja z uporabo matrične faktorizacije (SVD) za napovedovanje izračunanih ocen kombinacij aktivnosti. Kontekstualne informacije niso vključene neposredno v fazi učenja modela, temveč se uporabijo v kasnejši fazi filtriranja priporočil. Takšna zasnova omogoča jasno ločitev med napovedovanjem izračunanih ocen in obravnavo konteksta ter poenostavlja eksperimentalno primerjavo med sistemom brez konteksta in sistemom s kontekstom.
+
+
+\subsection{Pregled arhitekture sistema}
+\label{sec:sys_architecture}
+
+Na Sliki~\ref{fig:system_overview} je prikazan celoten potek delovanja
+predlaganega priporočevalnega sistema – od vhodnih podatkov, preko
+generiranja ocen in učenja modela do končnih, kontekstualno filtriranih
+priporočil. Arhitektura je zasnovana modularno, kar omogoča ločeno obravnavo
+napovedovanja izračunanih ocen in obravnave kontekstualnih omejitev.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    block/.style={
+        rectangle, draw, rounded corners,
+        align=center, minimum width=3.6cm, minimum height=1.1cm
+    },
+    arrow/.style={->, thick}
+]
+
+
+% Nodes
+\node[block] (questionnaire) {Uporabniški vprašalniki\\(odgovori, uteži)};
+\node[block, below=of questionnaire] (scoregen)
+{Generiranje ocen\\kombinacij aktivnosti};
+\node[block, below=of scoregen] (matrix)
+{Razvojni del matrike ocen\\$(u,i,r)$};
+\node[block, below=of matrix] (svd) {Matrična faktorizacija\\(SVD)};
+\node[block, below=of svd] (topn)
+{Top--$N$ kandidatnih kombinacij\\iz testnega dela};
+\node[block, right=3.8cm of topn] (context) {Kontekstualni filter\\(čas, lokacija)};
+\node[block, below=of context] (final) {Končna priporočila\\(Top--K)};
+
+% Arrows
+\draw[arrow] (questionnaire) -- (scoregen);
+\draw[arrow] (scoregen) -- (matrix);
+\draw[arrow] (matrix) -- (svd);
+\draw[arrow] (svd) -- (topn);
+\draw[arrow] (topn) -- (context);
+\draw[arrow] (context) -- (final);
+
+\end{tikzpicture}
+\caption{Pregled postopka priporočanja kombinacij aktivnosti.
+Model se uči na razvojnem delu podatkov, kandidatni seznam
+pa se pri vrednotenju oblikuje iz odloženih testnih elementov.}
+\label{fig:system_overview}
+\end{figure}
+
+
+\subsection{Generiranje ocen}
+\label{sec:data_rating_gen}
+
+V tem podrazdelku indeks $j$ označuje posamezno aktivnost,
+$\mathbf{s}$ pa kombinacijo aktivnosti. V nadaljnjem opisu
+priporočilnega modela je celotna kombinacija označena z $i$.
+
+Ocene relevantnosti aktivnosti niso pridobljene z eksplicitnim ocenjevanjem
+uporabnikov, temveč so izračunane na podlagi njihovih odgovorov na vprašalnik
+in pripadajočih uporabniških uteži. Vsaka aktivnost $j$ je v katalogu povezana z vprašanjem
+$q(j)$, katerega odgovor se uporabi pri izračunu njenega
+prispevka. Odgovor ni nujno neposredno izražena
+preferenca za aktivnost.
+
+Naj bo $u$ uporabnik in $g$ izbrani vidik (npr. telesna aktivnost). Uporabniku
+$u$ je za vsak vidik pripisana utež $s_u^{(g)}$, ki izraža splošno stopnjo
+ustreznosti tega vidika. Poleg tega je na voljo surov odgovor uporabnika
+$a_{u,q(j)}$ ter njegova min--max normalizirana vrednost $\tilde{a}_{u,q(j)} \in
+[0,1]$.
+
+Prispevek posamezne aktivnosti $j$ za uporabnika $u$ je definiran kot
+\begin{equation}
+r_{u,j}^{(1)} =
+s_u^{(g)} \cdot a_{u,q(j)} \cdot \tilde{a}_{u,q(j)} .
+\end{equation}
+
+Vprašanje \texttt{Ac\_AB4\_8} označuje odsotnost
+zavestne skrbi za zdravje. V uporabljeni izvedbi
+pritrdilni odgovor poveča prispevek z njim povezanih
+aktivnosti. Tega prispevka zato ne interpretiramo
+kot neposredno izraženo uporabnikovo preferenco.
+V sistemu so aktivnosti lahko združene tudi v krajše kombinacije
+$\mathbf{s} = (j_1, j_2, \dots, j_m)$, kjer se skupna ocena kombinacije izračuna kot
+vsota posameznih prispevkov:
+\begin{equation}
+R_u(\mathbf{s}) = \sum_{t=1}^{m} r_{u,j_t}^{(1)} .
+\end{equation}
+
+Za upoštevanje medsebojne skladnosti aktivnosti se uvede faktor kompatibilnosti
+$C(\mathbf{s})$, definiran kot produkt parnih kompatibilnosti $\gamma_{j,\ell} \in
+[0,1]$:
+\begin{equation}
+C(\mathbf{s}) =
+\begin{cases}
+1, & m = 1, \\
+\prod_{1 \le p < q \le m} \gamma_{j_p,j_q}, & m > 1 .
+\end{cases}
+\end{equation}
+
+Končna ocena kombinacije aktivnosti je nato definirana kot
+\begin{equation}
+r_{u,\mathbf{s}} = R_u(\mathbf{s}) - \left( 1 - C(\mathbf{s}) \right),
+\end{equation}
+kjer nizka kompatibilnost povzroči večjo penalizacijo skupne ocene.
+
+V nadaljnjo obdelavo so vključene le aktivnosti oziroma kombinacije, za katere velja
+$r_{u,\mathbf{s}} > r_T$, kjer je uporabljeni prag $r_T=0{,}3$. Preostale
+ocene se nato linearno preslikajo na interval $[r_T, 5]$:
+\begin{equation}
+r'_{u,\mathbf{s}} =
+r_T + (5 - r_T)\cdot
+\frac{r_{u,\mathbf{s}} - r_{\min}}{r_{\max} - r_{\min}},
+\end{equation}
+kjer $r_{\min}$ in $r_{\max}$ predstavljata najmanjšo in največjo ohranjeno oceno pred normalizacijo.
+
+Prag $r_T$ določa vključitev zapisa v generirani podatkovni nabor.
+Ne predstavlja ločenega praga za določanje zadetkov pri vrednotenju
+razvrščanja priporočil.
+
+Generiranje in normalizacija ocen sta izvedena pred razdelitvijo
+podatkov za učenje in vrednotenje. Eksperiment zato preverja
+napovedovanje zadržanih ocen znotraj tako pripravljenega nabora.
+Referenčne ocene izhajajo iz istega postopka generiranja kot učne
+ocene, zato rezultati sami po sebi ne potrjujejo ujemanja z dejanskimi
+preferencami ali zadovoljstvom uporabnikov.
+
+
+\subsection{Kontekstualne informacije in filtriranje}
+\label{sec:rec_vs_act}
+
+V podatkih razlikujemo dva tipa konteksta:
+\begin{itemize}
+    \item \textbf{REC kontekst} (\textit{recommendation context}): kontekst v trenutku, ko je priporočilo podano,
+    \item \textbf{ACT kontekst} (\textit{action context}): kontekst v trenutku, ko je priporočena aktivnost dejansko izvedena.
+\end{itemize}
+
+V obravnavanih eksperimentih uporabljamo oznake ACT, ki opisujejo
+predvidene okoliščine izvedbe posamezne aktivnosti. Te oznake
+predstavljajo lastnosti aktivnosti in niso meritve dejansko izvedenih
+aktivnosti uporabnikov. Uporabljajo se pri neposrednem kontekstnem
+filtriranju in pri obravnavi skupin aktivnosti s podobnimi
+kontekstnimi opisi.
+
+Za neposredno filtriranje vsakemu uporabniku določimo en simuliran
+kontekst izvedbe $c=(C_T,C_P)$. Čas in kraj izberemo neodvisno
+in enakomerno iz naborov različnih časovnih oziroma prostorskih
+oznak v uporabljenih opisih ACT. Izbrani kontekst velja za vse
+kandidatne kombinacije tega uporabnika. Takšno vzorčenje ne
+predstavlja empirične porazdelitve dejanskih uporabniških okoliščin.
+
+Kombinacija je skladna s kontekstom le, če vsaka njena aktivnost
+ustreza tako izbranemu času kot izbranemu kraju. To ne pomeni,
+da se morajo aktivnosti izvajati hkrati. Oznaka \emph{kadarkoli}
+pomeni odsotnost časovne omejitve, oznaka \emph{kjerkoli} pa
+odsotnost prostorske omejitve. Obe pravili veljata tako za opis
+aktivnosti kot za izbrani kontekst. Pri primerjavi oznak se odstranijo
+začetni in končni presledki; druge oznake se primerjajo neposredno,
+brez dodatnega sklepanja o njihovem pomenu.
+
+
+
+
+
+
+\subsection{Končna struktura podatkov}
+\label{sec:data_structure}
+
+Končni podatkovni nabor je organiziran kot seznam zapisov oblike
+\[
+(u,i,\mathbf{c}_i,r'_{u,i}),
+\]
+kjer $u$ označuje uporabnika, $i$ kombinacijo aktivnosti,
+$\mathbf{c}_i$ zbirko kontekstnih opisov njenih članov,
+$r'_{u,i}$ pa izračunano in normalizirano oceno kombinacije.
+
+Za učenje modela uporabimo triplete $(u,i,r'_{u,i})$.
+Kontekstni opisi niso vhod v model SVD, temveč se uporabijo
+pri naknadnem filtriranju kandidatnih priporočil. Simulirani
+uporabnikov kontekst izvedbe se izbere posebej v fazi filtriranja.
+
+\subsection{Definicija relevantnosti in izbor top-$N$/top-$K$ priporočil}
+\label{sec:relevance_definition}
+
+Pri vrednotenju razvrščanja za vsakega uporabnika obravnavamo
+kombinacije aktivnosti, katerih ocene so v odloženem testnem delu.
+Model te kombinacije razvrsti padajoče glede na napovedano oceno.
+Začetni seznam vsebuje največ $N=20$ kandidatnih kombinacij.
+Gre za razvrščanje zadržanih testnih elementov, ne za iskanje
+po celotnem katalogu vseh možnih kombinacij.
+
+V različici brez konteksta izberemo prvih največ $K=5$ kombinacij.
+V različici s kontekstom začetnih 20 kandidatov filtriramo po
+pravilu skladnosti vseh članov kombinacije z izbranim kontekstom
+in ohranimo prvih največ pet ustreznih kombinacij. Če jih ustreza
+manj, vrnemo krajši seznam; seznam je lahko tudi prazen.
+Po filtriranju ne iščemo dodatnih kandidatov zunaj začetnega seznama.
+
+Pri različicah M3, M4 in M5 začetni seznam filtriramo ločeno
+za vsako skupino. Kombinacija pripada skupini le, če tej skupini
+pripadajo vse njene aktivnosti. Kombinacije s člani iz različnih
+skupin so pri tem izločene. Uporabniku ne določimo ene ciljne
+skupine, temveč priporočila in vrednotenje obravnavamo ločeno
+po skupinah.
+
+Referenčno množico za posameznega uporabnika sestavlja največ
+pet kombinacij z najvišjimi izračunanimi ocenami v testnem delu.
+Za različici brez konteksta in z neposrednim kontekstnim
+filtriranjem je referenčna množica enaka in se ne filtrira
+glede na simulirani kontekst. Pri M3, M4 in M5 pa referenčno
+množico določimo znotraj posamezne skupine.
+
+Zadetek pomeni ujemanje celotne priporočene kombinacije
+z elementom referenčne množice. Ujemanje samo ene aktivnosti
+v dveh različnih kombinacijah ne šteje kot zadetek.
+Pri enakih referenčnih ocenah se vrstni red določi
+leksikografsko po identifikatorjih aktivnosti v celotni
+kombinaciji. Referenčna množica vsebuje največ pet
+kombinacij in se ob izenačenih ocenah ne razširi.
+Priporočena kombinacija zunaj te množice zato ne šteje
+kot zadetek, tudi če ima enako referenčno oceno kot
+peti izbrani element. Natančnost, priklic in F1-mera
+tako merijo ujemanje z določeno referenčno množico,
+na rezultat pa vpliva tudi pravilo razreševanja izenačenj.
+
+
+
+
+
+\section{Matrična faktorizacija za priporočilni sistem} \label{sec:matrix_factorization}
+Za napovedovanje ocen kombinacij aktivnosti uporabimo matrično
+faktorizacijo. Model uporabnikom in kombinacijam priredi latentne
+vektorje, iz katerih skupaj z odmiki izračuna napovedi ocen.
+
+\subsection{Podatkovna matrika}
+
+Vhod v model predstavlja matrika ocen $R$, katere vrstice ustrezajo
+uporabnikom, stolpci pa različnim kombinacijam aktivnosti.
+Element $r_{u,i}$ označuje normalizirano izračunano oceno
+kombinacije $i$ za uporabnika $u$. V nadaljnjem opisu modela zaradi
+preglednosti opustimo oznako za normalizacijo.
+
+Matrika ni sestavljena iz neposrednih uporabniških ocen,
+temveč iz ocen, pridobljenih s postopkom iz
+razdelka~\ref{sec:data_rating_gen}. Model se uči samo iz zapisov
+razvojnega dela podatkov; odložene testne ocene pri učenju
+niso uporabljene.
+
+\subsection{Model matrične faktorizacije}
+
+Uporabimo model SVD iz knjižnice \textit{Surprise}
+\cite{hug2020surprise}.
+Model vsebuje matriko uporabniških latentnih faktorjev
+$P \in \mathbb{R}^{|U|\times k}$ in matriko latentnih faktorjev
+kombinacij aktivnosti $Q \in \mathbb{R}^{|I|\times k}$.
+Množica $U$ vsebuje uporabnike, množica $I$ kombinacije aktivnosti,
+$k$ pa označuje število latentnih dimenzij.
+
+Napoved ocene kombinacije $i$ za uporabnika $u$ je
+\[
+\hat{r}_{u,i} = \mu + b_u + b_i + P_u^T Q_i,
+\]
+kjer je $\mu$ povprečje učnih ocen, $b_u$ odmik uporabnika,
+$b_i$ odmik kombinacije, $P_u$ in $Q_i$ pa pripadajoča
+latentna vektorja.
+
+\paragraph{Interpretacija latentnih faktorjev.}
+Vsak uporabnik ima svoj latentni vektor $P_u$, vsaka kombinacija
+aktivnosti, zastopana v učnih podatkih, pa svoj latentni vektor $Q_i$.
+Skalarni produkt $P_u^T Q_i$ predstavlja prispevek latentnega dela
+k napovedani oceni. Posamezne latentne dimenzije nimajo vnaprej
+določenega semantičnega pomena. Izpis teh vektorjev zato omogoča
+vpogled v parametre modela, sam po sebi pa ne predstavlja
+uporabniku razumljive razlage priporočila.
+
+
+\subsection{Učenje modela}
+
+Parametri modela se učijo z minimizacijo kvadratne napake med napovedanimi in referenčnimi izračunanimi ocenami ob uporabi regularizacije, ki omejuje velikost parametrov in zmanjšuje tveganje prenaučenosti. Optimizacija poteka z uporabo stohastičnega gradientnega spusta.
+
+Hiperparametri modela so izbrani z mrežnim iskanjem na razvojnem
+delu podatkov po postopku iz
+razdelka~\ref{sec:experimental_protocol}.
+
+\subsubsection{Hiperparametri modela SVD}
+\label{sec:svd_hyperparams}
+
+V knjižnici \textit{Surprise} je bil uporabljen model SVD z naslednjimi hiperparametri:
+\begin{itemize}
+    \item število latentnih faktorjev: $k=\texttt{n\_factors}$,
+    \item število epoh učenja: $\texttt{n\_epochs}$,
+    \item učna hitrost: $\gamma=\texttt{lr\_all}$,
+    \item regularizacija: $\lambda=\texttt{reg\_all}$.
+\end{itemize}
+
+Končne vrednosti hiperparametrov so bile izbrane z mrežnim iskanjem (\textit{Grid Search}) na razvojnem delu podatkov, pri čemer je bil optimizacijski kriterij minimizacija RMSE. Izbrana konfiguracija je bila uporabljena pri dodatnem
+preverjanju SVD na razvojnem delu ter pri končnem
+vrednotenju vseh različic naknadnega filtriranja.
+
+
+\subsection{Vloga matrične faktorizacije v sistemu}
+
+Model SVD napoveduje izračunane ocene kombinacij aktivnosti,
+ki niso bile vključene v učenje. Napovedi uporabimo za
+razvrščanje kandidatnih kombinacij.
+
+Referenčne ocene so določene s pravilom, ki združuje
+vprašalniške odgovore, uporabniške uteži in združljivosti
+aktivnosti. Napovedne metrike zato merijo približevanje
+tem ocenam, ne neposrednega ujemanja z dejanskimi
+preferencami ali zadovoljstvom uporabnikov.
+
+Časovni in prostorski kontekst upoštevamo pri naknadnem
+filtriranju priporočil.
+
+
+\section{Eksperimentalni protokol}
+\label{sec:experimental_protocol}
+
+Pred primerjavo algoritmov in izbiro hiperparametrov podatke
+naključno razdelimo na razvojni del, ki vsebuje 75\,\% zapisov,
+in odloženi testni del, ki vsebuje 25\,\% zapisov.
+Razdelitev je izvedena na ravni zapisov uporabnik--kombinacija,
+ne na ravni uporabnikov. Isti uporabnik je zato lahko zastopan
+v obeh delih. Postopek ni namenjen vrednotenju priporočanja
+za povsem nove uporabnike.
+
+Na razvojnem delu primerjamo algoritme SVD, KNNBasic,
+BaselineOnly in NMF. Uporabimo deset ponovitev metode
+\texttt{ShuffleSplit}; v vsaki ponovitvi je 25\,\% razvojnih
+zapisov namenjenih notranjemu preverjanju, preostali zapisi
+pa učenju.
+
+Za model SVD izvedemo mrežno iskanje hiperparametrov z
+desetkratnim prečnim preverjanjem \texttt{KFold} na razvojnem delu.
+Preizkusimo število latentnih faktorjev iz množice
+$\{50,100,150\}$, število epoh iz $\{20,30\}$,
+učno hitrost iz $\{0{,}002,0{,}005\}$ in regularizacijski
+parameter iz $\{0{,}02,0{,}05\}$. Skupaj preizkusimo
+24 konfiguracij. Kriterij izbire je najmanjša povprečna RMSE.
+
+Izbrano konfiguracijo SVD dodatno ovrednotimo z desetimi
+ponovitvami metode \texttt{ShuffleSplit} na razvojnem delu.
+Ker je bil isti razvojni del uporabljen tudi za izbiro
+hiperparametrov, teh rezultatov ne obravnavamo kot neodvisno
+končno oceno uspešnosti.
+
+Končni model naučimo na celotnem razvojnem delu in ga ovrednotimo
+na odloženem testnem delu. Isti končni model in njegove testne
+napovedi uporabimo pri vseh različicah naknadnega filtriranja.
+Kontekstni filtri ne spreminjajo naučenih parametrov ali napovedanih
+ocen, temveč samo izbor priporočenih kombinacij.
+
+Za delitev podatkov in model SVD uporabimo naključno seme 42.
+Končni rezultati temeljijo na polnem podatkovnem naboru.
+Zagoni na prvih 100\,000 zapisih so namenjeni samo preverjanju
+delovanja in niso uporabljeni za končne ugotovitve.
+
+
+\section{Ovrednotenje uspešnosti priporočilnih sistemov} \label{sec:evaluation_metrics}
+Za ovrednotenje kakovosti priporočilnih sistemov smo uporabili naslednje metrike:
+
+\paragraph{RMSE (Root Mean Squared Error).} Meri kvadratni koren povprečne kvadratne napake med napovedanimi
+in referenčnimi izračunanimi ocenami. Izračunana je kot:
+\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^n (\hat{r}_i - r_i)^2}
+\label{eq:rmse}
+\end{equation}
+
+\paragraph{MAE (Mean Absolute Error).} Izračuna povprečno absolutno napako med ocenami:
+\begin{equation}
+\text{MAE} = \frac{1}{n} \sum_{i=1}^n |\hat{r}_i - r_i|
+\label{eq:mae}
+\end{equation}
+
+\paragraph{MSE (Mean Squared Error).} Podobno kot RMSE, vendar brez kvadratnega korena:
+\begin{equation}
+\text{MSE} = \frac{1}{n} \sum_{i=1}^n (\hat{r}_i - r_i)^2
+\label{eq:mse}
+\end{equation}
+
+\paragraph{FCP (Fraction of Concordant Pairs).} Metrika, ki meri delež parov, pri katerih sistem pravilno ohrani vrstni red med ocenami.
+
+\paragraph{Čas učenja.} Povprečen čas trajanja učenja modela na posameznem razdelku podatkov, izražen v sekundah.
+
+\paragraph{Natančnost, priklic in F1-mera.}
+Naj bo $A_u$ referenčna množica največ petih kombinacij
+za uporabnika $u$, $B_u$ pa množica dejansko vrnjenih
+priporočil, ki prav tako vsebuje največ pet kombinacij.
+Natančnost in priklic izračunamo kot
+\[
+\mathrm{Prec}_u =
+\begin{cases}
+\dfrac{|A_u \cap B_u|}{|B_u|}, & |B_u|>0,\\
+0, & |B_u|=0,
+\end{cases}
+\qquad
+\mathrm{Rec}_u = \frac{|A_u \cap B_u|}{|A_u|}.
+\]
+F1-mera je
+\[
+F1_u =
+\begin{cases}
+\dfrac{2\,\mathrm{Prec}_u\,\mathrm{Rec}_u}
+{\mathrm{Prec}_u+\mathrm{Rec}_u}, & \mathrm{Prec}_u+\mathrm{Rec}_u>0,\\
+0, & \mathrm{Prec}_u+\mathrm{Rec}_u=0.
+\end{cases}
+\]
+
+Metrike izračunamo za uporabnike z neprazno referenčno množico
+in nato za vsako metriko posebej izračunamo aritmetično
+povprečje po uporabnikih. Uporabniki brez vrnjenih priporočil
+ostanejo vključeni z vrednostmi nič.
+Povprečna F1-mera je povprečje uporabniških F1-mer, ne
+harmonična sredina že povprečenih natančnosti in priklica.
+Imenovalec natančnosti je dejansko število vrnjenih priporočil,
+ki je lahko manjše od pet.
+
+Pri M3, M4 in M5 se referenčne množice določijo ločeno po
+skupinah. Uporabnik brez referenčnih elementov v posamezni
+skupini ni vključen v njeno povprečje. Če skupina nima
+nobenega uporabnika z referenčnimi elementi, implementacija
+zanjo vrne ničelne metrike. Skupni rezultat posamezne
+segmentacije je neuteženo povprečje rezultatov njenih skupin.
+
+Ker imajo segmentirane različice drugačne referenčne množice
+in lahko vključujejo drugačne množice uporabnikov,
+njihove višje vrednosti ne pomenijo neposrednega izboljšanja
+glede na različico brez konteksta.
+
+\paragraph{Povprečna napovedana ocena.}
+Dodatno poročamo povprečje modelskih napovedi za vrnjena
+priporočila. To ni neposredna ocena zadovoljstva uporabnikov.
+Pri segmentiranih različicah skupni prikaz uporablja
+neuteženo povprečje skupinskih povprečij; za skupino brez
+priporočil implementacija uporabi vrednost nič.
+
+Vse metrike smo izračunali z uporabo funkcij iz knjižnice \texttt{Surprise} oziroma z lastnimi Python funkcijami, kjer to ni bilo podprto neposredno.
+
+\section{Python knjižnice} \label{sec:python_libraries}
+
+Razvoj in evalvacija priporočilnega sistema sta bila izvedena v programskem jeziku Python. V nadaljevanju so na kratko opisane ključne knjižnice, ki so bile uporabljene pri implementaciji sistema, obdelavi podatkov in eksperimentalni analizi.
+
+\paragraph{NumPy.}
+Knjižnica \texttt{NumPy} je bila uporabljena za numerične operacije, delo z vektorji in matrikami ter za učinkovito izvajanje matematičnih izračunov, povezanih z uteževanjem ocen in matrično faktorizacijo.
+
+\paragraph{Pandas.}
+Knjižnica \texttt{pandas} je bila uporabljena za obdelavo in analizo podatkov, branje vhodnih podatkov iz datotek formata \texttt{.xlsx} ter za organizacijo eksperimentalnih rezultatov v tabelarični obliki. Poleg tega je bila uporabljena za shranjevanje rezultatov evalvacije v datoteke formata \texttt{.xlsx} in \texttt{.tex}.
+
+\paragraph{Scikit-learn.}
+Knjižnica \texttt{scikit-learn} je bila uporabljena za podporne naloge strojnega učenja, predvsem za razdeljevanje podatkov na učno in testno množico z uporabo metode \texttt{ShuffleSplit} ter za izračun nekaterih evalvacijskih metrik.
+
+\paragraph{Surprise.}
+Knjižnica \texttt{Surprise} je predstavljala osrednje ogrodje za implementacijo priporočilnega sistema. Uporabljena je bila za implementacijo algoritma SVD, učenje modela, napovedovanje ocen ter izračun standardnih metrik uspešnosti, kot so RMSE, MAE in MSE.
+
+\paragraph{SciPy.}
+Knjižnica \texttt{SciPy} je bila uporabljena za dodatne znanstvene in matematične funkcije, ki dopolnjujejo funkcionalnosti knjižnic NumPy in scikit-learn.
+
+\paragraph{Druge knjižnice.}
+Poleg navedenih knjižnic so bile uporabljene tudi standardne Python knjižnice, kot so \texttt{pickle} za shranjevanje in nalaganje vmesnih podatkovnih struktur, \texttt{time} za merjenje časovne zahtevnosti algoritmov ter \texttt{pathlib} za delo z datotečnim sistemom in upravljanje poti do datotek.
+
+Uporaba navedenih knjižnic omogoča modularno implementacijo sistema, ponovljivost eksperimentov ter enostavno razširljivost rešitve v prihodnjem delu.
+
+
+
+\chapter{Eksperimentalni rezultati} \label{chap:results}
+V tem poglavju so predstavljeni eksperimentalni rezultati evalvacije priporo\-čilnega sistema. Najprej analiziramo uspešnost osnovnega sistema brez upoštevanja kontekstualnih informacij, ki služi kot referenčno izhodišče. Nato predstavimo rezultate sistema, pri katerem so kontekstualne informacije vključene z naknadnim filtriranjem priporočil. V nadaljevanju obravnavamo še razširjeni primer z uporabo grupiranih kontekstov. Rezultati so predstavljeni s standardnimi metrikami za napovedovanje ocen ter z metrikami za ocenjevanje kakovosti razvrščanja priporočil, pri čemer je poudarek na primerjalni analizi vpliva konteksta na delovanje sistema.
+
+
+\section{Uspešnost priporočilnega sistema brez konteksta} \label{sec:results_without_context}
+Za oceno osnovne uspešnosti priporočilnega sistema brez upoštevanja kontekstualnih informacij smo uporabili algoritem SVD (Singular Value Decomposition), implementiran v knjižnici \textit{Surprise}. Podatkovna matrika je bila generirana na podlagi ocen aktivnosti, ki izhajajo iz uporabniških odgovorov in pripadajočih uteži, brez vključevanja časovnega ali prostorskega konteksta.
+
+
+\paragraph{Konfiguracija eksperimenta.}
+Eksperiment sledi protokolu iz
+razdelka~\ref{sec:experimental_protocol}. Primerjava algoritmov
+in izbira hiperparametrov potekata na razvojnem delu podatkov.
+Končni model je naučen na celotnem razvojnem delu in ovrednoten
+na odloženem testnem delu.
+
+
+
+Mrežno iskanje na razvojnem delu je izbralo konfiguracijo SVD
+s 150 latentnimi faktorji, 30 epohami, učno hitrostjo
+$0{,}005$ in regularizacijskim parametrom $0{,}02$.
+Najnižja povprečna RMSE v mrežnem iskanju je znašala
+$0{,}08444$.
+
+
+
+\paragraph{Ocenjevalne metrike.} 
+Uspešnost sistema smo ovrednotili z uporabo metrik RMSE (Root Mean Squared Error), MAE (Mean Absolute Error), FCP (Fraction of Concordant Pairs) in MSE (Mean Squared Error), ki so primerne za ocenjevanje natančnosti napovedovanja ocen in so opisane v poglavju~\ref{sec:evaluation_metrics}. 
+
+
+
+\paragraph{Rezultati.} 
+Tabela~\ref{tab:cv_results_tuned_svd} prikazuje povprečne rezultate
+desetih ponovitev preverjanja izbrane konfiguracije SVD na
+razvojnem delu. Ker je bil ta del uporabljen tudi za izbiro
+hiperparametrov, tabela ne predstavlja končnega vrednotenja
+na odloženem testnem delu.
+
+% Prva izvedba ShuffleSplit
+\input{Tabele/cv_results_tuned_SVD_20261015_150006.tex}
+
+
+Za lažjo primerjavo uspešnosti posameznih priporočevalnih algoritmov so
+povprečne vrednosti napake RMSE prikazane tudi grafično na
+Sliki~\ref{fig:algo_rmse_comparison}.
+
+Na razvojnem delu smo primerjali algoritme SVD, KNNBasic,
+BaselineOnly in NMF z metodo \texttt{ShuffleSplit}.
+Rezultati so prikazani v Tabeli~\ref{tab:algorithm_comparison}.
+SVD je uporabljen kot osnovni model za nadaljnjo obravnavo
+naknadnega filtriranja; primerjava algoritmov omogoča presojo
+njegove napovedne uspešnosti glede na druge obravnavane pristope.
+
+\input{Tabele/algorithm_comparison_20261015_150006}
+
+Med primerjanimi algoritmi je SVD na razvojnem delu dosegel
+najnižjo povprečno RMSE, in sicer $0{,}1047$.
+Sledili so NMF z $0{,}2700$, KNNBasic z $0{,}2974$
+in BaselineOnly z $0{,}4734$.
+Primerjava se nanaša na konfiguracije algoritmov, uporabljene
+v tem poskusu; mrežno iskanje hiperparametrov je bilo nato
+izvedeno samo za SVD.
+
+
+% (stari stavek)
+Na podlagi teh rezultatov je bil izveden postopek prilagajanja hiperparametrov modela SVD.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{Slike/algorithm_rmse_comparison_20261015_150006.png}
+\caption{Primerjava povprečne vrednosti RMSE za različne priporočevalne algoritme.}
+\label{fig:algo_rmse_comparison}
+\end{figure}
+
+\paragraph{Končno vrednotenje na odloženem testnem delu.}
+Končni model SVD je bil naučen na 2\,289\,771 razvojnih
+ocenah in ovrednoten na 763\,258 odloženih testnih ocenah.
+Rezultati so prikazani v Tabeli~\ref{tab:heldout_svd}.
+
+\begin{table}[htbp]
+\centering
+\caption{Uspešnost končnega modela SVD na odloženem testnem delu.}
+\label{tab:heldout_svd}
+\begin{tabular}{lr}
+\toprule
+Metrika & Vrednost \\
+\midrule
+RMSE & 0,0819 \\
+MAE & 0,0531 \\
+MSE & 0,0067 \\
+FCP & 0,9966 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Nizki vrednosti RMSE in MAE kažeta majhno odstopanje
+napovedi od izračunanih referenčnih ocen v obravnavanem
+naboru. Visoka vrednost FCP kaže dobro ohranjanje
+vrstnega reda pri primerjavah parov ocen.
+To ne pomeni nujno enake uspešnosti pri izboru nekaj
+najvišje ocenjenih kombinacij, kar preverimo ločeno
+z metrikami razvrščanja.
+
+\paragraph{Opomba o interpretaciji napak (RMSE/MAE).}
+Referenčne ocene so izračunane iz uporabniških odgovorov,
+uteži in združljivosti aktivnosti ter normalizirane.
+RMSE in MAE zato merita odstopanje modelskih napovedi od
+tako določenih ocen. Iz teh rezultatov ni mogoče neposredno
+sklepati o napovedni uspešnosti pri dejanskih uporabniških
+ocenah ali o uporabnosti priporočil.
+
+
+\paragraph{Dodatna analiza.} 
+Ujemanje izbranih kombinacij z referenčno množico
+ocenimo z natančnostjo, priklicem in F1-mero. Referenčne množice in izbor priporočil
+so določeni v razdelku~\ref{sec:relevance_definition},
+izračun metrik pa v razdelku~\ref{sec:evaluation_metrics}.
+Rezultati različice brez konteksta so prikazani v
+Tabeli~\ref{tab:evaluation_metrics_4_1}.
+
+% Precision / Recall / F1
+\input{Tabele/evaluation_metrics_4_1_20261015_150006.tex}
+
+Različica brez konteksta je vrnila 3\,395 priporočil,
+to je pet kombinacij za vsakega od 679 uporabnikov.
+Povprečne vrednosti natančnosti, priklica in F1-mere
+so znašale $0{,}339$, povprečna napovedana ocena
+vrnjenih kombinacij pa $3{,}011$.
+
+Enakost natančnosti in priklica izhaja iz tega, da imata
+priporočena in referenčna množica za vsakega uporabnika
+po pet elementov.
+
+Naknadno preverjanje je pokazalo izenačenje referenčnih
+ocen na meji top-5 pri 658 od 679 uporabnikov
+(96,9~\%). Med 2\,244 priporočili osnovne različice,
+ki niso pripadala izbrani referenčni množici, jih je
+imelo 2\,184 (97,3~\%) natanko enako referenčno oceno
+kot peti element te množice. Večina teh nezadetkov
+zato ne pomeni nižje referenčne ocene, temveč izbiro
+druge kombinacije med enako ocenjenimi možnostmi.
+Pri tem deležu gre za priporočila zunaj referenčne
+množice, ne za delež vseh priporočil ali uporabnikov.
+
+Vrednost F1-mere $0{,}339$ zato interpretiramo kot
+ujemanje z referenčno množico ob uporabljenem pravilu
+razreševanja izenačenj. Ne predstavlja neposrednega
+deleža uporabniško ustreznih priporočil.
+
+Ponovni izračun metrik iz shranjenih testnih podatkov
+in izvoženih priporočil z obstoječo evalvacijsko
+funkcijo se je ujemal s poročanimi vrednostmi na tri
+decimalna mesta. Preverjanje ni vključevalo ponovnega
+učenja modelov.
+
+
+\section{Uspešnost priporočilnega sistema s kontekstom} 
+\label{sec:results_with_context}
+
+V tem eksperimentu uporabimo isti končni model SVD kot pri
+različici brez konteksta. Kontekst vključimo z naknadnim
+filtriranjem kandidatnih kombinacij.
+
+\paragraph{Uporabljen kontekst.}
+Vsakemu uporabniku določimo en simuliran časovni in prostorski
+kontekst izvedbe na podlagi oznak ACT. Postopek izbire konteksta
+in pravilo skladnosti vseh aktivnosti v kombinaciji sta opisana
+v razdelku~\ref{sec:rec_vs_act}.
+
+\paragraph{Konfiguracija eksperimenta.}
+Obe različici uporabljata iste odložene testne podatke in iste
+začetne sezname največ 20 kandidatnih kombinacij.
+Različica s kontekstom izbere največ pet kombinacij, ki prestanejo
+filter. Ta ne spremeni napovedanih ocen ali medsebojnega vrstnega
+reda ohranjenih kandidatov.
+
+\paragraph{Ocenjevalne metrike.}
+Uporabimo natančnost, priklic in F1-mero z isto referenčno
+množico kot pri različici brez konteksta. Dodatno poročamo
+povprečno napovedano oceno vrnjenih priporočil.
+
+\paragraph{Rezultati.}
+Rezultati eksperimenta s kontekstom so prikazani v Tabeli~\ref{tab:evaluation_metrics_4_2}. 
+
+\input{Tabele/evaluation_metrics_4_2_20261015_150006.tex}
+
+Kontekstna različica je vrnila 250 priporočil za 79 uporabnikov.
+Preostalih 600 uporabnikov ni prejelo nobenega priporočila,
+ker nobena od njihovih začetnih 20 kandidatnih kombinacij
+ni prestala kontekstnega filtra.
+
+Povprečne vrednosti natančnosti, priklica in F1-mere
+so po zaokrožitvi znašale $0{,}006$.
+V povprečenje so vključeni tudi uporabniki brez priporočil,
+pri katerih so te metrike enake nič.
+Povprečna napovedana ocena vrnjenih priporočil je znašala
+$2{,}895$.
+
+Za boljšo ponazoritev vpliva kontekstualnega filtriranja
+so natančnost, priklic in F1-mera prikazani tudi na
+Sliki~\ref{fig:prf_comparison}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{Slike/prf_comparison_20261015_150006.png}
+\caption{Primerjava natančnosti, priklica in F1-mere
+brez konteksta in s kontekstnim filtriranjem.}
+\label{fig:prf_comparison}
+\end{figure}
+
+\paragraph{Interpretacija.}
+V uporabljeni nastavitvi je kontekstno filtriranje močno
+omejilo izbor kombinacij. Vsaka aktivnost v kombinaciji
+mora ustrezati istemu simuliranemu času in kraju,
+iskanje pa je omejeno na začetnih 20 kandidatov.
+
+Nizka F1-mera kaže majhno ujemanje vrnjenih priporočil
+z nefiltrirano referenčno množico. Na njeno vrednost
+vplivajo tudi uporabniki brez priporočil in izenačenja
+referenčnih ocen. Med 229 vrnjenimi priporočili zunaj
+referenčne top-5 jih je imelo 128 natanko enako
+referenčno oceno kot peti element te množice.
+
+F1-mera ne predstavlja neposredne ocene uporabnosti
+priporočil, saj referenčna množica ni prilagojena
+izbranemu kontekstu, pri izenačenih ocenah pa je njen
+izbor odvisen od leksikografskega vrstnega reda.
+Dejstvo, da 600 uporabnikov ni prejelo priporočila,
+kaže omejitev obravnavanega postopka pri zagotavljanju
+priporočil za simulirane kontekste.
+
+Ugotovitve veljajo za uporabljeno delitev podatkov,
+izbor kontekstov in pravila primerjave oznak.
+Iz njih ne sklepamo, da kontekstno priporočanje
+na splošno zmanjšuje kakovost priporočil.
+
+
+
+
+
+
+\section{Uspešnost priporočilnega sistema z grupiranimi konteksti} 
+\label{sec:grouped_contexts}
+V tem razdelku obravnavamo različice M3, M4 in M5,
+ki aktivnosti razdelijo v tri, štiri oziroma pet skupin
+glede na njihove kontekstne opise ACT.
+Oznake opisujejo predvidene okoliščine izvedbe aktivnosti,
+ne opazovanega vedenja uporabnikov.
+
+Pri priporočanju se za vsako skupino ohranijo samo kombinacije,
+katerih vse aktivnosti pripadajo tej skupini. Priporočila
+in referenčne množice se vrednotijo ločeno po skupinah.
+
+
+\subsection{Nenadzorovano razvrščanje kontekstov v skupine}
+
+Pri priporočanju uporabljamo vnaprej določene
+pripadnosti aktivnosti skupinam, zapisane v stolpcih
+\texttt{ContextG\_act\_3},
+\texttt{ContextG\_act\_4} in
+\texttt{ContextG\_act\_5} datoteke
+\texttt{ActivityContextGen\_v12.xlsx}.
+V končnem eksperimentu teh pripadnosti ne
+izračunavamo ponovno, temveč jih uporabimo
+pri filtriranju kombinacij aktivnosti.
+
+Končni priporočilni eksperiment uporablja vnaprej
+zapisane pripadnosti aktivnosti skupinam M3, M4 in M5
+iz datoteke \texttt{ActivityContextGen\_v12.xlsx}.
+V tem zagonu pripadnosti skupinam niso ponovno izračunane.
+
+Na Sliki~\ref{fig:elbow_actC} je prikazana komolčna krivulja, ki prikazuje odvisnost inercije od števila segmentov $k$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{Slike/ContextGroup_inertia_actC.png}
+    \caption{Komolčna krivulja za presojo števila skupin na podlagi opisov ACT.}
+    \label{fig:elbow_actC}
+\end{figure}
+
+Inercija se z večanjem števila skupin zmanjšuje.
+Prikazana krivulja ne določa enoznačnega optimalnega
+števila skupin. V nadaljevanju obravnavamo tri
+razpoložljive razdelitve aktivnosti:
+
+\begin{itemize}
+    \item M3 -- segmentacija v 3 skupine,
+    \item M4 -- segmentacija v 4 skupine,
+    \item M5 -- segmentacija v 5 skupin.
+\end{itemize}
+
+Na Sliki~\ref{fig:dendrogram_actC} je prikazan dendrogram hierarhičnega združevanja.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Slike/ContextGroup_dendrogram_agg_actC.png}
+    \caption{Dendrogram hierarhičnega razvrščanja opisov ACT v skupine.}
+    \label{fig:dendrogram_actC}
+\end{figure}
+
+Dendrogram prikazuje hierarhične podobnosti med kontekstnimi
+opisi. V nadaljevanju obravnavamo rešitve s tremi, štirimi
+in petimi skupinami.
+
+\subsection{Porazdelitev kontekstnih oznak v katalogu}
+
+Slika~\ref{fig:hists_actC} prikazuje pogostost časovnih
+in prostorskih oznak ACT v celotnem katalogu
+106 aktivnosti. Posamezna aktivnost ima lahko več
+časovnih in prostorskih oznak, zato vsota njihovih
+pogostosti lahko presega število aktivnosti.
+Vsaka oznaka je pri posamezni aktivnosti šteta
+največ enkrat.
+
+Prikaz povzema sestavo kataloga aktivnosti in
+ne predstavlja primerjave skupin znotraj
+segmentacij M3, M4 in M5.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]
+    {Slike/ContextGroup_hists_actC.png}
+    \caption{Pogostost časovnih in prostorskih oznak ACT
+    v katalogu 106 aktivnosti. Posamezna aktivnost ima
+    lahko več oznak; vsaka oznaka je pri posamezni
+    aktivnosti šteta največ enkrat.}
+    \label{fig:hists_actC}
+\end{figure}
+
+\subsection{Opis segmentov M3, M4 in M5}
+
+Opisi skupin temeljijo na časovnih in prostorskih
+oznakah ACT v katalogu aktivnosti. Posamezna aktivnost
+ima lahko več časovnih in prostorskih oznak.
+Opisi zato povzemajo prevladujoče lastnosti skupin
+in ne pomenijo, da imajo vsi njihovi člani enake
+pogoje izvedbe.
+
+Spodaj navedena števila se nanašajo na vseh 106
+aktivnosti v katalogu. Eksperimentalni nabor ocen
+vključuje le del teh aktivnosti, zato velikost
+kataloške skupine ne določa neposredno števila
+priporočil, ki jih sistem iz te skupine vrne.
+
+\subsubsection*{Segmentacija M3}
+
+\begin{itemize}
+    \item \textbf{Skupina 0:}
+    Vsebuje 30 aktivnosti. Vse vključujejo oznako
+    \emph{popoldne}, pogosto pa tudi \emph{zvečer}
+    in \emph{dopoldne}. Najpogostejša prostorska
+    oznaka je \emph{doma}, zastopane pa so tudi
+    druge lokacije.
+
+    \item \textbf{Skupina 1:}
+    Vsebuje 63 aktivnosti z raznolikimi časovnimi
+    in prostorskimi opisi. Pogoste časovne oznake
+    so \emph{zjutraj}, \emph{dopoldne} in
+    \emph{popoldne}, med prostorskimi pa
+    \emph{doma}, \emph{kjerkoli},
+    \emph{v telovadnici} in \emph{v parku}.
+    Skupine ne opredeljuje en sam čas ali kraj.
+
+    \item \textbf{Skupina 2:}
+    Vsebuje 13 aktivnosti. Vse imajo časovne
+    oznake \emph{zjutraj}, \emph{dopoldne}
+    in \emph{popoldne} ter prostorski oznaki
+    \emph{v gozdu} in \emph{v mestu}.
+    Večina vključuje tudi oznako
+    \emph{na sprehodu}.
+\end{itemize}
+
+\subsubsection*{Segmentacija M4}
+
+\begin{itemize}
+    \item \textbf{Skupina 0:}
+    Vsebuje 33 aktivnosti, pri katerih sta pogosti
+    časovni oznaki \emph{zjutraj} in
+    \emph{dopoldne}. Prevladuje prostorska
+    oznaka \emph{doma}, pogosto sta navedeni
+    tudi \emph{v telovadnici} in \emph{v parku}.
+
+    \item \textbf{Skupina 1:}
+    Vsebuje 29 aktivnosti. Vse vključujejo
+    oznako \emph{popoldne}, večina pa tudi
+    \emph{zvečer}. Najpogostejša prostorska
+    oznaka je \emph{doma}, sledi
+    \emph{na sprehodu}.
+
+    \item \textbf{Skupina 2:}
+    Vsebuje 23 aktivnosti z raznolikimi
+    časovnimi omejitvami, med katerimi so tudi
+    \emph{podnevi} in oznake posameznih obrokov.
+    Pri 21 aktivnostih je navedeno
+    \emph{kjerkoli}, zato je večina članov
+    prostorsko neomejena po uporabljenih pravilih.
+
+    \item \textbf{Skupina 3:}
+    Vsebuje 21 aktivnosti. Vse vključujejo
+    \emph{zjutraj}, \emph{dopoldne}
+    in \emph{popoldne}. Pogoste prostorske
+    oznake so \emph{v mestu}, \emph{v gozdu}
+    in \emph{na sprehodu}.
+\end{itemize}
+
+\subsubsection*{Segmentacija M5}
+
+\begin{itemize}
+    \item \textbf{Skupina 0:}
+    Vsebuje 12 aktivnosti z raznolikimi
+    prostorskimi opisi. Pogoste časovne oznake
+    so \emph{popoldne}, \emph{zjutraj}
+    in \emph{dopoldne}. Skupine ni mogoče
+    opisati z enim prevladujočim krajem izvedbe.
+
+    \item \textbf{Skupina 1:}
+    Vsebuje 32 aktivnosti. Pogosti sta časovni
+    oznaki \emph{zjutraj} in \emph{dopoldne}.
+    Pri 30 aktivnostih je navedeno
+    \emph{doma}, pogosto pa tudi
+    \emph{v telovadnici} in \emph{v parku}.
+
+    \item \textbf{Skupina 2:}
+    Vsebuje 21 aktivnosti, pri katerih je
+    povsod navedena prostorska oznaka
+    \emph{kjerkoli}. Časovne oznake se
+    razlikujejo, zato prostorska neomejenost
+    ne pomeni tudi časovne neomejenosti.
+
+    \item \textbf{Skupina 3:}
+    Vsebuje 28 aktivnosti. Vse vključujejo
+    oznako \emph{popoldne}, večina pa tudi
+    \emph{zvečer}. Najpogostejša prostorska
+    oznaka je \emph{doma}, sledi
+    \emph{na sprehodu}.
+
+    \item \textbf{Skupina 4:}
+    Vsebuje 13 aktivnosti s časovnimi oznakami
+    \emph{zjutraj}, \emph{dopoldne}
+    in \emph{popoldne}. Vse vključujejo
+    prostorski oznaki \emph{v gozdu}
+    in \emph{v mestu}, večina pa tudi
+    \emph{na sprehodu}.
+\end{itemize}
+
+Segmentacije predstavljajo različne razdelitve
+kontekstnih opisov. Večje število skupin samo
+po sebi ne zagotavlja boljše interpretabilnosti
+ali uspešnosti priporočanja.
+
+\subsection{Vpliv segmentacije na uspešnost priporočilnega sistema}
+
+Za kvantitativno primerjavo vpliva različnih plasti konteksta na uspešnost modela 
+smo rezultate zbrali v Tabeli~\ref{tab:table_4_5}. 
+
+Primerjali smo naslednje pristope:
+
+\begin{itemize}
+    \item brez konteksta (baseline),
+    \item s kontekstom (kot v poglavju 4.2),
+    \item segmentacijo M3 (3 skupine),
+    \item segmentacijo M4 (4 skupine),
+    \item segmentacijo M5 (5 skupin).
+\end{itemize}
+
+Tabela vključuje metrike Natančnost, Priklic, F1 in povprečno oceno priporočil (AverageScore).
+
+\input{Tabele/table_4_5_all_layers_20261015_150006.tex}
+
+Povprečna F1-mera po skupinah je znašala $0{,}130$
+za M3, $0{,}073$ za M4 in $0{,}057$ za M5.
+Te vrednosti so neutežena povprečja skupinskih rezultatov.
+
+Priporočila so bila med skupinami porazdeljena neenakomerno.
+Pri M3 skupina 0 ni vrnila priporočil, skupina 1 jih je
+vrnila 3\,393, skupina 2 pa eno.
+Pri M4 so bila števila priporočil po skupinah
+108, 0, 2\,109 in 20, pri M5 pa 1, 146, 2\,098, 0 in 1.
+
+Skupno povprečje tako združuje skupine z zelo različnim
+številom priporočil. Višje povprečne F1-mere pri M3
+ne interpretiramo kot dokaz optimalnosti te segmentacije.
+
+\paragraph{Primerljivost metrik.}
+Pri vsaki skupini omejimo priporočila in referenčne elemente
+na kombinacije, katerih vsi člani pripadajo tej skupini.
+Uporabniku ne določimo ene ciljne skupine.
+Rezultate posamezne segmentacije združimo z neuteženim
+povprečjem skupinskih metrik.
+
+Ker se referenčne množice in vključeni uporabniki lahko
+razlikujejo med skupinami in različicami, prikazanih vrednosti
+ne interpretiramo kot neposredne lestvice uspešnosti vseh
+pristopov. Višja vrednost segmentirane metrike sama po sebi
+ne dokazuje izboljšanja glede na različico brez konteksta.
+
+
+\subsection{Razprava}
+
+Skupinsko filtriranje omeji izbor na kombinacije aktivnosti
+iz iste skupine. Pri tem se model SVD ne uči ponovno,
+zato segmentacija ne spreminja njegovih napovedi ocen.
+Vpliva na izbor priporočil in na referenčne množice,
+uporabljene pri vrednotenju. Ugotovitve o posameznih
+segmentacijah je zato treba razlagati ob upoštevanju
+razlik v nalogah vrednotenja.
+
+
+
+
+
+
+\chapter{Zaključki in razprava} \label{chap:discussion_conclusion}
+V magistrskem delu smo razvili priporočilni sistem za
+kombinacije dnevnih aktivnosti starejših uporabnikov.
+Model SVD napoveduje ocene kombinacij, kontekst pa se
+upošteva z naknadnim filtriranjem. Posamezna kombinacija
+vsebuje od ene do treh aktivnosti in ne določa njihovega
+časovnega razporeda.
+
+Vrednotenje je bilo izvedeno na naboru 3\,053\,029
+izračunanih ocen za 679 uporabnikov in 6\,579 kombinacij.
+Primerjava algoritmov in izbira hiperparametrov sta
+potekali na razvojnem delu podatkov, končno vrednotenje
+pa na ločenem testnem delu.
+Med primerjanimi konfiguracijami je SVD dosegel
+najnižjo povprečno razvojno RMSE.
+Končni model z izbranimi hiperparametri je na
+odloženem testnem delu dosegel RMSE $0{,}0819$,
+MAE $0{,}0531$ in FCP $0{,}9966$.
+
+Pri izboru petih priporočil brez konteksta je povprečna
+F1-mera znašala $0{,}339$. Sistem je vrnil pet priporočil
+vsakemu uporabniku. Kontekstno filtriranje je število
+priporočil zmanjšalo s 3\,395 na 250, priporočila
+pa je prejelo 79 od 679 uporabnikov.
+Povprečna F1-mera kontekstne različice je znašala
+$0{,}006$.
+
+Rezultati kažejo razliko med napovedovanjem izračunanih
+ocen in zagotavljanjem priporočil v določenem kontekstu.
+Model lahko doseže nizko napako ocen, strogi filter pa
+kljub temu izloči vse kandidatne kombinacije za
+posameznega uporabnika. Pri razlagi rezultatov je
+pomembno, da so bili konteksti simulirani in da je
+filtriranje potekalo samo znotraj začetnih 20 kandidatov.
+Referenčna množica pri neposrednem kontekstnem
+filtriranju ni bila prilagojena kontekstu, zato nizka
+F1-mera ne predstavlja neposredne ocene uporabnosti
+kontekstno skladnih priporočil.
+
+Pri različicah M3, M4 in M5 so bila priporočila
+vrednotena znotraj posameznih skupin.
+Povprečne F1-mere so znašale $0{,}130$, $0{,}073$
+in $0{,}057$. Zaradi različnih referenčnih množic
+ter neenakomerne porazdelitve priporočil med skupinami
+iz teh vrednosti ne sklepamo o splošni prednosti
+posamezne segmentacije.
+
+Pomembna omejitev metrik P/R/F1 so pogosta izenačenja
+referenčnih ocen na meji top-5. V globalni referenčni
+množici so bila ugotovljena pri 658 od 679 uporabnikov.
+Pri osnovni različici je imelo 97,3~\% priporočil zunaj
+izbrane referenčne množice enako referenčno oceno kot
+njen peti element. Metrike zato odražajo tudi
+leksikografsko razreševanje izenačenj, kar omejuje
+njihovo interpretacijo kot kazalnikov kakovosti
+priporočil. Izenačenja so bila ugotovljena tudi
+v referenčnih množicah posameznih skupin.
+
+Glavna omejitev vrednotenja je izvor referenčnih ocen:
+te so izračunane iz vprašalniških odgovorov, uteži
+in združljivosti aktivnosti ter niso neposredne
+ocene zadovoljstva uporabnikov.
+Rezultati zato opisujejo uspešnost na uporabljenem
+naboru izračunanih ocen. Kontekstna skladnost pomeni
+izpolnjevanje določenih pravil, praktična uporabnost
+pa zahteva ločeno preverjanje.
+Prav tako izpis latentnih faktorjev sam po sebi
+ne predstavlja uporabniku razumljive razlage priporočil.
+
+
+Delo pokaže, da je mogoče napovedovanje ocen kombinacij
+in obravnavo konteksta izvajati ločeno. Hkrati pokaže
+omejitev strogega naknadnega filtriranja pri zagotavljanju
+nepraznih seznamov priporočil.
+Smiselno nadaljnje delo je preverjanje priporočil
+z domenskimi strokovnjaki oziroma uporabniki in
+presoja kontekstnih pravil glede na dejanske
+okoliščine uporabe.
+
+\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{Literatura} % vnos literature v kazalo
+\bibliographystyle{ieeetrslo}
+\bibliography{literatura}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

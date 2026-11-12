@@ -1,0 +1,560 @@
+{
+  "indep_v12": {
+    "rows": 3053029,
+    "n_users_total": 696,
+    "n_users_included": 679,
+    "n_single_actions": 34,
+    "n_combinations": 6579,
+    "raw_min_kept": 0.38852660616873647,
+    "raw_max_kept": 15.0,
+    "raw_nan_pairs": 0,
+    "raw_le_rT_pairs": 1525955,
+    "raw_in_(rT, rT+1e-9]": 0,
+    "raw_exactly_rT": 0,
+    "compat_nan": 0,
+    "compat_min": 0.0,
+    "compat_max": 1.0,
+    "compat_symmetric": true,
+    "compat_distinct_values": [
+      0.0,
+      1.0
+    ],
+    "scaled_equals_raw_answer": true,
+    "missing_users": [
+      {
+        "uid": 449,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 471,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 489,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 566,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 622,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 926,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1012,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1065,
+        "a_F2": 2.539675462318168,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1145,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1170,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1393,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1537,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1684,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1689,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1690,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1715,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1725,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      }
+    ]
+  },
+  "indep_v09_v10": {
+    "rows": 3053029,
+    "n_users_total": 696,
+    "n_users_included": 679,
+    "n_single_actions": 34,
+    "n_combinations": 6579,
+    "raw_min_kept": 0.38852660616873647,
+    "raw_max_kept": 15.0,
+    "raw_nan_pairs": 0,
+    "raw_le_rT_pairs": 1525955,
+    "raw_in_(rT, rT+1e-9]": 0,
+    "raw_exactly_rT": 0,
+    "compat_nan": 0,
+    "compat_min": 0.0,
+    "compat_max": 1.0,
+    "compat_symmetric": true,
+    "compat_distinct_values": [
+      0.0,
+      1.0
+    ],
+    "scaled_equals_raw_answer": true,
+    "missing_users": [
+      {
+        "uid": 449,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 471,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 489,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 566,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 622,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 926,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1012,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1065,
+        "a_F2": 2.539675462318168,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1145,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1170,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1393,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1537,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1684,
+        "a_F2": 1.8612157825193565,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1689,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1690,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1715,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      },
+      {
+        "uid": 1725,
+        "a_F2": 3.0264838967461967,
+        "answers": {
+          "Ac_AB4_1": 0.0,
+          "Ac_AB4_2": 0.0,
+          "Ac_AB4_3": 0.0,
+          "Ac_AB4_4": 0.0,
+          "Ac_AB4_5": 0.0,
+          "Ac_AB4_8": 0.0
+        },
+        "max_raw": 0.0,
+        "n_nan_raw": 0,
+        "reason": "vseh 6 odgovorov = 0: največji raw = 0 <= r_T"
+      }
+    ]
+  }
+}

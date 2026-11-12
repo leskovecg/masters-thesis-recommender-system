@@ -1,0 +1,186 @@
+========== STEP 0: IMPORTING LIBRARIES ==========
+========== STEP 1: GLOBAL SETTINGS ==========
+Evaluation: held-out pairs; grouped metrics use group-specific references.
+========== STEP 2: LOADING DATA FROM EXCEL FILES ==========
+========== STEP 3: BUILDING DICTIONARIES & STRUCTURES ==========
+========== STEP 4: SELECTING ACTIONS FOR GIVEN ASPECTS ==========
+========== STEP 5: PROCESS CONTEXT STRINGS ==========
+========== STEP 6: GENERATING SEQUENCES OF ACTIONS ==========
+========== STEP 7: TRIM USERS/ACTIONS FOR TESTING ==========
+========== STEP 8: COMPUTING ACTION RELEVANCE SCORES ==========
+========== STEP 9: LOAD AND FILTER COMPATIBILITY MATRIX ==========
+========== STEP 10: BUILDING USER-ACTION RESPONSE MATRIX ==========
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\elderly_recsys_tools.py:565: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  X_df.fillna(0, inplace=True)
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\elderly_recsys_tools.py:566: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  all_answers_nums_df = all_answers_df.replace(r' ', np.nan, regex=True).astype(float)
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\runGeneratorOfD_v7.py:399: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+========== STEP 11: BUILD / LOAD D_lst ==========
+Loaded existing D_lst: C:\Users\E3\Documents\Projekti\Faks\Thesis\data\D_lst\D_lst_full_20260202_150312.pkl | rows=3053029
+
+========== D_lst STATISTICS ==========
+Total rows in D_lst: 3053029
+Unique users: 679
+Unique actions: 6579
+Min rating: 0.300
+Max rating: 5.000
+Mean rating: 1.541
+
+ Lowest ratings:
+[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act01'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
+[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act02'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
+[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act03'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'ob zajtrku', 'C_T2': 'ob večerji', 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
+
+ Highest ratings:
+[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act08', 'Ac_AB4_8_Act11'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'podnevi', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
+[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act09', 'Ac_AB4_8_Act10'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': 'zvečer', 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
+[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act09', 'Ac_AB4_8_Act11'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': 'zvečer', 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
+
+ Top 10 contexts (C_T1, C_P1):
+('podnevi', 'kjerkoli'): 871302x
+('ob kosilu', 'kjerkoli'): 563363x
+('zjutraj ', 'v naravi'): 380449x
+('malica dopoldne', 'kjerkoli'): 287883x
+('ob zajtrku', 'kjerkoli'): 272692x
+('dopoldne', 'kjerkoli'): 183726x
+('kadarkoli', 'kjerkoli'): 174265x
+('zjutraj ', 'kjerkoli'): 122859x
+('kadarkoli', 'doma'): 92830x
+('zjutraj ', 'doma'): 31378x
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\runGeneratorOfD_v7.py:528: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+========== STEP 12: ALGORITHM COMPARISON ==========
+
+========== Preparing DataFrame for Surprise... ==========
+Shape of df_for_surprise: (3053029, 3)
+
+Performing cross-validation for each algorithm...
+Evaluating Algorithms:   0%|          | 0/4 [00:00<?, ?it/s]
+=== Evaluating SVD ===
+Evaluating Algorithms:  25%|██▌       | 1/4 [20:04<1:00:14, 1204.77s/it]
+=== Evaluating KNNBasic ===
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Computing the msd similarity matrix...
+Done computing similarity matrix.
+Evaluating Algorithms:  50%|█████     | 2/4 [1:00:21<1:03:54, 1917.47s/it]
+=== Evaluating BaselineOnly ===
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Estimating biases using als...
+Evaluating Algorithms:  75%|███████▌  | 3/4 [1:18:40<25:43, 1543.78s/it]  
+=== Evaluating NMF ===
+Evaluating Algorithms: 100%|██████████| 4/4 [1:41:08<00:00, 1466.64s/it]Evaluating Algorithms: 100%|██████████| 4/4 [1:41:08<00:00, 1517.15s/it]
+
+Cross-validation results summary:
+      algorithm    rmse     mae     mse     fcp
+0           SVD  0.1047  0.0650  0.0110  0.9943
+1      KNNBasic  0.2974  0.1583  0.0884  0.9487
+2  BaselineOnly  0.4734  0.3662  0.2241  0.8780
+3           NMF  0.2700  0.1805  0.0729  0.9589
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\runGeneratorOfD_v7.py:618: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+========== STEP 13: GRID SEARCH & SVD TUNING ==========
+
+========== GRID SEARCH ==========
+Best params: {'random_state': 42, 'n_factors': 150, 'n_epochs': 30, 'lr_all': 0.005, 'reg_all': 0.02}
+Best RMSE score: 0.08444370428959898
+========== STEP 14: CROSS-VALIDATION (TUNED SVD) ==========
+
+Evaluating tuned SVD model with 10 CV...
+
+ Cross-validation results for tuned SVD:
+   Algorithm     Metric       Mean       Std
+0  SVD_tuned       RMSE   0.089465  0.000418
+1  SVD_tuned        MAE   0.056712  0.000152
+2  SVD_tuned        MSE   0.008004  0.000075
+3  SVD_tuned        FCP   0.995945  0.000148
+4  SVD_tuned   Fit time  42.650000  0.989040
+5  SVD_tuned  Test time   3.261000  0.774021
+========== STEP 15: FINAL TRAINING & EVALUATION ==========
+
+========== TRAIN(TEST)SET INFO ==========
+Number of users in trainset: 679
+Number of items in trainset: 6579
+Trainset length: 2289771
+Testset length: 763258
+Total unique actions in D_lst: 6579
+User factors: 679 | Item factors: 6579
+
+========== MATRIX FACTORIZATION FACTORS ==========
+Shape of user factors: (679, 150)
+Shape of item factors: (6579, 150)
+
+========== TEST SET EVALUATION ==========
+RMSE: 0.0819
+RMSE: 0.08186158476339936
+MAE:  0.0531
+MAE:  0.05314729498718314
+MSE: 0.0067
+MSE:  0.006701319059975218
+FCP:  0.9966
+FCP:  0.9966479180437348
+========== STEP 16: GENERATE RECOMMENDATIONS (4.1/4.2/4.3) ==========
+M3 labels: [0, 1, 2]
+M4 labels: [0, 1, 2, 3]
+M5 labels: [0, 1, 2, 3, 4]
+Context pool sizes: |C_T|=12 |C_P|=27
+Generating recs (held-out):   0%|          | 0/679 [00:00<?, ?it/s]Generating recs (held-out):   7%|▋         | 47/679 [00:00<00:01, 465.38it/s]Generating recs (held-out):  14%|█▍        | 94/679 [00:00<00:01, 468.02it/s]Generating recs (held-out):  21%|██        | 141/679 [00:00<00:01, 432.95it/s]Generating recs (held-out):  28%|██▊       | 188/679 [00:00<00:01, 445.26it/s]Generating recs (held-out):  34%|███▍      | 233/679 [00:00<00:01, 426.98it/s]Generating recs (held-out):  41%|████      | 276/679 [00:00<00:01, 400.50it/s]Generating recs (held-out):  48%|████▊     | 323/679 [00:00<00:00, 420.67it/s]Generating recs (held-out):  55%|█████▍    | 373/679 [00:00<00:00, 425.99it/s]Generating recs (held-out):  62%|██████▏   | 419/679 [00:00<00:00, 434.90it/s]Generating recs (held-out):  69%|██████▊   | 466/679 [00:01<00:00, 442.91it/s]Generating recs (held-out):  75%|███████▌  | 511/679 [00:01<00:00, 434.54it/s]Generating recs (held-out):  82%|████████▏ | 555/679 [00:01<00:00, 429.93it/s]Generating recs (held-out):  88%|████████▊ | 599/679 [00:01<00:00, 424.10it/s]Generating recs (held-out):  95%|█████████▍| 643/679 [00:01<00:00, 427.77it/s]Generating recs (held-out): 100%|██████████| 679/679 [00:01<00:00, 433.28it/s]
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\recommendations_4_1_with_PQ_20261015_150006.xlsx
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\recommendations_4_2_with_PQ_20261015_150006.xlsx
+STEP 16 done. Containers ready for STEP 18 evaluation:
+recs_41: 3395 | recs_42: 250
+M3 groups: [0, 3393, 1]
+M4 groups: [108, 0, 2109, 20]
+M5 groups: [1, 146, 2098, 0, 1]
+========== STEP 18: EVALUATE (4.1/4.2/4.3) ==========
+D_triplets (complete items) size: 763258
+Eval params: top_n_groundtruth=5 | k_eval=5
+[4.1] Precision=0.339 Recall=0.339 F1=0.339 AvgScore=3.011
+Saved LaTeX table (4.1) to: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\latex\tabs
+[4.2] Precision=0.006 Recall=0.006 F1=0.006 AvgScore=2.895
+Saved LaTeX table (4.2) to: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\latex\tabs
+[M3 avg] {'Precision': 0.132, 'Recall': 0.129, 'F1': 0.13, 'AverageScore': 1.515}
+[M4 avg] {'Precision': 0.11, 'Recall': 0.063, 'F1': 0.073, 'AverageScore': 2.099}
+[M5 avg] {'Precision': 0.077, 'Recall': 0.051, 'F1': 0.057, 'AverageScore': 1.733}
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\evaluation_metrics_M3_per_group_20261015_150006.xlsx
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\evaluation_metrics_M4_per_group_20261015_150006.xlsx
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\evaluation_metrics_M5_per_group_20261015_150006.xlsx
+
+========== TABLE 4.5 (ALL LAYERS) ==========
+                    Category  Precision  Recall     F1  AverageScore
+0  Brez konteksta (baseline)      0.339   0.339  0.339         3.011
+1    S kontekstom (C_T, C_P)      0.006   0.006  0.006         2.895
+2       M3 (avg čez 3 grupe)      0.132   0.129  0.130         1.515
+3       M4 (avg čez 4 grupe)      0.110   0.063  0.073         2.099
+4        M5 (avg čez 5 grup)      0.077   0.051  0.057         1.733
+Opomba: M3/M4/M5 uporabljajo druge referenčne množice; višja metrika sama ne dokazuje izboljšanja.
+Saved: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\recommendations\table_4_5_all_layers_20261015_150006.xlsx
+Saved LaTeX table to: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\latex\tabs
+C:\Users\E3\Documents\Projekti\Faks\Thesis\src\runGeneratorOfD_v7.py:1198: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+Saved PRF comparison plot to: C:\Users\E3\Documents\Projekti\Faks\Thesis\outputs\heldout_evaluation\latex\figs\prf_comparison_20261015_150006.png

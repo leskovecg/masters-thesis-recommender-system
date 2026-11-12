@@ -208,7 +208,8 @@ def is_action_context_feasibleQ(
     if relax_nd and (user_C_T == 'nd' or user_C_P == 'nd'):
         return True
 
-    time_ok = user_C_T in C_Ts if user_C_T else False
+    # "kadarkoli" means no time restriction, in the activity definition or the selected context.
+    time_ok = bool(user_C_T) and (user_C_T == 'kadarkoli' or user_C_T in C_Ts or 'kadarkoli' in C_Ts)
     place_ok = user_C_P in C_Ps if user_C_P else False
 
     # relax "kjerkoli"
@@ -653,8 +654,12 @@ def evaluate_recommender_metrics_filtered_groundtruth(
 ):
     """
     Ranking metrics with OPTIONAL filtered ground truth (important for M3/M4/M5).
-    D_triplets: (uid, (actID,), rating)
-    rec_triplets: (uid, (actID,), score)
+    D_triplets: (uid, item, rating)
+    rec_triplets: (uid, item, score)
+    where item is a complete activity tuple of one or more actIDs,
+    e.g. ('A',) or ('A', 'B', 'C'); items are compared as whole tuples.
+    groundtruth_filter_fn: optional predicate on item; only matching items
+    enter the per-user reference.
     """
     user_gt = defaultdict(list)
     for uid, act_seq, rating in D_triplets:
@@ -663,7 +668,7 @@ def evaluate_recommender_metrics_filtered_groundtruth(
 
     gt_dict = {}
     for uid, seqs in user_gt.items():
-        top_gt = sorted(seqs, key=lambda x: x[1], reverse=True)[:top_n_groundtruth]
+        top_gt = sorted(seqs, key=lambda x: (-x[1], tuple(x[0])))[:top_n_groundtruth]
         gt_dict[uid] = set([a for a, _ in top_gt])
 
     rec_dict = defaultdict(list)
@@ -672,11 +677,13 @@ def evaluate_recommender_metrics_filtered_groundtruth(
 
     precision_list, recall_list, f1_list = [], [], []
 
-    for uid, recs in rec_dict.items():
-        if uid not in gt_dict or len(gt_dict[uid]) == 0:
-            continue
+    # Evaluate every user with a nonempty reference, including empty outputs.
+    # Users with no reference after group filtering have undefined recall and
+    # are outside that group's evaluation population.
+    for uid in gt_dict:
+        recs = rec_dict.get(uid, [])
 
-        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
+        top_k = sorted(recs, key=lambda x: (-x[1], tuple(x[0])))[:k_eval]
         predicted = set([a for a, _ in top_k])
         actual = gt_dict[uid]
 

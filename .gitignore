@@ -1,43 +1,91 @@
 ############################
-# Python / general
+# Python / environment
 ############################
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.log
 .ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+env/
 
 ############################
-# OS / editor
+# OS / editor / local tooling
 ############################
 .DS_Store
 Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+.claude/settings.local.json
+~$*
 
 ############################
-# Generated data (large / non-source)
+# Large generated binaries
+# D_lst (~555 MB each) is regenerated via src/runGeneratorOfD_v7.py
 ############################
 *.pkl
+*.pickle
+*.joblib
+*.npy
+*.npz
+*.h5
 
 ############################
-# Legacy folders (do not track)
+# Diagnostics: keep REPORT.md, audit_dlst.py, logs/, results/
+# Drop work/ (pkl files + duplicated data/src snapshots of hist45d9509)
+############################
+diagnostics/**/work/
+
+############################
+# Legacy: ignored everywhere except src/legacy
+# (small; needed to trace D_lst provenance v5 -> v7)
 ############################
 **/legacy/
+!src/legacy/
 
 ############################
-# Logs
+# Zip archives duplicating existing folders
 ############################
-logs/
+outputs/**/*.zip
 
 ############################
-# Optional: cache / temp
+# Literature PDFs (copyrighted, ~40 MB)
+# References are in overleaf/2024_GLeskovec_MAG/literatura.bib
+############################
+literature/
+
+############################
+# Logs: root logs/ only; keep the final run log
+############################
+/logs/
+*.log
+!outputs/heldout_evaluation/*.log
+
+############################
+# LaTeX build artifacts
+############################
+*.aux
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.xdv
+
+############################
+# Temp / misc
 ############################
 *.tmp
 *.cache
+todo
 
 ############################
-# Other
+# ONLY if the repo stays PUBLIC (not recommended; I can't rerun the pipeline without these)
 ############################
-todo 
+# data/questionnaires/
+# data/annotations/
+# data/scores/
