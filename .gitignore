@@ -50,12 +50,6 @@ diagnostics/**/work/
 outputs/**/*.zip
 
 ############################
-# Literature PDFs (copyrighted, ~40 MB)
-# References are in overleaf/2024_GLeskovec_MAG/literatura.bib
-############################
-literature/
-
-############################
 # Logs: root logs/ only; keep the final run log
 ############################
 /logs/
