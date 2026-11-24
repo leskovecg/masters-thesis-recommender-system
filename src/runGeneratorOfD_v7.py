@@ -1295,4 +1295,8 @@ plt.show()
 
 print(f"Saved PRF comparison plot to: {fig_path}")
 
+# Overview figure of table 4.5 (strict F1, tie-aware F1, coverage)
+erst.plot_results_overview(table_45, figs_path / f"results_overview_{timestamp}")
+print(f"Saved results overview figure to: {figs_path}")
+
 # %%
