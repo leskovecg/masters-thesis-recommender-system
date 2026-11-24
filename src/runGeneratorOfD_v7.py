@@ -88,6 +88,8 @@ test_mode = False                # First run: smoke test only; set False for fin
 USE_EXISTING_D_LST = True       # Load existing D_lst or generate new one
 USE_RANDOM_CONTEXT_42 = True    # TRUE = random context, FALSE = fixed context_42
 RANDOM_CONTEXT_MODE = "per_user"  # "per_user" or "per_rec"
+SKIP_TUNING = True              # True = skip STEP 12-14 and use BEST_PARAMS (selected in run 20261015_150006)
+BEST_PARAMS = {'random_state': 42, 'n_factors': 150, 'n_epochs': 30, 'lr_all': 0.005, 'reg_all': 0.02}
 if test_mode:
     print("TESTNI ZAGON: skrajšan nabor; ti rezultati niso za magistrsko besedilo.")
 
@@ -101,7 +103,7 @@ TEST_D_LST_MAX_ROWS = 100000    # Max rows to load when test_mode=True
 M = 100                         # Number of latent features for SVD (will be updated after training)
 n_splits = 10                   # Number of CV splits/folds; not changed by test_mode (test_mode only slices D_lst and shrinks the SVD grid)
 test_size = 0.25                # Proportion of dataset for test split
-n_recommendations = 20          # Top candidates returned (before context filtering)
+n_recommendations = None        # None = filter the whole held-out list (was 20)
 top_k_final_recommendations = 5 # Number of final context-aware recommendations
 top_n_groundtruth = 5           # Top ground-truth items for evaluation
 
@@ -555,67 +557,68 @@ heldout_testset = list(df_for_surprise.iloc[heldout_idx].itertuples(index=False,
 # Define algorithms and evaluate using CV
 # ==========================================================
 
-algorithms = {
-    "SVD": SVD,
-    "KNNBasic": KNNBasic,
-    "BaselineOnly": BaselineOnly,
-    "NMF": NMF
-}
+if not SKIP_TUNING:
+    algorithms = {
+        "SVD": SVD,
+        "KNNBasic": KNNBasic,
+        "BaselineOnly": BaselineOnly,
+        "NMF": NMF
+    }
 
-metrics_summary = []
+    metrics_summary = []
 
-print("\nPerforming cross-validation for each algorithm...")
-for name, algo_class in tqdm(algorithms.items(), desc="Evaluating Algorithms"):
-    print(f"\n=== Evaluating {name} ===")
-    cv_df = erst.perform_cross_validation(
-        data=data,
-        model_class=algo_class,
-        algorithm_name=name,
-        cv_type='shuffle',
-        n_splits=n_splits,
-        test_size=test_size,
-        random_state=42
+    print("\nPerforming cross-validation for each algorithm...")
+    for name, algo_class in tqdm(algorithms.items(), desc="Evaluating Algorithms"):
+        print(f"\n=== Evaluating {name} ===")
+        cv_df = erst.perform_cross_validation(
+            data=data,
+            model_class=algo_class,
+            algorithm_name=name,
+            cv_type='shuffle',
+            n_splits=n_splits,
+            test_size=test_size,
+            random_state=42
+        )
+
+        # cv_df columns: Algorithm, Metric, Mean, Std
+        mean_metrics = cv_df.set_index('Metric')['Mean']
+
+        metrics_summary.append({
+            'algorithm': name,
+            'rmse': round(float(mean_metrics['RMSE']), 4),
+            'mae': round(float(mean_metrics['MAE']), 4),
+            'mse': round(float(mean_metrics['MSE']), 4),
+            'fcp': round(float(mean_metrics['FCP']), 4)
+        })
+
+    # Save results and plot
+    # ==========================================================
+
+    # Convert to DataFrame and export
+    summary_df = pd.DataFrame(metrics_summary)
+    print("\nCross-validation results summary:")
+    print(summary_df)
+
+    summary_df.to_excel(evaluation_path / f"algorithm_comparison_{timestamp}.xlsx", index=False)
+
+    # Save LaTeX table
+    erst.save_df_as_latex_table(
+        df=summary_df,
+        out_dir=tabs_path,
+        filename_stem=f"algorithm_comparison_{timestamp}",
+        caption=f"Primerjava algoritmov na razvojnem delu podatkov (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test).",
+        label="tab:algorithm_comparison",
+        float_format="{:.3f}",
+        index=False
     )
 
-    # cv_df columns: Algorithm, Metric, Mean, Std
-    mean_metrics = cv_df.set_index('Metric')['Mean']
-
-    metrics_summary.append({
-        'algorithm': name,
-        'rmse': round(float(mean_metrics['RMSE']), 4),
-        'mae': round(float(mean_metrics['MAE']), 4),
-        'mse': round(float(mean_metrics['MSE']), 4),
-        'fcp': round(float(mean_metrics['FCP']), 4)
-    })
-
-# Save results and plot
-# ==========================================================
-
-# Convert to DataFrame and export
-summary_df = pd.DataFrame(metrics_summary)
-print("\nCross-validation results summary:")
-print(summary_df)
-
-summary_df.to_excel(evaluation_path / f"algorithm_comparison_{timestamp}.xlsx", index=False)
-
-# Save LaTeX table
-erst.save_df_as_latex_table(
-    df=summary_df,
-    out_dir=tabs_path,
-    filename_stem=f"algorithm_comparison_{timestamp}",
-    caption=f"Primerjava algoritmov na razvojnem delu podatkov (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test).",
-    label="tab:algorithm_comparison",
-    float_format="{:.3f}",
-    index=False
-)
-
-plt.figure(figsize=(8,5))
-plt.bar(summary_df["algorithm"], summary_df["rmse"], color="lightblue")
-plt.ylabel("Povprečni RMSE")
-plt.title("Primerjava algoritmov - povprečni RMSE")
-plt.tight_layout()
-plt.savefig(figs_path / f"algorithm_rmse_comparison_{timestamp}.png")
-plt.show()
+    plt.figure(figsize=(8,5))
+    plt.bar(summary_df["algorithm"], summary_df["rmse"], color="lightblue")
+    plt.ylabel("Povprečni RMSE")
+    plt.title("Primerjava algoritmov - povprečni RMSE")
+    plt.tight_layout()
+    plt.savefig(figs_path / f"algorithm_rmse_comparison_{timestamp}.png")
+    plt.show()
 
 #%% STEP 13: HYPERPARAMETER TUNING (GRID SEARCH FOR SVD)
 ##==================================================================================
@@ -628,27 +631,30 @@ SVD model is tuned using GridSearch to find optimal hyperparameters.
 print("\n========== GRID SEARCH ==========")
 # # Define hyperparameter search space for the SVD algorithm (from Surprise library)
 
-param_grid = {
-    'random_state': [42],
-    'n_factors': [50] if test_mode else [50, 100, 150],
-    'n_epochs': [20] if test_mode else [20, 30],
-    'lr_all': [0.002] if test_mode else [0.002, 0.005],
-    'reg_all': [0.02] if test_mode else [0.02, 0.05]
-}
+if not SKIP_TUNING:
+    param_grid = {
+        'random_state': [42],
+        'n_factors': [50] if test_mode else [50, 100, 150],
+        'n_epochs': [20] if test_mode else [20, 30],
+        'lr_all': [0.002] if test_mode else [0.002, 0.005],
+        'reg_all': [0.02] if test_mode else [0.02, 0.05]
+    }
 
-profile = cProfile.Profile() 
-profile.enable() 
+    profile = cProfile.Profile() 
+    profile.enable() 
 
-# Run grid search to find optimal hyperparameters
-gs = GridSearchCV(SVD, param_grid, measures=['rmse'],
-                  cv=KFold(n_splits=n_splits, random_state=42, shuffle=True))
-gs.fit(data)
+    # Run grid search to find optimal hyperparameters
+    gs = GridSearchCV(SVD, param_grid, measures=['rmse'],
+                      cv=KFold(n_splits=n_splits, random_state=42, shuffle=True))
+    gs.fit(data)
 
-best_params = gs.best_params['rmse']
-print(f"Best params: {best_params}")
-print(f"Best RMSE score: {gs.best_score['rmse']}")
+    best_params = gs.best_params['rmse']
+    print(f"Best params: {best_params}")
+    print(f"Best RMSE score: {gs.best_score['rmse']}")
 
-profile.disable()
+    profile.disable()
+else:
+    best_params = BEST_PARAMS
 
 #%% STEP 14: CROSS-VALIDATION FOR TUNED SVD
 ##==================================================================================
@@ -659,36 +665,37 @@ This step validates the performance of the tuned SVD model using shuffle split c
 """
 
 # Run cross-validation with tuned SVD parameters
-print(f"\nEvaluating tuned SVD model with {n_splits} CV...")
-cv_results_df = erst.perform_cross_validation(
-    data=data,
-    model_class=lambda: SVD(**best_params),
-    algorithm_name='SVD_tuned',
-    cv_type='shuffle',
-    n_splits=n_splits,
-    test_size=test_size,
-    random_state=42
-)
+if not SKIP_TUNING:
+    print(f"\nEvaluating tuned SVD model with {n_splits} CV...")
+    cv_results_df = erst.perform_cross_validation(
+        data=data,
+        model_class=lambda: SVD(**best_params),
+        algorithm_name='SVD_tuned',
+        cv_type='shuffle',
+        n_splits=n_splits,
+        test_size=test_size,
+        random_state=42
+    )
 
-cv_results_df.to_excel(evaluation_path / f"cv_results_tuned_SVD_{timestamp}.xlsx", index=False)
+    cv_results_df.to_excel(evaluation_path / f"cv_results_tuned_SVD_{timestamp}.xlsx", index=False)
 
-# Save LaTeX table
-erst.save_df_as_latex_table(
-    df=cv_results_df,
-    out_dir=tabs_path,
-    filename_stem=f"cv_results_tuned_SVD_{timestamp}",
-    caption=f"Razvojni rezultati po izbiri nastavitev (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test) za prilagojeni model SVD.",
-    label="tab:cv_results_tuned_svd",
-    float_format="{:.3f}",
-    index=False
-)
+    # Save LaTeX table
+    erst.save_df_as_latex_table(
+        df=cv_results_df,
+        out_dir=tabs_path,
+        filename_stem=f"cv_results_tuned_SVD_{timestamp}",
+        caption=f"Razvojni rezultati po izbiri nastavitev (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test) za prilagojeni model SVD.",
+        label="tab:cv_results_tuned_svd",
+        float_format="{:.3f}",
+        index=False
+    )
 
-# === Extract and display average metrics ===
-print("\n Cross-validation results for tuned SVD:")
-print(cv_results_df)
+    # === Extract and display average metrics ===
+    print("\n Cross-validation results for tuned SVD:")
+    print(cv_results_df)
 
-# Display cross-validation results
-mean_metrics = cv_results_df.set_index('Metric')['Mean']
+    # Display cross-validation results
+    mean_metrics = cv_results_df.set_index('Metric')['Mean']
 
 #%% STEP 15: FINAL TRAINING AND MATRIX FACTORIZATION
 ##==================================================================================
@@ -788,7 +795,8 @@ print(f"M5 labels: {G5_labels}")
 # =============================================================================
 # CONTEXT POOL (for 4.2 random contexts)
 # =============================================================================
-C_T_pool, C_P_pool = erst.build_context_pool(actID_context_dc)
+# Pool only from the activities that can be recommended (34, not 106)
+C_T_pool, C_P_pool = erst.build_context_pool({a: actID_context_dc[a] for a in single_actID_lst})
 print(f"Context pool sizes: |C_T|={len(C_T_pool)} |C_P|={len(C_P_pool)}")
 
 # =============================================================================
@@ -796,6 +804,7 @@ print(f"Context pool sizes: |C_T|={len(C_T_pool)} |C_P|={len(C_P_pool)}")
 # =============================================================================
 recs_41 = []  # (uID, activity_tuple, score) baseline top5
 recs_42 = []  # (uID, (actID,), score) context filtered
+context_42_by_user = {}  # used context per user (per_user mode)
 
 recs_M3 = {g: [] for g in G3_labels}
 recs_M4 = {g: [] for g in G4_labels}
@@ -830,6 +839,7 @@ for uID in tqdm(sorted(test_predictions_by_user), desc="Generating recs (held-ou
         context_42 = erst.sample_random_context(C_T_pool, C_P_pool)
     else:
         context_42 = FIXED_CONTEXT_42
+    context_42_by_user[uID] = context_42
 
     # MF user vector P
     MF_P = user_factors.get(uID, np.zeros(M))
@@ -949,6 +959,14 @@ for g in G4_labels:
 for g in G5_labels:
     pd.DataFrame(rows_M5[g]).to_excel(recommendations_path / f"recommendations_M5_group{g}_{timestamp}.xlsx", index=False)
 
+# Popularity baseline: rank each user's held-out items by the item's mean training rating
+item_mean = {trainset.to_raw_iid(i): float(np.mean([r for _, r in trainset.ir[i]])) for i in trainset.all_items()}
+recs_pop = []
+for uID in sorted(test_predictions_by_user):
+    cand = sorted(((items.normalize_item(iid), item_mean.get(iid, 0.0)) for _, iid, _ in test_predictions_by_user[uID]),
+                  key=lambda x: (-x[1], x[0]))[:top_k_final_recommendations]
+    recs_pop.extend([(uID, a, s) for a, s in cand])
+
 print("STEP 16 done. Containers ready for STEP 18 evaluation:")
 print(f"recs_41: {len(recs_41)} | recs_42: {len(recs_42)}")
 print(f"M3 groups: {[len(recs_M3[g]) for g in G3_labels]}")
@@ -982,9 +1000,40 @@ p41, r41, f41 = erst.evaluate_recommender_metrics_filtered_groundtruth(
     k_eval=top_k_final_recommendations,
     groundtruth_filter_fn=None
 )
+_, _, f41_ties = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets,
+    recs_41,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None,
+    tie_aware=True
+)
 avg_score_41 = float(np.mean([s for _, _, s in recs_41])) if len(recs_41) else 0.0
 
-print(f"[4.1] Precision={p41} Recall={r41} F1={f41} AvgScore={avg_score_41:.3f}")
+cov_41 = len({u for u, _, _ in recs_41}) / len(test_predictions_by_user)
+
+print(f"[4.1] Precision={p41} Recall={r41} F1={f41} F1_ties={f41_ties} Coverage={cov_41:.3f} AvgScore={avg_score_41:.3f}")
+
+# Popularity baseline (same global reference)
+p_pop, r_pop, f_pop = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets,
+    recs_pop,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None
+)
+_, _, f_pop_ties = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets,
+    recs_pop,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None,
+    tie_aware=True
+)
+avg_score_pop = float(np.mean([s for _, _, s in recs_pop])) if len(recs_pop) else 0.0
+cov_pop = len({u for u, _, _ in recs_pop}) / len(test_predictions_by_user)
+
+print(f"[Pop] Precision={p_pop} Recall={r_pop} F1={f_pop} F1_ties={f_pop_ties} Coverage={cov_pop:.3f} AvgScore={avg_score_pop:.3f}")
 
 # =============================================================================
 # 4.1 EXPORT LaTeX TABLE (single-row) for chapter 4.1
@@ -1022,9 +1071,40 @@ p42, r42, f42 = erst.evaluate_recommender_metrics_filtered_groundtruth(
     k_eval=top_k_final_recommendations,
     groundtruth_filter_fn=None
 )
+_, _, f42_ties = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets,
+    recs_42,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None,
+    tie_aware=True
+)
 avg_score_42 = float(np.mean([s for _, _, s in recs_42])) if len(recs_42) else 0.0
 
-print(f"[4.2] Precision={p42} Recall={r42} F1={f42} AvgScore={avg_score_42:.3f}")
+cov_42 = len({u for u, _, _ in recs_42}) / len(test_predictions_by_user)
+
+print(f"[4.2] Precision={p42} Recall={r42} F1={f42} F1_ties={f42_ties} Coverage={cov_42:.3f} AvgScore={avg_score_42:.3f}")
+
+# 4.2 with a context-filtered reference (same rule as for candidates)
+D_triplets_42 = [(uid, item, r) for uid, item, r in D_triplets
+                 if items.item_context_feasible(item, context_42_by_user[uid], actID_context_dc, erst.is_action_context_feasibleQ)]
+p42c, r42c, f42c = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets_42,
+    recs_42,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None
+)
+_, _, f42c_ties = erst.evaluate_recommender_metrics_filtered_groundtruth(
+    D_triplets_42,
+    recs_42,
+    top_n_groundtruth=top_n_groundtruth,
+    k_eval=top_k_final_recommendations,
+    groundtruth_filter_fn=None,
+    tie_aware=True
+)
+
+print(f"[4.2 context reference] Precision={p42c} Recall={r42c} F1={f42c} F1_ties={f42c_ties}")
 
 # =============================================================================
 # 4.2 EXPORT LaTeX TABLE (single-row) for chapter 4.2
@@ -1064,7 +1144,7 @@ def eval_grouped_avg(recs_by_group, actID_to_group, labels, layer_name):
     """
     Returns:
     - df_per_group: per-group metrics
-    - avg_dc: Option A = average across groups (unweighted mean)
+    - avg_dc: average across groups, weighted by NumUsers (AverageScore unweighted)
     """
     rows = []
     for g in labels:
@@ -1075,6 +1155,16 @@ def eval_grouped_avg(recs_by_group, actID_to_group, labels, layer_name):
             k_eval=top_k_final_recommendations,
             groundtruth_filter_fn=make_gt_filter_for_group(actID_to_group, g)
         )
+        _, _, f_ties = erst.evaluate_recommender_metrics_filtered_groundtruth(
+            D_triplets,
+            recs_by_group[g],
+            top_n_groundtruth=top_n_groundtruth,
+            k_eval=top_k_final_recommendations,
+            groundtruth_filter_fn=make_gt_filter_for_group(actID_to_group, g),
+            tie_aware=True
+        )
+        # Users with a nonempty reference in this group
+        n_users = len({uid for uid, item, _ in D_triplets if items.item_in_group(item, g, actID_to_group)})
         avg_s = float(np.mean([s for _, _, s in recs_by_group[g]])) if len(recs_by_group[g]) else 0.0
 
         rows.append({
@@ -1083,25 +1173,29 @@ def eval_grouped_avg(recs_by_group, actID_to_group, labels, layer_name):
             "Precision": p,
             "Recall": r,
             "F1": f,
+            "F1_ties": f_ties,
+            "Coverage": round(len({u for u, _, _ in recs_by_group[g]}) / len(test_predictions_by_user), 3),
             "AverageScore": round(avg_s, 3),
             "NumRecs": len(recs_by_group[g]),
+            "NumUsers": n_users,
         })
 
     df = pd.DataFrame(rows)
 
     if len(df) == 0:
-        avg_dc = {"Precision": 0.0, "Recall": 0.0, "F1": 0.0, "AverageScore": 0.0}
+        avg_dc = {"Precision": 0.0, "Recall": 0.0, "F1": 0.0, "F1_ties": 0.0, "AverageScore": 0.0}
     else:
         avg_dc = {
-            "Precision": round(float(df["Precision"].mean()), 3),
-            "Recall": round(float(df["Recall"].mean()), 3),
-            "F1": round(float(df["F1"].mean()), 3),
+            "Precision": round(float(np.average(df["Precision"], weights=df["NumUsers"])), 3),
+            "Recall": round(float(np.average(df["Recall"], weights=df["NumUsers"])), 3),
+            "F1": round(float(np.average(df["F1"], weights=df["NumUsers"])), 3),
+            "F1_ties": round(float(np.average(df["F1_ties"], weights=df["NumUsers"])), 3),
             "AverageScore": round(float(df["AverageScore"].mean()), 3),
         }
 
     return df, avg_dc
 
-# M3 / M4 / M5 (Option A = avg across groups)
+# M3 / M4 / M5 (avg across groups, weighted by NumUsers)
 df_m3, m3_avg = eval_grouped_avg(recs_M3, actID_to_g3, G3_labels, "M3")
 df_m4, m4_avg = eval_grouped_avg(recs_M4, actID_to_g4, G4_labels, "M4")
 df_m5, m5_avg = eval_grouped_avg(recs_M5, actID_to_g5, G5_labels, "M5")
@@ -1126,14 +1220,16 @@ print(f"Saved: {out_m4}")
 print(f"Saved: {out_m5}")
 
 # =============================================================================
-# 6) Build Table 4.5 (5 rows) + export
+# 6) Build Table 4.5 (7 rows) + export
 # =============================================================================
 table_45 = pd.DataFrame([
-    {"Category": "Brez konteksta (baseline)", "Precision": p41, "Recall": r41, "F1": f41, "AverageScore": round(avg_score_41, 3)},
-    {"Category": "S kontekstom (C_T, C_P)",  "Precision": p42, "Recall": r42, "F1": f42, "AverageScore": round(avg_score_42, 3)},
-    {"Category": "M3 (avg čez 3 grupe)",     "Precision": m3_avg["Precision"], "Recall": m3_avg["Recall"], "F1": m3_avg["F1"], "AverageScore": m3_avg["AverageScore"]},
-    {"Category": "M4 (avg čez 4 grupe)",     "Precision": m4_avg["Precision"], "Recall": m4_avg["Recall"], "F1": m4_avg["F1"], "AverageScore": m4_avg["AverageScore"]},
-    {"Category": "M5 (avg čez 5 grup)",      "Precision": m5_avg["Precision"], "Recall": m5_avg["Recall"], "F1": m5_avg["F1"], "AverageScore": m5_avg["AverageScore"]},
+    {"Category": "Brez konteksta (baseline)", "Precision": p41, "Recall": r41, "F1": f41, "F1_ties": f41_ties, "Coverage": round(cov_41, 3), "AverageScore": round(avg_score_41, 3)},
+    {"Category": "Popularnost (baseline)", "Precision": p_pop, "Recall": r_pop, "F1": f_pop, "F1_ties": f_pop_ties, "Coverage": round(cov_pop, 3), "AverageScore": round(avg_score_pop, 3)},
+    {"Category": "S kontekstom, globalna referenca", "Precision": p42, "Recall": r42, "F1": f42, "F1_ties": f42_ties, "Coverage": round(cov_42, 3), "AverageScore": round(avg_score_42, 3)},
+    {"Category": "S kontekstom, kontekstna referenca", "Precision": p42c, "Recall": r42c, "F1": f42c, "F1_ties": f42c_ties, "Coverage": round(cov_42, 3), "AverageScore": round(avg_score_42, 3)},
+    {"Category": "M3 (uteženo po uporabnikih)", "Precision": m3_avg["Precision"], "Recall": m3_avg["Recall"], "F1": m3_avg["F1"], "F1_ties": m3_avg["F1_ties"], "Coverage": "--", "AverageScore": m3_avg["AverageScore"]},
+    {"Category": "M4 (uteženo po uporabnikih)", "Precision": m4_avg["Precision"], "Recall": m4_avg["Recall"], "F1": m4_avg["F1"], "F1_ties": m4_avg["F1_ties"], "Coverage": "--", "AverageScore": m4_avg["AverageScore"]},
+    {"Category": "M5 (uteženo po uporabnikih)", "Precision": m5_avg["Precision"], "Recall": m5_avg["Recall"], "F1": m5_avg["F1"], "F1_ties": m5_avg["F1_ties"], "Coverage": "--", "AverageScore": m5_avg["AverageScore"]},
 ])
 
 out_table = recommendations_path / f"table_4_5_all_layers_{timestamp}.xlsx"
@@ -1141,7 +1237,7 @@ table_45.to_excel(out_table, index=False)
 
 print("\n========== TABLE 4.5 (ALL LAYERS) ==========")
 print(table_45)
-print("Opomba: M3/M4/M5 uporabljajo druge referenčne množice; višja metrika sama ne dokazuje izboljšanja.")
+print("Opomba: kontekstna referenca in M3/M4/M5 uporabljajo druge referenčne množice (M3/M4/M5 uteženo po uporabnikih); višja metrika sama ne dokazuje izboljšanja.")
 print(f"Saved: {out_table}")
 
 # =============================================================================
@@ -1153,7 +1249,7 @@ if hasattr(erst, "save_df_as_latex_table"):
             df=table_45,
             out_dir=tabs_path,  # Save to LaTeX tables directory
             filename_stem=f"table_4_5_all_layers_{timestamp}",
-            caption="Rezultati na testnih parih. M3/M4/M5 uporabljajo reference znotraj skupine in niso neposredno primerljivi z globalno referenco.",
+            caption="Rezultati na testnih parih. F1\\_ties upošteva izenačenja pri meji referenčnega seznama. Kontekstna referenca in M3/M4/M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco; M3/M4/M5 so uteženi po številu uporabnikov.",
             label="tab:table_4_5",
             float_format="{:.3f}",
             index=False

@@ -25,7 +25,7 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Različice v `requirements.txt` izhajajo iz popisa lokalnega okolja 21. 10. 2026. Namestitev s tem seznamom v sveže okolje še ni preverjena.
+Različice v `requirements.txt` izhajajo iz popisa lokalnega okolja 21. 10. 2026. V svežem okolju se `requirements.txt` namesti brez napak (preverjeno 2026-11-24).
 
 ## Potrebni podatki
 
