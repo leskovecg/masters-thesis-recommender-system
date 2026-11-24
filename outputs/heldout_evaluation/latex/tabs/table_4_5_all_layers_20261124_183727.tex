@@ -1,0 +1,19 @@
+\begin{table}[h]
+\centering
+\caption{Rezultati na testnih parih. F1\_ties upošteva izenačenja pri meji referenčnega seznama. Kontekstna referenca in M3/M4/M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco; M3/M4/M5 so uteženi po številu uporabnikov.}
+\label{tab:table_4_5}
+\begin{tabular}{lrrrrlr}
+\toprule
+Category & Precision & Recall & F1 & F1\_ties & Coverage & AverageScore \\
+\midrule
+Brez konteksta (baseline) & 0.339 & 0.339 & 0.339 & 0.982 & 1.000 & 3.011 \\
+Popularnost (baseline) & 0.151 & 0.151 & 0.151 & 0.531 & 1.000 & 3.054 \\
+S kontekstom, globalna referenca & 0.018 & 0.018 & 0.018 & 0.120 & 0.895 & 2.022 \\
+S kontekstom, kontekstna referenca & 0.804 & 0.804 & 0.804 & 0.998 & 0.895 & 2.022 \\
+M3 (uteženo po uporabnikih) & 0.623 & 0.623 & 0.623 & 0.988 & -- & 1.928 \\
+M4 (uteženo po uporabnikih) & 0.698 & 0.698 & 0.698 & 0.996 & -- & 1.844 \\
+M5 (uteženo po uporabnikih) & 0.683 & 0.683 & 0.683 & 0.998 & -- & 1.892 \\
+\bottomrule
+\end{tabular}
+
+\end{table}

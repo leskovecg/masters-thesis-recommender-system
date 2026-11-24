@@ -650,7 +650,8 @@ def evaluate_recommender_metrics_filtered_groundtruth(
     *,
     top_n_groundtruth=20,
     k_eval=5,
-    groundtruth_filter_fn=None
+    groundtruth_filter_fn=None,
+    tie_aware=False
 ):
     """
     Ranking metrics with OPTIONAL filtered ground truth (important for M3/M4/M5).
@@ -667,9 +668,16 @@ def evaluate_recommender_metrics_filtered_groundtruth(
             user_gt[uid].append((act_seq, rating))
 
     gt_dict = {}
+    gt_n = {}
     for uid, seqs in user_gt.items():
         top_gt = sorted(seqs, key=lambda x: (-x[1], tuple(x[0])))[:top_n_groundtruth]
-        gt_dict[uid] = set([a for a, _ in top_gt])
+        gt_n[uid] = len(top_gt)
+        if tie_aware:
+            # Ties at the cut-off: every item rated >= the last reference rating is relevant
+            r_cut = top_gt[-1][1]
+            gt_dict[uid] = set(a for a, r in seqs if r >= r_cut)
+        else:
+            gt_dict[uid] = set([a for a, _ in top_gt])
 
     rec_dict = defaultdict(list)
     for uid, act_seq, score in rec_triplets:
@@ -689,7 +697,7 @@ def evaluate_recommender_metrics_filtered_groundtruth(
 
         tp = len(predicted & actual)
         fp = len(predicted - actual)
-        fn = len(actual - predicted)
+        fn = gt_n[uid] - tp if tie_aware else len(actual - predicted)
 
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
