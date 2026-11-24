@@ -629,6 +629,42 @@ def save_df_as_latex_table(
     return out_path
 
 
+def plot_results_overview(table_45, out_stem):
+    """Three panels (strict F1, tie-aware F1, coverage) for all rows of table 4.5."""
+    import matplotlib.pyplot as plt
+    rows = list(table_45["Category"])
+    panels = [("F1-mera (strogo)", "F1"), ("F1-mera z izenačenji", "F1_ties"), ("Pokritost uporabnikov", "Coverage")]
+    y = np.arange(len(rows))[::-1]
+    colors = ["#9aa3b0" if "Popularnost" in r else "#2A6FDB" for r in rows]
+    fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.9), sharey=True)
+    for ax, (title, col) in zip(axes, panels):
+        vals = pd.to_numeric(table_45[col], errors="coerce")
+        for yi, v, c in zip(y, vals, colors):
+            if pd.isna(v):
+                ax.text(0.02, yi, "ni definirano", va="center", fontsize=8.5, color="#5b6474", style="italic")
+                continue
+            ax.barh(yi, v, height=0.62, color=c)
+            ax.text(v + 0.02, yi, f"{v:.3f}".replace(".", ","), va="center", fontsize=8.8)
+        ax.set_title(title, fontsize=10.5, loc="left", fontweight="bold")
+        ax.set_xlim(0, 1.18)
+        ax.set_xticks([0, 0.25, 0.5, 0.75, 1.0])
+        ax.set_xticklabels(["0", "0,25", "0,5", "0,75", "1"], fontsize=8.5, color="#5b6474")
+        ax.grid(axis="x", color="#e6e8ec", lw=0.7)
+        ax.set_axisbelow(True)
+        for s in ["top", "right", "left"]:
+            ax.spines[s].set_visible(False)
+        ax.tick_params(length=0)
+        # dashed separators between A / B / C blocks
+        for yb in (y[1] - 0.5, y[3] - 0.5):
+            ax.axhline(yb, color="#cfd4db", lw=0.8, ls=(0, (3, 3)))
+    axes[0].set_yticks(y)
+    axes[0].set_yticklabels(rows, fontsize=9.5)
+    plt.tight_layout(w_pad=1.2)
+    for ext in ("png", "pdf"):
+        plt.savefig(f"{out_stem}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+
+
 # ======================================================================================
 # EVALUATION UTILITIES
 # ======================================================================================
