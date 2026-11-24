@@ -114,9 +114,9 @@ omejujejo pogosta izenačenja referenčnih ocen na meji top-5
 in kratki referenčni seznami. Visoke vrednosti z izenačenji
 izhajajo iz ocen, izračunanih po pravilu, in niso dokaz
 uporabnosti.
-Rezultati kažejo, da nizka napaka napovedovanja ocen
-ne zagotavlja razpoložljivosti priporočil pri strogem
-naknadnem kontekstnem filtriranju.
+Pri strogem naknadnem kontekstnem filtriranju ostane brez
+priporočila 10,5~\% uporabnikov; na netrivialnih primerih SVD
+doseže F1-mero $0{,}700$, naključno rangiranje pa $0{,}285$.
 
 
 \kljucnebesede
@@ -160,9 +160,9 @@ the F1-score is limited by frequent ties at the reference top-5
 boundary and by short reference lists. The high tie-aware
 values result from ratings being computed by a rule
 and are not evidence of usefulness.
-The results show that low rating prediction error does not
-ensure recommendation availability under strict contextual
-post-filtering.
+Under strict contextual post-filtering, 10.5\% of users receive
+no recommendation; on non-trivial cases SVD achieves an F1-score
+of 0.700 compared with 0.285 for random ranking.
 
 
 \keywords
@@ -1460,7 +1460,9 @@ Za primerjavo ocenimo še naključno rangiranje skladnih testnih
 kombinacij. Njegova pričakovana F1-mera s kontekstno referenco je
 $0{,}532$ pri vseh 608 uporabnikih z neprazno referenco in $0{,}285$
 pri omenjenih 398 uporabnikih, ob $0{,}804$ oziroma $0{,}700$ za SVD.
-Velik del vrednosti $0{,}804$ je torej dosegljiv že brez modela.
+Pri 210 uporabnikih z največ petimi skladnimi kombinacijami
+doseže F1-mero 1 tudi naključno rangiranje; na ostalih 398
+uporabnikih SVD doseže $0{,}700$, naključno rangiranje pa $0{,}285$.
 
 Visoka F1-mera z izenačenji je posledica tega, da so ocene
 izračunane po pravilu, in ni dokaz uporabnosti priporočil.
@@ -1794,9 +1796,9 @@ pri teh 398, ob $0{,}804$ oziroma $0{,}700$ za SVD.
 Rezultati kažejo razliko med napovedovanjem izračunanih
 ocen in zagotavljanjem priporočil v določenem kontekstu.
 Model lahko doseže nizko napako ocen, strogi filter pa
-kljub temu izloči vse kandidatne kombinacije za
-posameznega uporabnika. Pri razlagi rezultatov je
-pomembno, da so bili konteksti simulirani in da so bile
+kljub temu pri 71 od 679 uporabnikov (10,5~\%) izloči vse
+kandidatne kombinacije. Pri razlagi rezultatov je
+pomembno, da so bili konteksti simulirani in da so bili
 kandidati vse odložene testne kombinacije uporabnika.
 Niti nizka F1-mera z globalno referenco niti visoka
 s kontekstno referenco ne predstavlja neposredne ocene
@@ -1840,8 +1842,8 @@ ne predstavlja uporabniku razumljive razlage priporočil.
 
 Delo pokaže, da je mogoče napovedovanje ocen kombinacij
 in obravnavo konteksta izvajati ločeno. Hkrati pokaže
-omejitev strogega naknadnega filtriranja pri zagotavljanju
-nepraznih seznamov priporočil.
+omejitev strogega naknadnega filtriranja: 10,5~\% uporabnikov
+ostane brez priporočila.
 Smiselno nadaljnje delo je preverjanje priporočil
 z domenskimi strokovnjaki oziroma uporabniki in
 presoja kontekstnih pravil glede na dejanske
