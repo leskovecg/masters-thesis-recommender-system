@@ -471,6 +471,7 @@ def save_df_as_latex_table(
         f"\\caption{{{caption}}}\n"
         f"\\label{{{label}}}\n"
         "\\footnotesize\n"
+        "\\setlength{\\tabcolsep}{4pt}\n"
         f"{latex_tabular}\n"
         "\\end{table}\n"
     )

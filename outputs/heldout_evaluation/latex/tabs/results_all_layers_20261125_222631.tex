@@ -3,6 +3,7 @@
 \caption{Rezultati na testnih parih. Natančnost in priklic sta pri vseh vrsticah enaka F1. F1 z izen. upošteva izenačenja pri meji referenčnega seznama, povp. ref. ocena je povprečna testna ocena vrnjenih priporočil. Kontekstna referenca in M3--M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco.}
 \label{tab:results_all_layers}
 \footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrr}
 \toprule
 Različica & F1 & F1 z izen. & Pokritost & Povp. ref. ocena \\
@@ -10,14 +11,14 @@ Različica & F1 & F1 z izen. & Pokritost & Povp. ref. ocena \\
 Brez konteksta (baseline) & 0,339 & 0,982 & 1,000 & 3,066 \\
 Popularnost (baseline) & 0,151 & 0,531 & 1,000 & 2,882 \\
 Naključno (pričakovana vrednost) & 0,006 & 0,066 & 1,000 & 1,468 \\
-S kontekstom, globalna referenca & 0,018 & 0,120 & 0,895 & 2,045 \\
-Naključno s kontekstom, globalna referenca & 0,001 & 0,018 & 0,895 & 1,425 \\
-S kontekstom, kontekstna referenca & 0,804 & 0,998 & 0,895 & 2,045 \\
-Popularnost s kontekstom, kontekstna referenca & 0,718 & 0,907 & 0,895 & 1,942 \\
-Naključno s kontekstom, kontekstna referenca & 0,532 & 0,653 & 0,895 & 1,425 \\
-M3 (uteženo po uporabnikih) & 0,623 & 0,988 & -- & 2,745 \\
-M4 (uteženo po uporabnikih) & 0,698 & 0,996 & -- & 2,280 \\
-M5 (uteženo po uporabnikih) & 0,682 & 0,997 & -- & 2,371 \\
+S kontekstom, globalna ref. & 0,018 & 0,120 & 0,895 & 2,045 \\
+Naključno s kontekstom, globalna ref. & 0,001 & 0,018 & 0,895 & 1,425 \\
+S kontekstom, kontekstna ref. & 0,804 & 0,998 & 0,895 & 2,045 \\
+Popularnost s kontekstom, kontekstna ref. & 0,718 & 0,907 & 0,895 & 1,942 \\
+Naključno s kontekstom, kontekstna ref. & 0,532 & 0,653 & 0,895 & 1,425 \\
+M3 (uteženo) & 0,623 & 0,988 & -- & 2,745 \\
+M4 (uteženo) & 0,698 & 0,996 & -- & 2,280 \\
+M5 (uteženo) & 0,682 & 0,997 & -- & 2,371 \\
 \bottomrule
 \end{tabular}
 

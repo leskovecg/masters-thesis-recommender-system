@@ -655,7 +655,8 @@ assert (results_df["Precision"] == results_df["Recall"]).all() and (results_df["
     "Precision, recall and F1 differ in a row of the results table: report them separately."
 
 erst.save_df_as_latex_table(
-    df=results_df[["Category", "F1", "F1_ties", "Coverage", "AverageReferenceRating"]].rename(columns={
+    df=results_df[["Category", "F1", "F1_ties", "Coverage", "AverageReferenceRating"]].replace(
+        {"Category": {"referenca": "ref.", "uteženo po uporabnikih": "uteženo"}}, regex=True).rename(columns={
         "Category": "Različica", "F1_ties": "F1 z izen.", "Coverage": "Pokritost", "AverageReferenceRating": "Povp. ref. ocena"}),
     out_dir=tabs_path,
     filename_stem=f"results_all_layers_{timestamp}",
@@ -680,7 +681,9 @@ print("\n========== CONTEXT REFERENCE BY NUMBER OF FEASIBLE TEST ITEMS =========
 print(breakdown_df.to_string())
 
 erst.save_df_as_latex_table(
-    df=breakdown_df[["FeasibleTestItems", "NumUsers", "F1_SVD", "F1_Popularity", "F1_Random"]].fillna("--").rename(columns={
+    df=breakdown_df[["FeasibleTestItems", "NumUsers", "F1_SVD", "F1_Popularity", "F1_Random"]].fillna("--").replace(
+        {"FeasibleTestItems": {"0, skladna kombinacija le v razvojnem delu": "0 (skladna le v razvojnem delu)",
+                               "0, brez skladne kombinacije v celotnem naboru": "0 (brez skladne v celotnem naboru)"}}).rename(columns={
         "FeasibleTestItems": "Skladne testne kombinacije", "NumUsers": "Uporabniki",
         "F1_SVD": "SVD", "F1_Popularity": "Popularnost", "F1_Random": "Naključno"}),
     out_dir=tabs_path,
