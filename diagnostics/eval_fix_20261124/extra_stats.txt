@@ -1,4 +1,4 @@
-Run: 20261124_183727 | users: 679 | test ratings: 763258
+Run: 20261125_222631 | users: 679 | test ratings: 763258
 Recommendable activities: 34 | |C_T|=11 |C_P|=9
 Context mismatches against the export: 0
 
@@ -6,7 +6,3 @@ Context mismatches against the export: 0
 0 items: 71 | 1-5 items: 210 (0.309 of all users) | >5 items: 398
 SVD F1:             all with reference=0.804 | 1-5=1.000 | >5=0.700
 Random expected F1: all with reference=0.532 | 1-5=1.000 | >5=0.285
-
-[Old B, global reference]
-Old run 20261015_150006 F1:         0.0062
-Random order, mean of 5/n_u: 0.0062

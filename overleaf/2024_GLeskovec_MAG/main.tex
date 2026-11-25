@@ -84,43 +84,26 @@ Pri magistrskem delu se zahvaljujem mentorju prof. dr. Andreju Koširju za strok
 %******************************* POVZETEK IN KLJUČNE BESEDE ********************
 \povzetek
 Magistrsko delo obravnava priporočanje kombinacij dnevnih
-aktivnosti starejšim uporabnikom. Sistem uporablja modelno
-osnovano sodelovalno filtriranje z matrično faktorizacijo
-(SVD), implementirano v Pythonu s knjižnico Surprise.
-Časovni in prostorski kontekst upošteva z naknadnim
-filtriranjem kandidatnih kombinacij.
+aktivnosti starejšim uporabnikom. Ocene 6\,579 kombinacij ene do treh
+aktivnosti za 679 uporabnikov so izračunane po pravilu iz vprašalniških
+odgovorov, uporabniških uteži in združljivosti aktivnosti. Napoveduje jih
+matrična faktorizacija (SVD, knjižnica Surprise), časovni in prostorski
+kontekst pa upoštevamo z naknadnim filtriranjem kandidatnih kombinacij.
 
-Algoritme in hiperparametre izberemo na razvojnem delu,
-končno vrednotenje pa izvedemo na odloženem testnem delu.
-Napovedi izračunanih ocen ovrednotimo z RMSE, MAE, MSE
-in FCP, izbor kombinacij pa z natančnostjo, priklicem
-in F1-mero, tudi z upoštevanjem izenačenih ocen.
-Kontekstni filter zahteva skladnost vseh
-aktivnosti z izbranim simuliranim časom in krajem.
-Vrednotenje ne potrjuje neposredne uporabnosti priporočil.
-
-Eksperiment vključuje 679 uporabnikov, 6\,579 kombinacij
-aktivnosti in 3\,053\,029 izračunanih ocen.
-Končni model SVD na odloženem testnem delu doseže
-RMSE $0{,}0819$ in MAE $0{,}0531$.
-Različica brez konteksta vrne 3\,395 priporočil
-in doseže F1-mero $0{,}339$ (z izenačenji $0{,}982$),
-razvrščanje po popularnosti pa $0{,}151$.
-Kontekstna različica vrne 2\,534 priporočil za 608
-uporabnikov; F1-mera znaša $0{,}018$ z globalno in $0{,}804$
-s kontekstno referenco. Utežene F1-mere skupin M3--M5
-znašajo od $0{,}623$ do $0{,}698$. Interpretacijo F1-mere
-omejujejo pogosta izenačenja referenčnih ocen na meji top-5
-in kratki referenčni seznami. Visoke vrednosti z izenačenji
-izhajajo iz ocen, izračunanih po pravilu, in niso dokaz
-uporabnosti.
-Pri strogem naknadnem kontekstnem filtriranju ostane brez
-priporočila 10,5~\% uporabnikov; pri uporabnikih z več kot
-petimi skladnimi kombinacijami SVD doseže F1-mero $0{,}700$, naključno rangiranje pa $0{,}285$.
+Na odloženem testnem delu (25~\% od 3\,053\,029 ocen) SVD doseže
+RMSE $0{,}0819$ in MAE $0{,}0531$. Pri izboru petih kombinacij brez
+konteksta doseže F1-mero $0{,}339$ (z upoštevanjem izenačenih ocen
+$0{,}982$), razvrščanje po popularnosti pa $0{,}151$ ($0{,}531$).
+Pri strogem kontekstnem filtru priporočila prejme 608 uporabnikov
+(89,5~\%). Pri 398 uporabnikih z več kot petimi skladnimi kombinacijami
+znaša F1-mera s kontekstno referenco $0{,}700$, pri popularnosti $0{,}569$,
+pri naključnem rangiranju pa $0{,}285$. Utežene F1-mere skupin kontekstov
+M3--M5 so med $0{,}623$ in $0{,}698$. Rezultati merijo ujemanje
+z izračunanimi ocenami.
 
 
 \kljucnebesede
-priporočilni sistemi, sodelovalno filtriranje, matrična faktorizacija, SVD, kontekstno priporočanje, razložljiva umetna inteligenca, starejši uporabniki
+priporočilni sistemi, sodelovalno filtriranje, matrična faktorizacija, SVD, kontekstno priporočanje, starejši uporabniki
 
 
 \selectlanguage{english}
@@ -129,44 +112,25 @@ priporočilni sistemi, sodelovalno filtriranje, matrična faktorizacija, SVD, ko
 
 \abstract
 This thesis investigates recommendations of daily activity
-combinations for elderly users. The system uses model-based
-collaborative filtering with matrix factorization (SVD),
-implemented in Python using the Surprise library. Temporal
-and spatial context is incorporated through post-filtering
-of candidate activity combinations.
+combinations for elderly users. Ratings of 6,579 combinations of one to
+three activities for 679 users are computed by a rule from questionnaire
+answers, user weights and activity compatibilities. They are predicted by
+matrix factorization (SVD, Surprise library), while temporal and spatial
+context is incorporated through post-filtering of candidate combinations.
 
-Algorithms and hyperparameters are selected using the
-development set, with final evaluation on a held-out
-test set. Predictions of computed ratings are evaluated
-using RMSE, MAE, MSE and FCP; combination selection is
-evaluated using precision, recall and F1-score, including
-a tie-aware variant.
-Contextual filtering requires all activities to match
-the simulated time and location. The evaluation does
-not establish practical usefulness for users.
-
-The experiment includes 679 users, 6,579 activity combinations
-and 3,053,029 computed ratings.
-The final SVD model achieves an RMSE of 0.0819 and
-an MAE of 0.0531 on the held-out test set.
-The version without context returns 3,395 recommendations
-and achieves an F1-score of 0.339 (0.982 with ties), compared
-with 0.151 for a popularity baseline. Contextual filtering
-returns 2,534 recommendations for 608 users; its F1-score is
-0.018 with the global reference and 0.804 with
-a context-filtered reference. User-weighted F1-scores for the
-M3--M5 groupings range from 0.623 to 0.698. Interpretation of
-the F1-score is limited by frequent ties at the reference top-5
-boundary and by short reference lists. The high tie-aware
-values result from ratings being computed by a rule
-and are not evidence of usefulness.
-Under strict contextual post-filtering, 10.5\% of users receive
-no recommendation; for users with more than five feasible
-combinations SVD achieves an F1-score of 0.700 compared with 0.285 for random ranking.
+On a held-out test set (25\% of 3,053,029 ratings) SVD achieves an RMSE of
+0.0819 and an MAE of 0.0531. When selecting five combinations without
+context it achieves an F1-score of 0.339 (0.982 with ties), compared with
+0.151 (0.531) for popularity ranking. Under the strict context filter, 608
+users (89.5\%) receive recommendations. For the 398 users with more than
+five feasible combinations, the F1-score with the context-filtered reference
+is 0.700, compared with 0.569 for popularity and 0.285 for random ranking.
+User-weighted F1-scores of the context groupings M3--M5 range from 0.623 to
+0.698. The results measure agreement with the computed ratings.
 
 
 \keywords
-recommender systems, collaborative filtering, matrix factorization, SVD, context-aware recommendation, explainable AI, elderly users
+recommender systems, collaborative filtering, matrix factorization, SVD, context-aware recommendation, elderly users
 
 
 \selectlanguage{slovene}
@@ -200,17 +164,11 @@ recommender systems, collaborative filtering, matrix factorization, SVD, context
 
 \seznamkratic
 \begin{itemize}[leftmargin=*,itemsep=2pt]
-  \item[RS] priporočilni sistem (Recommender System)
-  \item[CF] sodelovalno filtriranje (Collaborative Filtering)
-  \item[SVD] singularna dekompozicija (Singular Value Decomposition; v kontekstu RS: matrična faktorizacija)
-  \item[MF] matrična faktorizacija (Matrix Factorization)
-  \item[XAI] razložljiva umetna inteligenca (Explainable AI)
-  \item[XRS] razložljivi priporočilni sistemi (Explainable Recommender Systems)
+  \item[SVD] singularna dekompozicija (Singular Value Decomposition; v priporočilnih sistemih: matrična faktorizacija)
   \item[RMSE] koren srednje kvadratne napake (Root Mean Squared Error)
   \item[MAE] srednja absolutna napaka (Mean Absolute Error)
   \item[MSE] srednja kvadratna napaka (Mean Squared Error)
   \item[FCP] delež skladnih parov (Fraction of Concordant Pairs)
-  \item[NLP] obdelava naravnega jezika (Natural Language Processing)
 \end{itemize}
 
 \mainmatter
@@ -260,8 +218,6 @@ aktivnosti. Ocene temeljijo na uporabniških odgovorih na
 vprašalnike, pripadajočih utežeh in združljivosti aktivnosti.
 Eksperiment preverja napovedovanje zadržanih ocen ter izbor
 kombinacij brez konteksta in z naknadnim filtriranjem.
-Tako dobljeni rezultati ne predstavljajo neposrednega
-vrednotenja zadovoljstva uporabnikov.
 
 Glavni cilji magistrske naloge so:
 \begin{itemize}
@@ -321,7 +277,7 @@ model SVD iz knjižnice Surprise \cite{hug2020surprise}.
 \section{Kontekstno zavedni priporočilni sistemi}
 \label{sec:sota_context}
 
-V realnih okoljih uporabniške preference pogosto niso statične, temveč so odvisne od trenutnega konteksta, kot so čas, lokacija ali uporabnikovo stanje. Kontekstno zavedni priporočilni sistemi razširjajo klasične modele z vključevanjem teh informacij. Kontekst je lahko vključen neposredno v model ali pa uporabljen v fazi generiranja oziroma filtriranja priporočil. Primer neposredne vključitve konteksta v model predstavlja
+V realnih okoljih uporabniške preference pogosto niso statične, temveč so odvisne od trenutnega konteksta, kot so čas, lokacija ali uporabnikovo stanje. Kontekstno zavedni priporočilni sistemi razširjajo klasične modele z vključevanjem teh informacij. Kontekst je lahko vključen neposredno v model ali pa uporabljen v fazi generiranja oziroma filtriranja priporočil. Adomavicius in Tuzhilin \cite{adomavicius2011context} ločita predfiltriranje podatkov, naknadno filtriranje priporočil in neposredno modeliranje konteksta; v tej nalogi uporabimo naknadno filtriranje. Primer neposredne vključitve konteksta v model predstavlja
 CA-KGCN, ki kontekst povezuje z informacijami iz grafa
 znanja. Njegovo vrednotenje kaže izboljšanje napovedovanja
 in razvrščanja na uporabljenih podatkovnih naborih,
@@ -602,8 +558,7 @@ V tem poglavju so predstavljeni materiali in metode, uporabljeni pri razvoju in 
 Podatkovni nabor povezuje uporabniške odgovore na vprašalnike,
 pripadajoče uteži ter katalog aktivnosti z opisi konteksta in
 medsebojne združljivosti. Ocene kombinacij aktivnosti so izračunane
-s predpisanim postopkom in niso neposredne ocene zadovoljstva
-uporabnikov.
+s postopkom iz razdelka~\ref{sec:data_rating_gen}.
 
 V polnem eksperimentu je uporabljen predhodno generiran nabor
 \texttt{D\_lst\_full\_20260202\_150312.pkl}, ki vsebuje
@@ -617,6 +572,24 @@ do treh aktivnosti. Razvojni del vsebuje 2\,289\,771 ocen,
 odloženi testni del pa 763\,258 ocen.
 V končni učni množici je zastopanih vseh 679 uporabnikov
 in vseh 6\,579 kombinacij.
+
+Porazdelitev ocen prikazuje Slika~\ref{fig:ratings_hist}. Vsi uporabljeni
+odgovori in kompatibilnosti so dvojiški, zato lahko kombinacije pri
+posameznem uporabniku dosežejo največ šest različnih ocen (en do trije
+pritrdilni odgovori, s kaznijo za nezdružljivost ali brez nje).
+Uporabnik ima v naboru med 342 in 6\,565 kombinacij (mediana 5\,018),
+a le dve do šest različnih ocen (mediana pet). Zato si najvišjo oceno
+pogosto deli več kombinacij, kar je vzrok za izenačenja, obravnavana
+v razdelkih~\ref{sec:relevance_definition}
+in~\ref{sec:results_without_context}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{Slike/ratings_distribution.pdf}
+\caption{Porazdelitev 3\,053\,029 izračunanih ocen (levo) in število
+različnih ocen posameznega uporabnika (desno).}
+\label{fig:ratings_hist}
+\end{figure}
 
 \subsection{Uporabniki}
 \label{sec:data_users}
@@ -660,13 +633,15 @@ $r_T=0{,}3$.
 \label{sec:data_activities}
 
 
-Opisi aktivnosti in njihove kontekstne omejitve se pri trenutnem eksperimentu berejo iz datoteke \texttt{ActivityContextGen\_v12.xlsx}. Vsaka aktivnost je opisana z naslednjimi lastnostmi:
+Opisi aktivnosti in njihove kontekstne omejitve se berejo iz datoteke \texttt{ActivityContextGen\_v12.xlsx}. Za vsako aktivnost postopek uporabi:
 \begin{itemize}
-    \item tip aktivnosti (npr. telesna, kognitivna, socialna),
-    \item pripadajoče uteži oziroma prispevki k posameznim zdravstvenim vidikom,
+    \item vprašanje, s katerim je aktivnost povezana,
     \item časovni kontekst (npr. dopoldne, popoldne, kadarkoli),
-    \item prostorski kontekst (npr. doma, zunaj, kjerkoli).
+    \item prostorski kontekst (npr. doma, v naravi, kjerkoli),
+    \item pripadnost kontekstnim skupinam M3, M4 in M5.
 \end{itemize}
+Katalog vsebuje tudi druge, opisne lastnosti (npr. skupino aktivnosti in
+povezavo z zdravstvenimi vidiki), ki jih postopek ne uporablja.
 
 Aktivnosti so zasnovane tako, da pokrivajo širok spekter vsakodnevnih opravil, primernih za starejšo populacijo, in omogočajo kontekstualno prilagajanje priporočil.
 
@@ -825,7 +800,12 @@ Končna ocena kombinacije aktivnosti je nato definirana kot
 \begin{equation}
 r_{u,\mathbf{s}} = R_u(\mathbf{s}) - \left( 1 - C(\mathbf{s}) \right),
 \end{equation}
-kjer nizka kompatibilnost povzroči večjo penalizacijo skupne ocene.
+kjer je $1 - C(\mathbf{s})$ kazen za nezdružljivost. Kompatibilnosti
+so podane v listu \texttt{ActionCompatibilities} datoteke
+\texttt{ActivityContextGen\_v12.xlsx}. V celotnem katalogu zavzamejo
+vrednosti med 0 in 1, v uporabljenem bloku $34 \times 34$ pa samo 0 ali 1.
+Zato je kazen enaka 0 ali natanko 1, ne glede na število nezdružljivih
+parov v kombinaciji.
 
 V nadaljnjo obdelavo so vključene le aktivnosti oziroma kombinacije, za katere velja
 $r_{u,\mathbf{s}} > r_T$, kjer je uporabljeni prag $r_T=0{,}3$. Preostale
@@ -843,10 +823,8 @@ razvrščanja priporočil.
 
 Generiranje in normalizacija ocen sta izvedena pred razdelitvijo
 podatkov za učenje in vrednotenje. Eksperiment zato preverja
-napovedovanje zadržanih ocen znotraj tako pripravljenega nabora.
-Referenčne ocene izhajajo iz istega postopka generiranja kot učne
-ocene, zato rezultati sami po sebi ne potrjujejo ujemanja z dejanskimi
-preferencami ali zadovoljstvom uporabnikov.
+napovedovanje zadržanih ocen znotraj tako pripravljenega nabora;
+referenčne ocene izhajajo iz istega postopka kot učne.
 
 
 \subsection{Kontekstualne informacije in filtriranje}
@@ -858,7 +836,8 @@ V podatkih razlikujemo dva tipa konteksta:
     \item \textbf{ACT kontekst} (\textit{action context}): kontekst v trenutku, ko je priporočena aktivnost dejansko izvedena.
 \end{itemize}
 
-V obravnavanih eksperimentih uporabljamo oznake ACT, ki opisujejo
+Takšno upoštevanje konteksta je naknadno filtriranje
+\cite{adomavicius2011context}. V obravnavanih eksperimentih uporabljamo oznake ACT, ki opisujejo
 predvidene okoliščine izvedbe posamezne aktivnosti. Te oznake
 predstavljajo lastnosti aktivnosti in niso meritve dejansko izvedenih
 aktivnosti uporabnikov. Uporabljajo se pri neposrednem kontekstnem
@@ -928,7 +907,10 @@ po skupinah.
 
 Za primerjavo uporabimo še razvrščanje po popularnosti, ki
 testne kombinacije uporabnika razvrsti po povprečni oceni
-kombinacije v razvojnem delu in vrne prvih pet.
+kombinacije v razvojnem delu in vrne prvih pet, ter naključno
+rangiranje, za katero izračunamo pričakovano vrednost metrik
+(razdelek~\ref{sec:evaluation_metrics}). Obe primerjavi uporabita iste
+kandidate, isti kontekstni filter in isto referenco kot SVD.
 
 Referenčno množico za posameznega uporabnika sestavlja največ
 pet kombinacij z najvišjimi izračunanimi ocenami v testnem delu
@@ -983,7 +965,8 @@ niso uporabljene.
 \subsection{Model matrične faktorizacije}
 
 Uporabimo model SVD iz knjižnice \textit{Surprise}
-\cite{hug2020surprise}.
+\cite{hug2020surprise}, ki izvaja matrično faktorizacijo z odmiki,
+kot jo opisujejo Koren in sodelavca \cite{koren2009matrix}.
 Model vsebuje matriko uporabniških latentnih faktorjev
 $P \in \mathbb{R}^{|U|\times k}$ in matriko latentnih faktorjev
 kombinacij aktivnosti $Q \in \mathbb{R}^{|I|\times k}$.
@@ -1041,8 +1024,7 @@ razvrščanje kandidatnih kombinacij.
 Referenčne ocene so določene s pravilom, ki združuje
 vprašalniške odgovore, uporabniške uteži in združljivosti
 aktivnosti. Napovedne metrike zato merijo približevanje
-tem ocenam, ne neposrednega ujemanja z dejanskimi
-preferencami ali zadovoljstvom uporabnikov.
+tem ocenam.
 
 Časovni in prostorski kontekst upoštevamo pri naknadnem
 filtriranju priporočil.
@@ -1172,19 +1154,33 @@ zanjo vrne ničelne metrike. Skupni rezultat posamezne
 segmentacije je povprečje rezultatov njenih skupin, uteženo
 s številom uporabnikov z neprazno referenčno množico v skupini.
 
-Ker imajo segmentirane različice in kontekstna referenca drugačne referenčne množice
-in lahko vključujejo drugačne množice uporabnikov,
-njihove višje vrednosti ne pomenijo neposrednega izboljšanja
-glede na različico brez konteksta.
+Segmentirane različice in kontekstna referenca imajo drugačne referenčne množice
+in lahko drugačne množice uporabnikov, zato njihovih vrednosti
+ne primerjamo neposredno z različico brez konteksta.
 
-\paragraph{Povprečna napovedana ocena.}
-Dodatno poročamo povprečje modelskih napovedi za vrnjena
-priporočila. To ni neposredna ocena zadovoljstva uporabnikov.
-Pri segmentiranih različicah skupni prikaz uporablja
-neuteženo povprečje skupinskih povprečij; za skupino brez
-priporočil implementacija uporabi vrednost nič.
+\paragraph{Pričakovana vrednost naključnega rangiranja.}
+Naj ima uporabnik $n_u$ kandidatov. Naključno urejen seznam vrne
+$b_u=\min(5,n_u)$ kombinacij. Če je med kandidati $h_u$ elementov
+referenčne množice $A_u$, je pričakovano število zadetkov
+$b_u h_u/n_u$. F1-mero lahko zapišemo kot
+$2|A_u\cap B_u|/(|A_u|+|B_u|)$, zato je
+\begin{equation}
+\mathrm{E}[F1_u] = \frac{2\,b_u\,h_u}{n_u\,(|A_u|+b_u)} .
+\label{eq:random_f1}
+\end{equation}
+Pri kontekstni referenci so kandidati hkrati osnova za referenco
+in velja $|A_u|=b_u=h_u=\min(5,n_u)$, zato je
+$\mathrm{E}[F1_u]=\min(5,n_u)/n_u$. Pri F1-meri z izenačenji $h_u$
+nadomestimo s številom kandidatov v množici $A'_u$. Vrednosti so
+izračunane analitično, brez naključnega vzorčenja.
 
-Vse metrike smo izračunali z uporabo funkcij iz knjižnice \texttt{Surprise} oziroma z lastnimi Python funkcijami, kjer to ni bilo podprto neposredno.
+\paragraph{Povprečna referenčna ocena.}
+Za vrnjena priporočila poročamo povprečje njihovih izračunanih
+ocen v testnem delu (v tabeli Povp.\ ref.\ ocena). Pri segmentiranih
+različicah je povprečje izračunano čez vsa vrnjena priporočila
+vseh skupin, pri naključnem rangiranju pa je to pričakovana vrednost.
+
+RMSE, MAE, MSE in FCP smo izračunali s funkcijami iz knjižnice \texttt{Surprise}, metrike razvrščanja pa z lastnimi Python funkcijami.
 
 \section{Python knjižnice} \label{sec:python_libraries}
 
@@ -1197,16 +1193,16 @@ Knjižnica \texttt{NumPy} je bila uporabljena za numerične operacije, delo z ve
 Knjižnica \texttt{pandas} je bila uporabljena za obdelavo in analizo podatkov, branje vhodnih podatkov iz datotek formata \texttt{.xlsx} ter za organizacijo eksperimentalnih rezultatov v tabelarični obliki. Poleg tega je bila uporabljena za shranjevanje rezultatov evalvacije v datoteke formata \texttt{.xlsx} in \texttt{.tex}.
 
 \paragraph{Scikit-learn.}
-Knjižnica \texttt{scikit-learn} je bila uporabljena za podporne naloge strojnega učenja, predvsem za razdeljevanje podatkov na učno in testno množico z uporabo metode \texttt{ShuffleSplit} ter za izračun nekaterih evalvacijskih metrik.
+Iz knjižnice \texttt{scikit-learn} sta uporabljena razreda \texttt{ShuffleSplit} (delitev na razvojni in odloženi testni del) in \texttt{MinMaxScaler} (normalizacija odgovorov).
 
 \paragraph{Surprise.}
-Knjižnica \texttt{Surprise} je predstavljala osrednje ogrodje za implementacijo priporočilnega sistema. Uporabljena je bila za implementacijo algoritma SVD, učenje modela, napovedovanje ocen ter izračun standardnih metrik uspešnosti, kot so RMSE, MAE in MSE.
+Knjižnica \texttt{Surprise} je predstavljala osrednje ogrodje za implementacijo priporočilnega sistema. Uporabljena je bila za primerjane algoritme (SVD, KNNBasic, BaselineOnly in NMF), prečno preverjanje in mrežno iskanje, napovedovanje ocen ter izračun metrik RMSE, MAE, MSE in FCP.
 
-\paragraph{SciPy.}
-Knjižnica \texttt{SciPy} je bila uporabljena za dodatne znanstvene in matematične funkcije, ki dopolnjujejo funkcionalnosti knjižnic NumPy in scikit-learn.
+\paragraph{Matplotlib in seaborn.}
+Knjižnici \texttt{matplotlib} in \texttt{seaborn} sta bili uporabljeni za izris grafov.
 
 \paragraph{Druge knjižnice.}
-Poleg navedenih knjižnic so bile uporabljene tudi standardne Python knjižnice, kot so \texttt{pickle} za shranjevanje in nalaganje vmesnih podatkovnih struktur, \texttt{time} za merjenje časovne zahtevnosti algoritmov ter \texttt{pathlib} za delo z datotečnim sistemom in upravljanje poti do datotek.
+Poleg navedenih knjižnic so bile uporabljene tudi standardne Python knjižnice, kot so \texttt{pickle} za shranjevanje in nalaganje vmesnih podatkovnih struktur, \texttt{time} za merjenje časovne zahtevnosti algoritmov ter \texttt{pathlib} za delo z datotečnim sistemom in upravljanje poti do datotek. Knjižnica \texttt{SciPy} je uporabljena samo posredno, kot odvisnost drugih knjižnic.
 
 Uporaba navedenih knjižnic omogoča modularno implementacijo sistema, ponovljivost eksperimentov ter enostavno razširljivost rešitve v prihodnjem delu.
 
@@ -1233,7 +1229,8 @@ Mrežno iskanje na razvojnem delu je izbralo konfiguracijo SVD
 s 150 latentnimi faktorji, 30 epohami, učno hitrostjo
 $0{,}005$ in regularizacijskim parametrom $0{,}02$.
 Najnižja povprečna RMSE v mrežnem iskanju je znašala
-$0{,}08444$.
+$0{,}08444$. Vse štiri izbrane vrednosti so na robu preizkušene
+mreže, zato je optimum lahko zunaj nje.
 
 
 
@@ -1264,7 +1261,7 @@ SVD je uporabljen kot osnovni model za nadaljnjo obravnavo
 naknadnega filtriranja; primerjava algoritmov omogoča presojo
 njegove napovedne uspešnosti glede na druge obravnavane pristope.
 
-\input{Tabele/algorithm_comparison_20261015_150006}
+\input{Tabele/algorithm_comparison_20261015_150006.tex}
 
 Med primerjanimi algoritmi je SVD na razvojnem delu dosegel
 najnižjo povprečno RMSE, in sicer $0{,}1047$.
@@ -1273,10 +1270,6 @@ in BaselineOnly z $0{,}4734$.
 Primerjava se nanaša na konfiguracije algoritmov, uporabljene
 v tem poskusu; mrežno iskanje hiperparametrov je bilo nato
 izvedeno samo za SVD.
-
-
-% (stari stavek)
-Na podlagi teh rezultatov je bil izveden postopek prilagajanja hiperparametrov modela SVD.
 
 \begin{figure}[H]
 \centering
@@ -1290,7 +1283,7 @@ Končni model SVD je bil naučen na 2\,289\,771 razvojnih
 ocenah in ovrednoten na 763\,258 odloženih testnih ocenah.
 Rezultati so prikazani v Tabeli~\ref{tab:heldout_svd}.
 Primerjava algoritmov in izbira hiperparametrov sta iz zagona
-15.~10.~2026, vrednotenje priporočil pa iz zagona 24.~11.~2026,
+15.~10.~2026, vrednotenje priporočil pa iz zagona 25.~11.~2026,
 v katerem je bil isti model ponovno naučen in je dosegel
 enake testne metrike.
 
@@ -1318,37 +1311,25 @@ To ne pomeni nujno enake uspešnosti pri izboru nekaj
 najvišje ocenjenih kombinacij, kar preverimo ločeno
 z metrikami razvrščanja.
 
-\paragraph{Opomba o interpretaciji napak (RMSE/MAE).}
-Referenčne ocene so izračunane iz uporabniških odgovorov,
-uteži in združljivosti aktivnosti ter normalizirane.
-RMSE in MAE zato merita odstopanje modelskih napovedi od
-tako določenih ocen. Iz teh rezultatov ni mogoče neposredno
-sklepati o napovedni uspešnosti pri dejanskih uporabniških
-ocenah ali o uporabnosti priporočil.
-
-
-\paragraph{Dodatna analiza.} 
+\paragraph{Izbor petih kombinacij.}
 Ujemanje izbranih kombinacij z referenčno množico
 ocenimo z natančnostjo, priklicem in F1-mero. Referenčne množice in izbor priporočil
 so določeni v razdelku~\ref{sec:relevance_definition},
 izračun metrik pa v razdelku~\ref{sec:evaluation_metrics}.
-Rezultati različice brez konteksta so prikazani v
-Tabeli~\ref{tab:evaluation_metrics_4_1}.
-
-% Precision / Recall / F1
-\input{Tabele/evaluation_metrics_4_1_20261124_183727.tex}
+Rezultati vseh različic so zbrani v
+Tabeli~\ref{tab:results_all_layers} in na
+Sliki~\ref{fig:rezultati_metrike}. Natančnost in priklic sta pri vseh
+različicah enaka F1-meri, zato navajamo le slednjo. Pri različici brez
+konteksta enakost izhaja iz tega, da imata priporočena in referenčna
+množica za vsakega uporabnika po pet elementov.
 
 Različica brez konteksta je vrnila 3\,395 priporočil,
-to je pet kombinacij za vsakega od 679 uporabnikov.
-Povprečne vrednosti natančnosti, priklica in F1-mere
-so znašale $0{,}339$, povprečna napovedana ocena
-vrnjenih kombinacij pa $3{,}011$.
-
-Enakost natančnosti in priklica izhaja iz tega, da imata
-priporočena in referenčna množica za vsakega uporabnika
-po pet elementov. F1-mera z izenačenji znaša $0{,}982$,
-pokritost pa $1{,}000$. Razvrščanje po popularnosti doseže
-F1-mero $0{,}151$ in F1-mero z izenačenji $0{,}531$.
+to je pet kombinacij za vsakega od 679 uporabnikov (pokritost $1{,}000$).
+F1-mera znaša $0{,}339$, F1-mera z izenačenji $0{,}982$, povprečna
+referenčna ocena vrnjenih kombinacij pa $3{,}066$. Razvrščanje po
+popularnosti doseže F1-mero $0{,}151$, z izenačenji $0{,}531$, pri
+povprečni referenčni oceni $2{,}882$. Pričakovane vrednosti naključnega
+rangiranja so $0{,}006$, $0{,}066$ in $1{,}468$.
 
 Naknadno preverjanje je pokazalo izenačenje referenčnih
 ocen na meji top-5 pri 658 od 679 uporabnikov
@@ -1358,21 +1339,11 @@ imelo 2\,184 (97,3~\%) natanko enako referenčno oceno
 kot peti element te množice. Večina teh nezadetkov
 zato ne pomeni nižje referenčne ocene, temveč izbiro
 druge kombinacije med enako ocenjenimi možnostmi.
-Pri tem deležu gre za priporočila zunaj referenčne
-množice, ne za delež vseh priporočil ali uporabnikov.
-
-Vrednost F1-mere $0{,}339$ zato interpretiramo kot
-ujemanje z referenčno množico ob uporabljenem pravilu
-razreševanja izenačenj. Ne predstavlja neposrednega
-deleža uporabniško ustreznih priporočil. Visoka F1-mera
-z izenačenji je posledica tega, da so referenčne ocene
-izračunane po pravilu, in ni dokaz uporabnosti.
-
-Ponovni izračun metrik iz shranjenih testnih podatkov
-in izvoženih priporočil z obstoječo evalvacijsko
-funkcijo se je ujemal s poročanimi vrednostmi na tri
-decimalna mesta. Preverjanje ni vključevalo ponovnega
-učenja modelov.
+F1-mero $0{,}339$ zato razlagamo skupaj z F1-mero z izenačenji:
+prva meri ujemanje z določeno referenčno množico ob uporabljenem
+pravilu razreševanja izenačenj, druga pa ne razlikuje med enako
+ocenjenimi kombinacijami. Omejitve te razlage so zbrane v
+razdelku~\ref{sec:limitations}.
 
 
 \section{Uspešnost priporočilnega sistema s kontekstom} 
@@ -1399,86 +1370,65 @@ reda ohranjenih kandidatov.
 Uporabimo natančnost, priklic in F1-mero z globalno referenco,
 enako kot pri različici brez konteksta, in s kontekstno referenco.
 Dodatno poročamo F1-mero z izenačenji, pokritost in
-povprečno napovedano oceno vrnjenih priporočil.
+povprečno referenčno oceno vrnjenih priporočil.
 
 \paragraph{Rezultati.}
-Rezultati z globalno referenco so prikazani v Tabeli~\ref{tab:evaluation_metrics_4_2},
-rezultati s kontekstno referenco pa v Tabeli~\ref{tab:table_4_5}.
-
-\input{Tabele/evaluation_metrics_4_2_20261124_183727.tex}
+Rezultati z globalno in s kontekstno referenco so v
+Tabeli~\ref{tab:results_all_layers}, razčlenitev uporabnikov pa v
+Tabeli~\ref{tab:context_breakdown}.
 
 Kontekstna različica je vrnila 2\,534 priporočil za 608
 od 679 uporabnikov (pokritost $0{,}895$).
 Preostalih 71 uporabnikov ni prejelo nobenega priporočila,
 ker nobena od njihovih odloženih testnih kombinacij
-ni prestala kontekstnega filtra.
+ni prestala kontekstnega filtra. Od teh jih ima 23 skladno kombinacijo
+v razvojnem delu, torej jih brez priporočila pusti delitev podatkov;
+pri 48 skladne kombinacije ni v celotnem naboru, torej je razlog
+kontekstni filter.
 
-Z globalno referenco so povprečne vrednosti natančnosti,
-priklica in F1-mere znašale $0{,}018$, F1-mera z izenačenji
-pa $0{,}120$. V to povprečenje so vključeni tudi uporabniki
-brez priporočil, pri katerih so te metrike enake nič.
-S kontekstno referenco so povprečne vrednosti natančnosti,
-priklica in F1-mere znašale $0{,}804$, F1-mera z izenačenji
-pa $0{,}998$; upoštevanih je 608 uporabnikov z neprazno
-referenco. Povprečna napovedana ocena vrnjenih priporočil
-je znašala $2{,}022$.
+Z globalno referenco znaša F1-mera $0{,}018$, z izenačenji
+$0{,}120$. V to povprečje so vključeni tudi uporabniki
+brez priporočil, pri katerih so metrike enake nič.
+Vrednost je nizka, ker vrnjene kombinacije primerjamo s kombinacijami,
+ki niso izbrane glede na kontekst; pričakovana vrednost naključnega
+rangiranja istih skladnih kandidatov je $0{,}001$.
 
-Za boljšo ponazoritev vpliva kontekstualnega filtriranja
-so natančnost, priklic in F1-mera prikazani tudi na
-Sliki~\ref{fig:prf_comparison}.
+S kontekstno referenco znaša F1-mera $0{,}804$, z izenačenji
+$0{,}998$; upoštevanih je 608 uporabnikov z neprazno
+referenco. Povprečna referenčna ocena vrnjenih priporočil
+je $2{,}045$, pri popularnosti $1{,}942$ in pri naključnem
+rangiranju $1{,}425$.
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.75\textwidth]{Slike/prf_comparison_20261124_183727.png}
-\caption{Primerjava natančnosti, priklica in F1-mere
-brez konteksta in s kontekstnim filtriranjem
-(globalna referenca).}
-\label{fig:prf_comparison}
-\end{figure}
+\input{Tabele/context_breakdown_20261125_222631.tex}
 
-\paragraph{Interpretacija.}
-Vsaka aktivnost v kombinaciji mora ustrezati istemu
-simuliranemu času in kraju, iskanje pa zajema vse odložene
-testne kombinacije uporabnika. V prejšnji izvedbi je bilo
-iskanje omejeno na prvih 20 kandidatov, konteksti pa so bili
-vzorčeni iz oznak vseh 106 aktivnosti.
-Takrat dosežena F1-mera $0{,}006$ je bila nizka, vendar višja od naključnega rangiranja pri enakem
-postopku: naključni vrstni red z enakim izborom 20 kandidatov, istim kontekstnim filtrom in največ
-petimi priporočili doseže pričakovano F1-mero približno $0{,}0004$.
-
-Nizka F1-mera z globalno referenco kaže majhno ujemanje
-vrnjenih priporočil s kombinacijami, ki niso izbrane glede
-na kontekst. Vrednosti s kontekstno referenco so višje,
-vendar so delno posledica majhnega števila kandidatov:
-pri 210 od 679 uporabnikov (31~\%) je skladnih največ pet
+\paragraph{Primerjava z naključnim rangiranjem in popularnostjo.}
+Del visoke vrednosti je posledica majhnega števila kandidatov:
+pri 210 od 679 uporabnikov (30,9~\%) je skladnih največ pet
 testnih kombinacij (in vsaj ena), zato so vse hkrati priporočene
-in referenčne, natančnost pa je trivialno enaka 1. Na ostalih
-398 uporabnikih z več kot petimi skladnimi kombinacijami
-znaša F1-mera $0{,}700$.
+in referenčne, F1-mera pa je 1 pri vsakem razvrščanju. Informativna
+je primerjava na 398 uporabnikih z več kot petimi skladnimi
+kombinacijami: naključno rangiranje doseže $0{,}285$, popularnost
+$0{,}569$ in SVD $0{,}700$. Na vseh 608 uporabnikih so vrednosti
+$0{,}532$, $0{,}718$ in $0{,}804$.
 
-Za primerjavo ocenimo še naključno rangiranje skladnih testnih
-kombinacij. Njegova pričakovana F1-mera s kontekstno referenco je
-$0{,}532$ pri vseh 608 uporabnikih z neprazno referenco in $0{,}285$
-pri omenjenih 398 uporabnikih, ob $0{,}804$ oziroma $0{,}700$ za SVD.
-Pri 210 uporabnikih z največ petimi skladnimi kombinacijami
-doseže F1-mero 1 tudi naključno rangiranje.
+\paragraph{Primera priporočil.}
+Pri simuliranem kontekstu \emph{ob kosilu, v naselju} je bila
+enemu od uporabnikov priporočena kombinacija »Obrok naj bo bogat
+z beljakovinami.« in »Danes dnevne opravke v čimvečji meri opravite
+peš.« Prva aktivnost ima oznaki \emph{ob kosilu} in \emph{kjerkoli},
+druga \emph{kadarkoli} in \emph{kjerkoli}, zato obe ustrezata kontekstu.
+Aktivnosti sta združljivi. Napovedana ocena je $3{,}372$,
+referenčna pa $3{,}392$.
 
-Visoka F1-mera z izenačenji je posledica tega, da so ocene
-izračunane po pravilu, in ni dokaz uporabnosti priporočil.
-Ker se kontekstna referenca razlikuje od globalne, višja
-F1-mera tudi ni dokaz, da kontekst izboljša sistem.
-Dejstvo, da 71 uporabnikov ni prejelo priporočila,
-kaže omejitev obravnavanega postopka pri zagotavljanju
-priporočil za simulirane kontekste.
-
-Ugotovitve veljajo za uporabljeno delitev podatkov,
-izbor kontekstov in pravila primerjave oznak.
-Iz njih ne sklepamo, da kontekstno priporočanje
-na splošno zmanjšuje kakovost priporočil.
-
-
-
-
+Primer vsebinsko slabega priporočila je kombinacija, izbrana pri kontekstu
+\emph{ob kosilu, v naravi}: »V obrok vključite zelenjavo.«,
+»Obrok naj bo bogat z beljakovinami.« in še enkrat »Obrok naj bo bogat
+z beljakovinami.« Zadnji dve aktivnosti imata isto besedilo, a
+različna identifikatorja (vprašanji \texttt{Ac\_AB4\_1} in
+\texttt{Ac\_AB4\_8}). Vsi trije pari so v matriki združljivosti
+označeni kot nezdružljivi, kazen pa je kljub temu samo 1. Napovedana
+ocena je $2{,}676$, referenčna $2{,}634$. Pogostost takšnih
+kombinacij obravnava razdelek~\ref{sec:limitations}.
 
 
 \section{Uspešnost priporočilnega sistema z grupiranimi konteksti} 
@@ -1511,12 +1461,12 @@ Na Sliki~\ref{fig:elbow_actC} je prikazana komolčna krivulja, ki prikazuje odvi
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{Slike/ContextGroup_inertia_actC.png}
-    \caption{Komolčna krivulja za presojo števila skupin na podlagi opisov ACT.}
+    \caption{Komolčna krivulja za presojo števila skupin na podlagi opisov ACT. Vir: analiza mentorja prof.~dr.~Andreja Koširja; koda ni del repozitorija.}
     \label{fig:elbow_actC}
 \end{figure}
 
 Inercija se z večanjem števila skupin zmanjšuje.
-Prikazana krivulja ne določa enoznačnega optimalnega
+Krivulja ne določa enoznačnega optimalnega
 števila skupin. V nadaljevanju obravnavamo tri
 razpoložljive razdelitve aktivnosti:
 
@@ -1531,7 +1481,7 @@ Na Sliki~\ref{fig:dendrogram_actC} je prikazan dendrogram hierarhičnega združe
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{Slike/ContextGroup_dendrogram_agg_actC.png}
-    \caption{Dendrogram hierarhičnega razvrščanja opisov ACT v skupine.}
+    \caption{Dendrogram hierarhičnega razvrščanja opisov ACT v skupine. Vir: analiza mentorja prof.~dr.~Andreja Koširja; koda ni del repozitorija.}
     \label{fig:dendrogram_actC}
 \end{figure}
 
@@ -1550,13 +1500,9 @@ pogostosti lahko presega število aktivnosti.
 Vsaka oznaka je pri posamezni aktivnosti šteta
 največ enkrat.
 
-Prikaz povzema sestavo kataloga aktivnosti in
-ne predstavlja primerjave skupin znotraj
-segmentacij M3, M4 in M5.
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]
+    \includegraphics[height=0.78\textheight]
     {Slike/ContextGroup_hists_actC.png}
     \caption{Pogostost časovnih in prostorskih oznak ACT
     v katalogu 106 aktivnosti. Posamezna aktivnost ima
@@ -1566,159 +1512,78 @@ segmentacij M3, M4 in M5.
 \end{figure}
 
 \subsection{Opis segmentov M3, M4 in M5}
+\label{sec:segments}
 
-Opisi skupin temeljijo na časovnih in prostorskih
-oznakah ACT v katalogu aktivnosti. Posamezna aktivnost
-ima lahko več časovnih in prostorskih oznak.
-Opisi zato povzemajo prevladujoče lastnosti skupin
-in ne pomenijo, da imajo vsi njihovi člani enake
-pogoje izvedbe.
+Skupine so določene na celotnem katalogu 106 aktivnosti, v eksperimentu
+pa nastopa 34 aktivnosti vidika \texttt{activity}.
+Tabela~\ref{tab:group_sizes} prikazuje, kako se po skupinah porazdelijo.
+Navedene oznake ACT so najpogostejše pri uporabljenih aktivnostih;
+posamezna aktivnost ima lahko več oznak.
 
-Spodaj navedena števila se nanašajo na vseh 106
-aktivnosti v katalogu. Eksperimentalni nabor ocen
-vključuje le del teh aktivnosti, zato velikost
-kataloške skupine ne določa neposredno števila
-priporočil, ki jih sistem iz te skupine vrne.
+\begin{table}[htbp]
+\centering
+\caption{Porazdelitev aktivnosti po skupinah M3, M4 in M5: celotni katalog
+in 34 uporabljenih aktivnosti.}
+\label{tab:group_sizes}
+\footnotesize
+\begin{tabular}{llrrp{6.4cm}}
+\toprule
+ & Skupina & Katalog & Uporabljene & Najpogostejše oznake uporabljenih \\
+\midrule
+M3 & 0 & 30 & 3 & dopoldne, popoldne; kjerkoli \\
+   & 1 & 63 & 29 & zjutraj, dopoldne, podnevi; kjerkoli, v telovadnici, doma \\
+   & 2 & 13 & 2 & zjutraj, dopoldne, popoldne; v gozdu, v mestu \\
+\midrule
+M4 & 0 & 33 & 8 & zjutraj, dopoldne; doma, v telovadnici \\
+   & 1 & 29 & 2 & dopoldne, popoldne, zvečer; kjerkoli \\
+   & 2 & 23 & 20 & podnevi, ob kosilu; kjerkoli \\
+   & 3 & 21 & 4 & zjutraj, dopoldne, popoldne; različni kraji \\
+\midrule
+M5 & 0 & 12 & 2 & različni časi; v telovadnici \\
+   & 1 & 32 & 9 & zjutraj, dopoldne; doma, v telovadnici \\
+   & 2 & 21 & 19 & podnevi, ob kosilu; kjerkoli \\
+   & 3 & 28 & 2 & dopoldne, popoldne, zvečer; kjerkoli \\
+   & 4 & 13 & 2 & zjutraj, dopoldne, popoldne; v gozdu, v mestu \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsubsection*{Segmentacija M3}
-
-\begin{itemize}
-    \item \textbf{Skupina 0:}
-    Vsebuje 30 aktivnosti. Vse vključujejo oznako
-    \emph{popoldne}, pogosto pa tudi \emph{zvečer}
-    in \emph{dopoldne}. Najpogostejša prostorska
-    oznaka je \emph{doma}, zastopane pa so tudi
-    druge lokacije.
-
-    \item \textbf{Skupina 1:}
-    Vsebuje 63 aktivnosti z raznolikimi časovnimi
-    in prostorskimi opisi. Pogoste časovne oznake
-    so \emph{zjutraj}, \emph{dopoldne} in
-    \emph{popoldne}, med prostorskimi pa
-    \emph{doma}, \emph{kjerkoli},
-    \emph{v telovadnici} in \emph{v parku}.
-    Skupine ne opredeljuje en sam čas ali kraj.
-
-    \item \textbf{Skupina 2:}
-    Vsebuje 13 aktivnosti. Vse imajo časovne
-    oznake \emph{zjutraj}, \emph{dopoldne}
-    in \emph{popoldne} ter prostorski oznaki
-    \emph{v gozdu} in \emph{v mestu}.
-    Večina vključuje tudi oznako
-    \emph{na sprehodu}.
-\end{itemize}
-
-\subsubsection*{Segmentacija M4}
-
-\begin{itemize}
-    \item \textbf{Skupina 0:}
-    Vsebuje 33 aktivnosti, pri katerih sta pogosti
-    časovni oznaki \emph{zjutraj} in
-    \emph{dopoldne}. Prevladuje prostorska
-    oznaka \emph{doma}, pogosto sta navedeni
-    tudi \emph{v telovadnici} in \emph{v parku}.
-
-    \item \textbf{Skupina 1:}
-    Vsebuje 29 aktivnosti. Vse vključujejo
-    oznako \emph{popoldne}, večina pa tudi
-    \emph{zvečer}. Najpogostejša prostorska
-    oznaka je \emph{doma}, sledi
-    \emph{na sprehodu}.
-
-    \item \textbf{Skupina 2:}
-    Vsebuje 23 aktivnosti z raznolikimi
-    časovnimi omejitvami, med katerimi so tudi
-    \emph{podnevi} in oznake posameznih obrokov.
-    Pri 21 aktivnostih je navedeno
-    \emph{kjerkoli}, zato je večina članov
-    prostorsko neomejena po uporabljenih pravilih.
-
-    \item \textbf{Skupina 3:}
-    Vsebuje 21 aktivnosti. Vse vključujejo
-    \emph{zjutraj}, \emph{dopoldne}
-    in \emph{popoldne}. Pogoste prostorske
-    oznake so \emph{v mestu}, \emph{v gozdu}
-    in \emph{na sprehodu}.
-\end{itemize}
-
-\subsubsection*{Segmentacija M5}
-
-\begin{itemize}
-    \item \textbf{Skupina 0:}
-    Vsebuje 12 aktivnosti z raznolikimi
-    prostorskimi opisi. Pogoste časovne oznake
-    so \emph{popoldne}, \emph{zjutraj}
-    in \emph{dopoldne}. Skupine ni mogoče
-    opisati z enim prevladujočim krajem izvedbe.
-
-    \item \textbf{Skupina 1:}
-    Vsebuje 32 aktivnosti. Pogosti sta časovni
-    oznaki \emph{zjutraj} in \emph{dopoldne}.
-    Pri 30 aktivnostih je navedeno
-    \emph{doma}, pogosto pa tudi
-    \emph{v telovadnici} in \emph{v parku}.
-
-    \item \textbf{Skupina 2:}
-    Vsebuje 21 aktivnosti, pri katerih je
-    povsod navedena prostorska oznaka
-    \emph{kjerkoli}. Časovne oznake se
-    razlikujejo, zato prostorska neomejenost
-    ne pomeni tudi časovne neomejenosti.
-
-    \item \textbf{Skupina 3:}
-    Vsebuje 28 aktivnosti. Vse vključujejo
-    oznako \emph{popoldne}, večina pa tudi
-    \emph{zvečer}. Najpogostejša prostorska
-    oznaka je \emph{doma}, sledi
-    \emph{na sprehodu}.
-
-    \item \textbf{Skupina 4:}
-    Vsebuje 13 aktivnosti s časovnimi oznakami
-    \emph{zjutraj}, \emph{dopoldne}
-    in \emph{popoldne}. Vse vključujejo
-    prostorski oznaki \emph{v gozdu}
-    in \emph{v mestu}, večina pa tudi
-    \emph{na sprehodu}.
-\end{itemize}
-
-Segmentacije predstavljajo različne razdelitve
-kontekstnih opisov. Večje število skupin samo
-po sebi ne zagotavlja boljše interpretabilnosti
-ali uspešnosti priporočanja.
+Porazdelitev je zelo neenakomerna. Pri M3 je v skupini 1 kar 29 od
+34 aktivnosti, zato je ta skupina skoraj enaka različici brez konteksta:
+od njenih 3\,395 priporočil jih je 2\,782 (81,9~\%) enakih kot pri različici
+brez konteksta. Pri M4 in M5 največja skupina vsebuje 20 oziroma
+19 aktivnosti, predvsem prehranskih z oznako \emph{kjerkoli}.
 
 \subsection{Vpliv segmentacije na uspešnost priporočilnega sistema}
 
 Za kvantitativno primerjavo vpliva različnih plasti konteksta na uspešnost modela 
-smo rezultate zbrali v Tabeli~\ref{tab:table_4_5}. 
+smo rezultate zbrali v Tabeli~\ref{tab:results_all_layers}. 
 
 Primerjali smo naslednje pristope:
 
 \begin{itemize}
     \item brez konteksta (baseline),
-    \item razvrščanje po popularnosti (baseline),
-    \item s kontekstom (kot v poglavju 4.2), z globalno in s kontekstno referenco,
+    \item razvrščanje po popularnosti in naključno rangiranje (pričakovana vrednost),
+    \item s kontekstom (razdelek~\ref{sec:results_with_context}), z globalno in s kontekstno referenco,
     \item segmentacijo M3 (3 skupine),
     \item segmentacijo M4 (4 skupine),
     \item segmentacijo M5 (5 skupin).
 \end{itemize}
 
-Tabela vključuje metrike Natančnost, Priklic, F1, F1 z izenačenji, pokritost in povprečno oceno priporočil.
-
-\input{Tabele/table_4_5_all_layers_20261124_183727.tex}
+\input{Tabele/results_all_layers_20261125_222631.tex}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{Slike/results_overview_20261124_183727.pdf}
+\includegraphics[width=\textwidth]{Slike/results_overview_20261125_222631.pdf}
 \caption{Strogi F1, F1 z izenačenji in pokritost uporabnikov za vse različice
-priporočanja (zagon 20261124\_183727). Natančnost in priklic sta enaka F1-meri,
-zato nista prikazana posebej. Kontekstna referenca in M3--M5 uporabljajo ožje
-referenčne množice in niso neposredno primerljivi z globalno referenco.}
+priporočanja (zagon 20261125\_222631). Sivi stolpci so primerjalne vrstice
+(popularnost in pričakovana vrednost naključnega rangiranja).}
 \label{fig:rezultati_metrike}
 \end{figure}
 
 Utežena povprečna F1-mera je znašala $0{,}623$
-za M3, $0{,}698$ za M4 in $0{,}683$ za M5,
-F1-mera z izenačenji pa $0{,}988$, $0{,}996$ in $0{,}998$.
+za M3, $0{,}698$ za M4 in $0{,}682$ za M5,
+F1-mera z izenačenji pa $0{,}988$, $0{,}996$ in $0{,}997$.
 Rezultati so prikazani tudi na Sliki~\ref{fig:rezultati_metrike}.
 
 Priporočila so bila med skupinami porazdeljena neenakomerno.
@@ -1733,38 +1598,15 @@ Skoraj enako velja za skupino 3 pri M4 ($0{,}996$).
 Povprečje je zato uteženo po številu uporabnikov, vendar
 majhne skupine vanj še vedno prispevajo. Pri največjih
 skupinah, to je 1 pri M3, 2 pri M4 in 2 pri M5, F1-mera
-znaša $0{,}378$, $0{,}357$ in $0{,}366$. Razlik med M3, M4 in M5
-ne interpretiramo kot dokaz optimalnosti posamezne segmentacije.
-
-\paragraph{Primerljivost metrik.}
-Pri vsaki skupini omejimo priporočila in referenčne elemente
-na kombinacije, katerih vsi člani pripadajo tej skupini.
-Uporabniku ne določimo ene ciljne skupine.
-Rezultate posamezne segmentacije združimo s povprečjem
-skupinskih metrik, uteženim po številu uporabnikov.
-
-Ker se referenčne množice in vključeni uporabniki lahko
-razlikujejo med skupinami in različicami, prikazanih vrednosti
-ne interpretiramo kot neposredne lestvice uspešnosti vseh
-pristopov. Višja vrednost segmentirane metrike sama po sebi
-ne dokazuje izboljšanja glede na različico brez konteksta.
-Visoke F1-mere z izenačenji so posledica po pravilu izračunanih
-ocen in ne dokaz uporabnosti.
-
+znaša $0{,}378$, $0{,}357$ in $0{,}366$.
 
 \subsection{Razprava}
 
 Skupinsko filtriranje omeji izbor na kombinacije aktivnosti
-iz iste skupine. Pri tem se model SVD ne uči ponovno,
-zato segmentacija ne spreminja njegovih napovedi ocen.
-Vpliva na izbor priporočil in na referenčne množice,
-uporabljene pri vrednotenju. Ugotovitve o posameznih
-segmentacijah je zato treba razlagati ob upoštevanju
-razlik v nalogah vrednotenja.
-
-
-
-
+iz iste skupine. Model SVD se pri tem ne uči ponovno,
+zato segmentacija ne spreminja napovedi ocen, temveč samo izbor
+priporočil in referenčne množice. Te se razlikujejo med skupinami
+in različicami, zato vrednosti ne sestavljajo lestvice uspešnosti.
 
 
 \chapter{Zaključki in razprava} \label{chap:discussion_conclusion}
@@ -1792,53 +1634,64 @@ po popularnosti pa $0{,}151$. Sistem je vrnil pet priporočil
 vsakemu uporabniku. Kontekstno filtriranje je število
 priporočil zmanjšalo s 3\,395 na 2\,534, priporočila
 pa je prejelo 608 od 679 uporabnikov.
-Povprečna F1-mera kontekstne različice je znašala
+F1-mera kontekstne različice je znašala
 $0{,}018$ z globalno in $0{,}804$ s kontekstno referenco.
-Prejšnja vrednost $0{,}006$, dobljena pri iskanju med 20 kandidati, je bila nizka, a višja od
-naključnega rangiranja pri enakem postopku (približno $0{,}0004$).
-Pri 31~\% uporabnikov je bilo skladnih največ pet testnih
-kombinacij (in vsaj ena), kar da trivialno natančnost 1;
-na 398 uporabnikih z več kot petimi je bila F1-mera $0{,}700$.
-Pričakovana F1-mera naključnega rangiranja s kontekstno referenco
-je $0{,}532$ pri vseh uporabnikih z neprazno referenco in $0{,}285$
-pri teh 398, ob $0{,}804$ oziroma $0{,}700$ za SVD.
-
-Rezultati kažejo razliko med napovedovanjem izračunanih
-ocen in zagotavljanjem priporočil v določenem kontekstu.
-Model lahko doseže nizko napako ocen, strogi filter pa
-kljub temu pri 71 od 679 uporabnikov (10,5~\%) izloči vse
-kandidatne kombinacije. Pri razlagi rezultatov je
-pomembno, da so bili konteksti simulirani in da so bili
-kandidati vse odložene testne kombinacije uporabnika.
-Niti nizka F1-mera z globalno referenco niti visoka
-s kontekstno referenco ne predstavlja neposredne ocene
-uporabnosti kontekstno skladnih priporočil.
+Na 398 uporabnikih z več kot petimi skladnimi testnimi kombinacijami,
+pri katerih izbor ni trivialen, je SVD s kontekstno referenco dosegel
+$0{,}700$, razvrščanje po popularnosti $0{,}569$, naključno rangiranje
+pa pričakovano $0{,}285$. Model torej tudi znotraj kontekstno skladnih
+kombinacij razvršča bolje od obeh primerjav.
 
 Pri različicah M3, M4 in M5 so bila priporočila
 vrednotena znotraj posameznih skupin.
 Po uporabnikih utežene F1-mere so znašale $0{,}623$, $0{,}698$
-in $0{,}683$. Majhne skupine dajejo trivialno F1-mero 1,
-zato je povprečje uteženo. Zaradi različnih referenčnih množic
-ter neenakomerne porazdelitve priporočil med skupinami
-iz teh vrednosti ne sklepamo o splošni prednosti
-posamezne segmentacije.
+in $0{,}682$. Skupine so zelo neenakomerne: največja pri M3 vsebuje
+29 od 34 aktivnosti in je skoraj enaka različici brez konteksta, v majhnih
+skupinah pa je F1-mera trivialno 1.
 
-Pomembna omejitev metrik P/R/F1 so pogosta izenačenja
-referenčnih ocen na meji top-5. V globalni referenčni
-množici so bila ugotovljena pri 658 od 679 uporabnikov.
-Pri osnovni različici je imelo 97,3~\% priporočil zunaj
-izbrane referenčne množice enako referenčno oceno kot
-njen peti element. Metrike zato odražajo tudi
-leksikografsko razreševanje izenačenj, kar omejuje
-njihovo interpretacijo kot kazalnikov kakovosti
-priporočil. Izenačenja so bila ugotovljena tudi
-v referenčnih množicah posameznih skupin.
-Visoke F1-mere z izenačenji so posledica tega, da so ocene
-izračunane po pravilu, in niso dokaz uporabnosti. Višje F1-mere
-kontekstnih in skupinskih različic niso dokaz, da kontekst
-izboljša sistem.
+Rezultati kažejo razliko med napovedovanjem izračunanih
+ocen in zagotavljanjem priporočil v določenem kontekstu.
+Model doseže nizko napako ocen, strogi filter pa
+kljub temu pri 71 od 679 uporabnikov (10,5~\%) izloči vse
+kandidatne kombinacije; pri 48 od njih skladne kombinacije ni
+niti v celotnem naboru. Napovedovanje ocen
+in obravnavo konteksta je torej mogoče izvajati ločeno, pri čemer
+naknadno filtriranje ne zagotavlja polnih seznamov priporočil.
 
-Pregled izvoženih priporočil pokaže tudi omejitev pravila ocenjevanja. Ker se prispevki aktivnosti
+\section{Omejitve}
+\label{sec:limitations}
+
+\paragraph{Izvor ocen.}
+Učne in referenčne ocene so izračunane z istim pravilom iz vprašalniških
+odgovorov, uteži in združljivosti aktivnosti ter niso ocene zadovoljstva
+uporabnikov. Rezultati zato merijo, kako dobro model povzame uporabljeno
+pravilo, in ne uporabnosti priporočil; ocene bi bilo mogoče izračunati tudi
+neposredno. Model SVD v tem delu predstavlja ogrodje, uporabno tudi pri
+dejanskih uporabniških ocenah. Izpis latentnih faktorjev sam po sebi
+ni uporabniku razumljiva razlaga priporočila.
+
+\paragraph{Izenačenja.}
+Posamezen uporabnik ima največ šest različnih ocen, zato so izenačenja na meji
+top-5 pogosta (658 od 679 uporabnikov). Pri osnovni različici je imelo
+97,3~\% priporočil zunaj referenčne množice enako referenčno oceno kot
+njen peti element. Stroga F1-mera zato odraža tudi leksikografsko razreševanje
+izenačenj, F1-mera z izenačenji pa je visoka, ker model dobro povzame
+pravilo. Izenačenja so prisotna tudi v referenčnih množicah skupin.
+
+\paragraph{Različne referenčne množice.}
+Kontekstna referenca in reference skupin M3--M5 so ožje od globalne in
+vključujejo različne množice uporabnikov, zato višja F1-mera kontekstnih
+in skupinskih različic ne pomeni, da kontekst izboljša sistem. Pri
+210 uporabnikih z največ petimi skladnimi kombinacijami in pri majhnih
+skupinah je F1-mera trivialno 1.
+
+\paragraph{Simuliran kontekst.}
+Konteksti so vzorčeni neodvisno in enakomerno iz oznak aktivnosti in
+ne opisujejo dejanskih okoliščin uporabnikov. Oznake se primerjajo
+dobesedno, pripadnosti skupinam M3--M5 pa so prevzete iz kataloga.
+
+\paragraph{Pravilo ocenjevanja.}
+Ker se prispevki aktivnosti
 seštevajo, kazen za nezdružljivost pa je ne glede na število nezdružljivih parov enaka 1, ima trojka
 z nezdružljivim parom, pri kateri so vsi trije odgovori pritrdilni, pri uteži $s_u^{(g)} > 1$
 višjo oceno kot združljiv par s pritrdilnima odgovoroma ($3s_u^{(g)} - 1 > 2s_u^{(g)}$). Med 3\,395
@@ -1848,30 +1701,20 @@ pa isto aktivnost dvakrat pod različnima identifikatorjema (vprašanji \texttt{
 \texttt{Ac\_AB4\_8}). Del kombinacij vsebuje tudi aktivnosti, pri katerih je uporabnik na pripadajoče
 vprašanje odgovoril z 0 (11,6~\% brez konteksta in 55,1~\% s kontekstom); v kombinacijo pridejo
 zaradi drugih članov. Visoko ujemanje s pravilom zato ne zagotavlja vsebinsko smiselnih kombinacij.
-Ker so ocene določene s pravilom, bi jih bilo mogoče izračunati tudi neposredno. Model SVD v tem delu
-predstavlja ogrodje, uporabno tudi pri dejanskih uporabniških ocenah, rezultati pa merijo, kako dobro
-povzame uporabljeno pravilo.
 
-Glavna omejitev vrednotenja je izvor referenčnih ocen:
-te so izračunane iz vprašalniških odgovorov, uteži
-in združljivosti aktivnosti ter niso neposredne
-ocene zadovoljstva uporabnikov.
-Rezultati zato opisujejo uspešnost na uporabljenem
-naboru izračunanih ocen. Kontekstna skladnost pomeni
-izpolnjevanje določenih pravil, praktična uporabnost
-pa zahteva ločeno preverjanje.
-Prav tako izpis latentnih faktorjev sam po sebi
-ne predstavlja uporabniku razumljive razlage priporočil.
+\paragraph{Izbira hiperparametrov.}
+Vse štiri izbrane vrednosti hiperparametrov so na robu preizkušene mreže
+(150 faktorjev, 30 epoh, učna hitrost $0{,}005$, regularizacija $0{,}02$),
+zato je optimum lahko zunaj nje. Ostali trije algoritmi niso bili
+prilagajani.
 
+\section{Nadaljnje delo}
 
-Delo pokaže, da je mogoče napovedovanje ocen kombinacij
-in obravnavo konteksta izvajati ločeno. Hkrati pokaže
-omejitev strogega naknadnega filtriranja: 10,5~\% uporabnikov
-ostane brez priporočila.
 Smiselno nadaljnje delo je preverjanje priporočil
-z domenskimi strokovnjaki oziroma uporabniki in
+z domenskimi strokovnjaki oziroma uporabniki,
 presoja kontekstnih pravil glede na dejanske
-okoliščine uporabe.
+okoliščine uporabe ter presoja pravila ocenjevanja, predvsem
+obravnave nezdružljivih in podvojenih aktivnosti.
 
 \cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{Literatura} % vnos literature v kazalo
 \bibliographystyle{ieeetrslo}

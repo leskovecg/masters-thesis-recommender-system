@@ -8,6 +8,7 @@ Podukazi (vsak teče v svojem procesu, da se pomnilnik sprosti):
   provenance   SHA-256 datotek, LFS kazalec iz gita, verzije paketov
   regen        ponovno ustvari celoten D_lst
                  --variant current      trenutna v7 + trenutni vhodi (v12)
+                                        (izvede v7 do STEP 11; deluje s kodo do vključno commita 0df8fdd)
                  --variant hist45d9509  koda iz commita 45d9509 (v5, 2025-07-25) + vhodi v09/v10
   digest       iz pickla izdela kompakten povzetek in preveri strukturo
                  --which existing | current | hist45d9509
@@ -98,7 +99,6 @@ def cmd_provenance(_):
         EXISTING_DLST, EXISTING_COPY,
         BASE_DIR / "src/runGeneratorOfD_v7.py",
         BASE_DIR / "src/elderly_recsys_tools.py",
-        BASE_DIR / "src/recommendation_items.py",
         BASE_DIR / "data/context/ActivityContextGen_v12.xlsx",
         BASE_DIR / "data/context/legacy/ActivityContextGen_v09.xlsx",
         BASE_DIR / "data/context/legacy/ActivityContextGen_v10.xlsx",
