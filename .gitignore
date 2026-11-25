@@ -47,6 +47,8 @@ diagnostics/**/work/
 ############################
 /literature/
 /data/D_lst_summary/samples/
+# Thesis PDF: published after the defense
+/overleaf/2024_GLeskovec_MAG/main.pdf
 
 ############################
 # Zip archives duplicating existing folders

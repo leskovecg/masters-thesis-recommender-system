@@ -1,11 +1,8 @@
-# Odvisnosti za src/runGeneratorOfD_v7.py (+ src/elderly_recsys_tools.py, src/recommendation_items.py)
-# Python 3.11 (lokalni .venv: 3.11.9)
+# Odvisnosti za src/runGeneratorOfD_v7.py in src/elderly_recsys_tools.py
+# Python 3.11
 #
-# Seznam je določen iz uvozov v teh treh datotekah. Različice so TRENUTNO
-# NAMEŠČENE v lokalnem .venv (pregled 2026-10-21); ni dokaza, da so bile
-# enake ob končnem zagonu 20261015_150006. Namestitev v novo okolje s to
-# datoteko ni bila preverjena.
-#
+# Namestitev v svežem okolju preverjena 2026-11-24, ponovno 2026-11-25 v svežem klonu;
+# z istimi različicami je narejen zadnji zagon 20261125_222631.
 # Posredne odvisnosti (npr. scipy, joblib, threadpoolctl) se namestijo samodejno.
 
 scikit-surprise==1.1.5   # import surprise
