@@ -1441,10 +1441,10 @@ Vsaka aktivnost v kombinaciji mora ustrezati istemu
 simuliranemu času in kraju, iskanje pa zajema vse odložene
 testne kombinacije uporabnika. V prejšnji izvedbi je bilo
 iskanje omejeno na prvih 20 kandidatov, konteksti pa so bili
-vzorčeni iz oznak vseh 106 aktivnosti. Takrat dosežena
-F1-mera $0{,}006$ je bila na ravni naključnega rangiranja:
-povprečje pričakovanih vrednosti $5/n_u$, kjer je $n_u$ število
-testnih kombinacij uporabnika, prav tako znaša $0{,}006$.
+vzorčeni iz oznak vseh 106 aktivnosti.
+Takrat dosežena F1-mera $0{,}006$ je bila nizka, vendar višja od naključnega rangiranja pri enakem
+postopku: naključni vrstni red z enakim izborom 20 kandidatov, istim kontekstnim filtrom in največ
+petimi priporočili doseže pričakovano F1-mero približno $0{,}0004$.
 
 Nizka F1-mera z globalno referenco kaže majhno ujemanje
 vrnjenih priporočil s kombinacijami, ki niso izbrane glede
@@ -1794,8 +1794,8 @@ priporočil zmanjšalo s 3\,395 na 2\,534, priporočila
 pa je prejelo 608 od 679 uporabnikov.
 Povprečna F1-mera kontekstne različice je znašala
 $0{,}018$ z globalno in $0{,}804$ s kontekstno referenco.
-Prejšnja vrednost $0{,}006$, dobljena pri iskanju med 20
-kandidati, je bila na ravni naključnega rangiranja.
+Prejšnja vrednost $0{,}006$, dobljena pri iskanju med 20 kandidati, je bila nizka, a višja od
+naključnega rangiranja pri enakem postopku (približno $0{,}0004$).
 Pri 31~\% uporabnikov je bilo skladnih največ pet testnih
 kombinacij (in vsaj ena), kar da trivialno natančnost 1;
 na 398 uporabnikih z več kot petimi je bila F1-mera $0{,}700$.
@@ -1837,6 +1837,19 @@ Visoke F1-mere z izenačenji so posledica tega, da so ocene
 izračunane po pravilu, in niso dokaz uporabnosti. Višje F1-mere
 kontekstnih in skupinskih različic niso dokaz, da kontekst
 izboljša sistem.
+
+Pregled izvoženih priporočil pokaže tudi omejitev pravila ocenjevanja. Ker se prispevki aktivnosti
+seštevajo, kazen za nezdružljivost pa je ne glede na število nezdružljivih parov enaka 1, ima trojka
+z nezdružljivim parom pri uteži \texttt{a\_F2} nad 1 vedno višjo oceno kot združljiv par. Med 3\,395
+priporočili brez konteksta je 3\,327 trojk, 1\,773 (52~\%) pa jih vsebuje vsaj en nezdružljiv par.
+Med 2\,534 priporočili s kontekstom vsebuje nezdružljiv par 1\,861 (73~\%) kombinacij, 171 (6,7~\%)
+pa isto aktivnost dvakrat pod različnima identifikatorjema (vprašanji \texttt{Ac\_AB4\_1} in
+\texttt{Ac\_AB4\_8}). Del kombinacij vsebuje tudi aktivnosti, pri katerih je uporabnik na pripadajoče
+vprašanje odgovoril z 0 (11,6~\% brez konteksta in 55,1~\% s kontekstom); v kombinacijo pridejo
+zaradi drugih članov. Visoko ujemanje s pravilom zato ne zagotavlja vsebinsko smiselnih kombinacij.
+Ker so ocene določene s pravilom, bi jih bilo mogoče izračunati tudi neposredno. Model SVD v tem delu
+predstavlja ogrodje, uporabno tudi pri dejanskih uporabniških ocenah, rezultati pa merijo, kako dobro
+povzame uporabljeno pravilo.
 
 Glavna omejitev vrednotenja je izvor referenčnih ocen:
 te so izračunane iz vprašalniških odgovorov, uteži
