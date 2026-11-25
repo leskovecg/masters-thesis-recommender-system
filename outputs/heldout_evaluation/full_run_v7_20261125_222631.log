@@ -1,0 +1,95 @@
+========== STEP 0: IMPORTING LIBRARIES ==========
+========== STEP 1: GLOBAL SETTINGS ==========
+Evaluation: held-out pairs; grouped metrics use group-specific references.
+========== STEP 2: LOADING DATA FROM EXCEL FILES ==========
+========== STEP 3: BUILDING DICTIONARIES & STRUCTURES ==========
+M3 labels: [0, 1, 2]
+M4 labels: [0, 1, 2, 3]
+M5 labels: [0, 1, 2, 3, 4]
+========== STEP 4: SELECTING ACTIONS FOR GIVEN ASPECTS ==========
+Selected actions: 34
+========== STEP 5: GENERATING COMBINATIONS OF ACTIONS ==========
+========== STEP 6: LOAD / BUILD D_lst ==========
+Loaded existing D_lst: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/data/D_lst/D_lst_full_20260202_150312.pkl | rows=3053029
+
+========== D_lst STATISTICS ==========
+Total rows in D_lst: 3053029
+Unique users: 679
+Unique actions: 6579
+Min rating: 0.300
+Max rating: 5.000
+Mean rating: 1.541
+
+ Top 10 contexts (C_T1, C_P1):
+('podnevi', 'kjerkoli'): 871302x
+('ob kosilu', 'kjerkoli'): 563363x
+('zjutraj ', 'v naravi'): 380449x
+('malica dopoldne', 'kjerkoli'): 287883x
+('ob zajtrku', 'kjerkoli'): 272692x
+('dopoldne', 'kjerkoli'): 183726x
+('kadarkoli', 'kjerkoli'): 174265x
+('zjutraj ', 'kjerkoli'): 122859x
+('kadarkoli', 'doma'): 92830x
+('zjutraj ', 'doma'): 31378x
+========== STEP 7: ALGORITHM COMPARISON ==========
+
+========== Preparing DataFrame for Surprise... ==========
+Shape of df_for_surprise: (3053029, 3)
+========== STEP 8: GRID SEARCH & SVD TUNING ==========
+========== STEP 9: CROSS-VALIDATION (TUNED SVD) ==========
+========== STEP 10: FINAL TRAINING & EVALUATION ==========
+
+========== TRAIN(TEST)SET INFO ==========
+Number of users in trainset: 679
+Number of items in trainset: 6579
+Trainset length: 2289771
+Testset length: 763258
+Total unique actions in D_lst: 6579
+
+========== MATRIX FACTORIZATION FACTORS ==========
+Shape of user factors: (679, 150)
+Shape of item factors: (6579, 150)
+
+========== TEST SET EVALUATION ==========
+RMSE: 0.08186158476339936
+MAE:  0.05314729498718314
+MSE:  0.006701319059975218
+FCP:  0.9966479180437348
+========== STEP 11: GENERATE RECOMMENDATIONS (4.1/4.2/4.3) ==========
+Context pool sizes: |C_T|=11 |C_P|=9
+Generating recs (held-out):   0%|          | 0/679 [00:00<?, ?it/s]Generating recs (held-out):   1%|          | 7/679 [00:00<00:10, 65.28it/s]Generating recs (held-out):   3%|▎         | 18/679 [00:00<00:07, 87.15it/s]Generating recs (held-out):   4%|▍         | 27/679 [00:00<00:08, 75.65it/s]Generating recs (held-out):   5%|▌         | 35/679 [00:00<00:08, 76.29it/s]Generating recs (held-out):   6%|▋         | 43/679 [00:00<00:08, 76.69it/s]Generating recs (held-out):   8%|▊         | 51/679 [00:00<00:08, 73.34it/s]Generating recs (held-out):   9%|▊         | 59/679 [00:00<00:08, 71.45it/s]Generating recs (held-out):  10%|█         | 68/679 [00:00<00:08, 74.99it/s]Generating recs (held-out):  11%|█         | 76/679 [00:01<00:08, 71.43it/s]Generating recs (held-out):  13%|█▎        | 85/679 [00:01<00:07, 75.42it/s]Generating recs (held-out):  14%|█▍        | 94/679 [00:01<00:07, 79.20it/s]Generating recs (held-out):  15%|█▌        | 102/679 [00:01<00:07, 75.39it/s]Generating recs (held-out):  16%|█▌        | 110/679 [00:01<00:08, 64.18it/s]Generating recs (held-out):  17%|█▋        | 117/679 [00:01<00:08, 63.05it/s]Generating recs (held-out):  18%|█▊        | 125/679 [00:01<00:08, 65.67it/s]Generating recs (held-out):  20%|█▉        | 133/679 [00:01<00:07, 69.24it/s]Generating recs (held-out):  21%|██        | 142/679 [00:01<00:07, 72.43it/s]Generating recs (held-out):  22%|██▏       | 151/679 [00:02<00:07, 74.83it/s]Generating recs (held-out):  24%|██▎       | 161/679 [00:02<00:06, 80.53it/s]Generating recs (held-out):  25%|██▌       | 170/679 [00:02<00:06, 77.87it/s]Generating recs (held-out):  26%|██▌       | 178/679 [00:02<00:07, 71.49it/s]Generating recs (held-out):  27%|██▋       | 186/679 [00:02<00:07, 67.97it/s]Generating recs (held-out):  28%|██▊       | 193/679 [00:02<00:07, 65.64it/s]Generating recs (held-out):  30%|██▉       | 202/679 [00:02<00:06, 69.54it/s]Generating recs (held-out):  31%|███       | 210/679 [00:02<00:06, 67.14it/s]Generating recs (held-out):  32%|███▏      | 218/679 [00:03<00:06, 68.90it/s]Generating recs (held-out):  33%|███▎      | 225/679 [00:03<00:06, 68.70it/s]Generating recs (held-out):  34%|███▍      | 233/679 [00:03<00:06, 70.00it/s]Generating recs (held-out):  35%|███▌      | 241/679 [00:03<00:06, 71.63it/s]Generating recs (held-out):  37%|███▋      | 249/679 [00:03<00:06, 67.56it/s]Generating recs (held-out):  38%|███▊      | 256/679 [00:03<00:06, 67.76it/s]Generating recs (held-out):  39%|███▊      | 263/679 [00:03<00:06, 67.13it/s]Generating recs (held-out):  40%|███▉      | 270/679 [00:03<00:06, 67.79it/s]Generating recs (held-out):  41%|████      | 279/679 [00:03<00:05, 72.52it/s]Generating recs (held-out):  42%|████▏     | 288/679 [00:04<00:05, 76.40it/s]Generating recs (held-out):  44%|████▍     | 298/679 [00:04<00:04, 81.78it/s]Generating recs (held-out):  45%|████▌     | 307/679 [00:04<00:04, 75.75it/s]Generating recs (held-out):  46%|████▋     | 315/679 [00:04<00:04, 75.02it/s]Generating recs (held-out):  48%|████▊     | 323/679 [00:04<00:04, 76.29it/s]Generating recs (held-out):  49%|████▊     | 331/679 [00:04<00:04, 72.58it/s]Generating recs (held-out):  50%|████▉     | 339/679 [00:04<00:04, 73.61it/s]Generating recs (held-out):  51%|█████▏    | 348/679 [00:04<00:04, 76.47it/s]Generating recs (held-out):  52%|█████▏    | 356/679 [00:04<00:04, 74.86it/s]Generating recs (held-out):  54%|█████▍    | 368/679 [00:05<00:03, 84.63it/s]Generating recs (held-out):  56%|█████▌    | 377/679 [00:05<00:03, 77.14it/s]Generating recs (held-out):  57%|█████▋    | 385/679 [00:05<00:03, 76.63it/s]Generating recs (held-out):  58%|█████▊    | 394/679 [00:05<00:03, 79.04it/s]Generating recs (held-out):  59%|█████▉    | 403/679 [00:05<00:03, 80.90it/s]Generating recs (held-out):  61%|██████    | 412/679 [00:05<00:03, 76.13it/s]Generating recs (held-out):  62%|██████▏   | 420/679 [00:05<00:03, 76.58it/s]Generating recs (held-out):  63%|██████▎   | 429/679 [00:05<00:03, 78.27it/s]Generating recs (held-out):  65%|██████▍   | 438/679 [00:05<00:02, 80.39it/s]Generating recs (held-out):  66%|██████▌   | 447/679 [00:06<00:03, 71.10it/s]Generating recs (held-out):  67%|██████▋   | 455/679 [00:06<00:03, 70.64it/s]Generating recs (held-out):  68%|██████▊   | 463/679 [00:06<00:03, 71.17it/s]Generating recs (held-out):  69%|██████▉   | 471/679 [00:06<00:02, 73.04it/s]Generating recs (held-out):  71%|███████   | 479/679 [00:06<00:02, 73.13it/s]Generating recs (held-out):  72%|███████▏  | 487/679 [00:06<00:02, 74.47it/s]Generating recs (held-out):  73%|███████▎  | 495/679 [00:06<00:02, 73.76it/s]Generating recs (held-out):  74%|███████▍  | 504/679 [00:06<00:02, 75.69it/s]Generating recs (held-out):  76%|███████▌  | 514/679 [00:06<00:02, 80.65it/s]Generating recs (held-out):  77%|███████▋  | 523/679 [00:07<00:02, 75.48it/s]Generating recs (held-out):  78%|███████▊  | 532/679 [00:07<00:01, 78.99it/s]Generating recs (held-out):  80%|███████▉  | 542/679 [00:07<00:01, 81.52it/s]Generating recs (held-out):  81%|████████  | 551/679 [00:07<00:01, 78.92it/s]Generating recs (held-out):  82%|████████▏ | 559/679 [00:07<00:01, 73.78it/s]Generating recs (held-out):  84%|████████▎ | 568/679 [00:07<00:01, 76.94it/s]Generating recs (held-out):  85%|████████▍ | 576/679 [00:07<00:01, 75.79it/s]Generating recs (held-out):  86%|████████▌ | 584/679 [00:07<00:01, 75.77it/s]Generating recs (held-out):  87%|████████▋ | 592/679 [00:07<00:01, 76.64it/s]Generating recs (held-out):  89%|████████▊ | 601/679 [00:08<00:00, 80.28it/s]Generating recs (held-out):  90%|████████▉ | 610/679 [00:08<00:00, 79.26it/s]Generating recs (held-out):  91%|█████████ | 618/679 [00:08<00:00, 75.70it/s]Generating recs (held-out):  92%|█████████▏| 626/679 [00:08<00:00, 73.85it/s]Generating recs (held-out):  93%|█████████▎| 634/679 [00:08<00:00, 71.96it/s]Generating recs (held-out):  95%|█████████▍| 642/679 [00:08<00:00, 72.82it/s]Generating recs (held-out):  96%|█████████▌| 650/679 [00:08<00:00, 71.77it/s]Generating recs (held-out):  97%|█████████▋| 658/679 [00:08<00:00, 72.99it/s]Generating recs (held-out):  98%|█████████▊| 666/679 [00:09<00:00, 69.02it/s]Generating recs (held-out): 100%|█████████▉| 677/679 [00:09<00:00, 79.59it/s]Generating recs (held-out): 100%|██████████| 679/679 [00:09<00:00, 74.23it/s]
+Saved 14 recommendation exports to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations
+STEP 11 done. Containers ready for STEP 12 evaluation:
+recs_41: 3395 | recs_42: 2534
+M3 groups: [583, 3395, 78]
+M4 groups: [3157, 291, 3234, 513]
+M5 groups: [71, 3172, 3204, 291, 78]
+========== STEP 12: EVALUATE (4.1/4.2/4.3) ==========
+D_triplets (complete items) size: 763258
+Eval params: top_n_groundtruth=5 | k_eval=5
+
+========== RESULTS (ALL LAYERS) ==========
+                                          Category  Precision  Recall     F1  F1_ties Coverage AverageScore  AverageReferenceRating
+0                        Brez konteksta (baseline)      0.339   0.339  0.339    0.982      1.0        3.011                   3.066
+1                           Popularnost (baseline)      0.151   0.151  0.151    0.531      1.0        3.054                   2.882
+2                 Naključno (pričakovana vrednost)      0.006   0.006  0.006    0.066      1.0           --                   1.468
+3                 S kontekstom, globalna referenca      0.018   0.018  0.018    0.120    0.895        2.022                   2.045
+4       Naključno s kontekstom, globalna referenca      0.001   0.001  0.001    0.018    0.895           --                   1.425
+5               S kontekstom, kontekstna referenca      0.804   0.804  0.804    0.998    0.895        2.022                   2.045
+6   Popularnost s kontekstom, kontekstna referenca      0.718   0.718  0.718    0.907    0.895        1.989                   1.942
+7     Naključno s kontekstom, kontekstna referenca      0.532   0.532  0.532    0.653    0.895           --                   1.425
+8                      M3 (uteženo po uporabnikih)      0.623   0.623  0.623    0.988       --        1.929                   2.745
+9                      M4 (uteženo po uporabnikih)      0.698   0.698  0.698    0.996       --        1.844                   2.280
+10                     M5 (uteženo po uporabnikih)      0.682   0.682  0.682    0.997       --        1.893                   2.371
+Opomba: kontekstna referenca in M3/M4/M5 uporabljajo druge referenčne množice (M3/M4/M5 uteženo po uporabnikih); višja metrika sama ne dokazuje izboljšanja.
+Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/results_all_layers_20261125_222631.xlsx
+
+========== CONTEXT REFERENCE BY NUMBER OF FEASIBLE TEST ITEMS ==========
+                               FeasibleTestItems  NumUsers  F1_SVD  F1_Popularity  F1_Random  F1_ties_SVD  F1_ties_Popularity  F1_ties_Random
+0     0, skladna kombinacija le v razvojnem delu        23     NaN            NaN        NaN          NaN                 NaN             NaN
+1  0, brez skladne kombinacije v celotnem naboru        48     NaN            NaN        NaN          NaN                 NaN             NaN
+2                                            1–5       210   1.000          1.000      1.000        1.000               1.000           1.000
+3                                      več kot 5       398   0.700          0.569      0.285        0.996               0.857           0.470
+4                                  skupaj vsaj 1       608   0.804          0.718      0.532        0.998               0.907           0.653
+Saved LaTeX tables to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/tabs
+Saved results overview figure to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/figs

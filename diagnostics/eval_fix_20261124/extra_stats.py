@@ -1,6 +1,7 @@
 """
-Extra statistics for run 20261124_183727 (numbers quoted in the thesis, not printed by v7).
-Reads D_lst, the context workbook and the exported recommendations; prints aggregates only.
+Independent check of the context-reference statistics that v7 now exports
+(results_all_layers_* and context_breakdown_*). Uses its own F1 code; reads D_lst, the
+context workbook and the exported recommendations; prints aggregates only.
 Run from the project root: python diagnostics/eval_fix_20261124/extra_stats.py
 """
 import json
@@ -18,8 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 import elderly_recsys_tools as erst
 
-RUN = "20261124_183727"
-OLD_RUN = "20261015_150006"
+RUN = "20261125_222631"
 K = 5
 recs_path = ROOT / "outputs" / "heldout_evaluation" / "recommendations"
 
@@ -80,8 +80,3 @@ print("\n[B, context reference] feasible held-out items per user")
 print(f"0 items: {len(none)} | 1-{K} items: {len(small)} ({len(small) / len(users):.3f} of all users) | >{K} items: {len(large)}")
 print(f"SVD F1:             all with reference={np.mean(list(svd.values())):.3f} | 1-{K}={np.mean([svd[u] for u in small]):.3f} | >{K}={np.mean([svd[u] for u in large]):.3f}")
 print(f"Random expected F1: all with reference={np.mean(list(rnd.values())):.3f} | 1-{K}={np.mean([rnd[u] for u in small]):.3f} | >{K}={np.mean([rnd[u] for u in large]):.3f}")
-
-_, recs_old = load_recs(f"recommendations_4_2_with_PQ_{OLD_RUN}.xlsx")
-print("\n[Old B, global reference]")
-print(f"Old run {OLD_RUN} F1:         {np.mean([f1(recs_old[u], top_ref(by_user[u])) for u in users]):.4f}")
-print(f"Random order, mean of {K}/n_u: {np.mean([K / len(by_user[u]) for u in users]):.4f}")

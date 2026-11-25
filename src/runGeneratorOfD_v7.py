@@ -367,7 +367,7 @@ if not SKIP_TUNING:
 
     # Save LaTeX table
     erst.save_df_as_latex_table(
-        df=summary_df,
+        df=summary_df.rename(columns={"algorithm": "Algoritem", "rmse": "RMSE", "mae": "MAE", "mse": "MSE", "fcp": "FCP"}),
         out_dir=tabs_path,
         filename_stem=f"algorithm_comparison_{timestamp}",
         caption=f"Primerjava algoritmov na razvojnem delu podatkov (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test).",
@@ -436,12 +436,12 @@ if not SKIP_TUNING:
 
     # Save LaTeX table
     erst.save_df_as_latex_table(
-        df=cv_results_df,
+        df=cv_results_df.drop(columns="Algorithm").rename(columns={"Metric": "Metrika", "Mean": "Povprečje", "Std": "Standardni odklon"}),
         out_dir=tabs_path,
         filename_stem=f"cv_results_tuned_SVD_{timestamp}",
         caption=f"Razvojni rezultati po izbiri nastavitev (ShuffleSplit, {n_splits} ponovitev, {int(test_size*100)}\\% test) za prilagojeni model SVD.",
         label="tab:cv_results_tuned_svd",
-        float_format="{:.3f}",
+        float_format="{:.4f}",
         index=False
     )
 
@@ -538,14 +538,18 @@ for uID in tqdm(sorted(test_predictions_by_user), desc="Generating recs (held-ou
             recs_layers[layer][g].extend(erst.first_k(ranked, top_k_final_recommendations,
                                                       lambda item: erst.item_in_group(item, g, mapping)))
 
-# Popularity baseline: rank each user's held-out items by the item's mean training rating
+# Popularity baseline: rank each user's held-out items by the item's mean training rating,
+# without context and with the same context filter as 4.2
 item_mean = {erst.normalize_item(trainset.to_raw_iid(i)): float(np.mean([r for _, r in trainset.ir[i]]))
              for i in trainset.all_items()}
 recs_pop = []
+recs_pop_42 = []
 for uID in sorted(test_predictions_by_user):
     ranked_pop = sorted(((uID, item, item_mean.get(item, 0.0)) for _, item, _ in test_predictions_by_user[uID]),
                         key=lambda rec: (-rec[2], rec[1]))
     recs_pop.extend(ranked_pop[:top_k_final_recommendations])
+    recs_pop_42.extend(erst.first_k(ranked_pop, top_k_final_recommendations,
+                                    lambda item: erst.item_context_feasible(item, context_42_by_user[uID], actID_context_dc)))
 
 # ========== SAVE EXPORTS ==========
 def export_rows(recs, contexts=None, with_factors=False):
@@ -594,21 +598,37 @@ print(f"D_triplets (complete items) size: {len(D_triplets)}")
 print(f"Eval params: top_n_groundtruth={top_n_groundtruth} | k_eval={top_k_final_recommendations}")
 
 
+test_ratings = {(uid, item): rating for uid, item, rating in D_triplets}
+
+
 def result_row(category, recs, reference):
     """One row of the results table: recommendations evaluated against a reference."""
     m = erst.evaluate_topk(reference, recs, top_k_final_recommendations, top_n_groundtruth)
-    return {"Category": category,
-            "Precision": round(m["P"], 3), "Recall": round(m["R"], 3),
-            "F1": round(m["F1"], 3), "F1_ties": round(m["F1_ties"], 3),
-            "Coverage": round(erst.coverage(recs, n_test_users), 3),
-            "AverageScore": round(erst.average_score(recs), 3)}
+    return {"Category": category, "Precision": m["P"], "Recall": m["R"], "F1": m["F1"], "F1_ties": m["F1_ties"],
+            "Coverage": erst.coverage(recs, n_test_users),
+            "AverageScore": erst.average_score(recs),
+            "AverageReferenceRating": erst.average_reference_rating(recs, test_ratings)}
 
 
+def random_row(category, candidates, reference):
+    """Expected values of a random ranking with the same candidates and reference."""
+    m = erst.expected_random_topk(reference, candidates, top_k_final_recommendations, top_n_groundtruth)
+    return {"Category": category, "Precision": m["P"], "Recall": m["R"], "F1": m["F1"], "F1_ties": m["F1_ties"],
+            "Coverage": m["n_covered"] / n_test_users,
+            "AverageScore": "--",
+            "AverageReferenceRating": m["avg_rating"]}
+
+
+# Comparison rows use the same candidates, filter and reference as the SVD row above them
 result_rows = [
     result_row("Brez konteksta (baseline)", recs_41, D_triplets),
     result_row("Popularnost (baseline)", recs_pop, D_triplets),
+    random_row("Naključno (pričakovana vrednost)", D_triplets, D_triplets),
     result_row("S kontekstom, globalna referenca", recs_42, D_triplets),
+    random_row("Naključno s kontekstom, globalna referenca", D_triplets_42, D_triplets),
     result_row("S kontekstom, kontekstna referenca", recs_42, D_triplets_42),
+    result_row("Popularnost s kontekstom, kontekstna referenca", recs_pop_42, D_triplets_42),
+    random_row("Naključno s kontekstom, kontekstna referenca", D_triplets_42, D_triplets_42),
 ]
 
 # 4.3 Grouped metrics: average across groups, weighted by the number of users
@@ -617,33 +637,64 @@ for layer, mapping in layer_mappings.items():
         D_triplets, recs_layers[layer], mapping,
         top_k_final_recommendations, top_n_groundtruth, n_test_users, layer
     )
-    df_layer.to_excel(recommendations_path / f"evaluation_metrics_{layer}_per_group_{timestamp}.xlsx", index=False)
-    print(f"[{layer} avg] {layer_avg}")
+    erst.round_floats(df_layer).to_excel(recommendations_path / f"evaluation_metrics_{layer}_per_group_{timestamp}.xlsx", index=False)
     result_rows.append({"Category": f"{layer} (uteženo po uporabnikih)", "Coverage": "--", **layer_avg})
 
 # ========== RESULTS TABLE ==========
-table_45 = pd.DataFrame(result_rows)
-out_table = recommendations_path / f"table_4_5_all_layers_{timestamp}.xlsx"
-table_45.to_excel(out_table, index=False)
+results_df = erst.round_floats(pd.DataFrame(result_rows))
+out_table = recommendations_path / f"results_all_layers_{timestamp}.xlsx"
+results_df.to_excel(out_table, index=False)
 
-print("\n========== TABLE 4.5 (ALL LAYERS) ==========")
-print(table_45)
+print("\n========== RESULTS (ALL LAYERS) ==========")
+print(results_df.to_string())
 print("Opomba: kontekstna referenca in M3/M4/M5 uporabljajo druge referenčne množice (M3/M4/M5 uteženo po uporabnikih); višja metrika sama ne dokazuje izboljšanja.")
 print(f"Saved: {out_table}")
 
+# The LaTeX table and the figure show only F1
+assert (results_df["Precision"] == results_df["Recall"]).all() and (results_df["Precision"] == results_df["F1"]).all(), \
+    "Precision, recall and F1 differ in a row of the results table: report them separately."
+
 erst.save_df_as_latex_table(
-    df=table_45,
+    df=results_df[["Category", "F1", "F1_ties", "Coverage", "AverageReferenceRating"]].rename(columns={
+        "Category": "Različica", "F1_ties": "F1 z izen.", "Coverage": "Pokritost", "AverageReferenceRating": "Povp. ref. ocena"}),
     out_dir=tabs_path,
-    filename_stem=f"table_4_5_all_layers_{timestamp}",
-    caption="Rezultati na testnih parih. F1\\_ties upošteva izenačenja pri meji referenčnega seznama. Kontekstna referenca in M3/M4/M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco; M3/M4/M5 so uteženi po številu uporabnikov.",
-    label="tab:table_4_5",
+    filename_stem=f"results_all_layers_{timestamp}",
+    caption="Rezultati na testnih parih. Natančnost in priklic sta pri vseh vrsticah enaka F1. "
+            "F1 z izen. upošteva izenačenja pri meji referenčnega seznama, povp. ref. ocena je povprečna testna ocena vrnjenih priporočil. "
+            "Kontekstna referenca in M3--M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco.",
+    label="tab:results_all_layers",
     float_format="{:.3f}",
     index=False
 )
-print(f"Saved LaTeX table to: {tabs_path}")
+
+# ========== CONTEXT REFERENCE: USERS BY NUMBER OF FEASIBLE TEST ITEMS ==========
+users_feasible_anywhere = {row[0] for row in D_lst if row[0] in context_42_by_user
+                           and erst.item_context_feasible(row[1], context_42_by_user[row[0]], actID_context_dc)}
+breakdown_df = erst.round_floats(erst.context_breakdown(
+    D_triplets_42, {"SVD": recs_42, "Popularity": recs_pop_42},
+    set(test_predictions_by_user), users_feasible_anywhere,
+    top_k_final_recommendations, top_n_groundtruth
+))
+breakdown_df.to_excel(recommendations_path / f"context_breakdown_{timestamp}.xlsx", index=False)
+print("\n========== CONTEXT REFERENCE BY NUMBER OF FEASIBLE TEST ITEMS ==========")
+print(breakdown_df.to_string())
+
+erst.save_df_as_latex_table(
+    df=breakdown_df[["FeasibleTestItems", "NumUsers", "F1_SVD", "F1_Popularity", "F1_Random"]].fillna("--").rename(columns={
+        "FeasibleTestItems": "Skladne testne kombinacije", "NumUsers": "Uporabniki",
+        "F1_SVD": "SVD", "F1_Popularity": "Popularnost", "F1_Random": "Naključno"}),
+    out_dir=tabs_path,
+    filename_stem=f"context_breakdown_{timestamp}",
+    caption="F1 s kontekstno referenco glede na število skladnih testnih kombinacij uporabnika. "
+            "Naključno je pričakovana vrednost naključnega rangiranja skladnih kombinacij.",
+    label="tab:context_breakdown",
+    float_format="{:.3f}",
+    index=False
+)
+print(f"Saved LaTeX tables to: {tabs_path}")
 
 # Overview figure of the results table (strict F1, tie-aware F1, coverage)
-erst.plot_results_overview(table_45, figs_path / f"results_overview_{timestamp}")
+erst.plot_results_overview(results_df, figs_path / f"results_overview_{timestamp}")
 print(f"Saved results overview figure to: {figs_path}")
 
 # %%

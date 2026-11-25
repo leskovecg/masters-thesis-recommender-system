@@ -1,4 +1,5 @@
 """Unit tests for elderly_recsys_tools (synthetic data only, no D_lst)."""
+import itertools
 import json
 import sys
 import unittest
@@ -148,7 +149,66 @@ class EvaluateGroupsTests(unittest.TestCase):
         self.assertEqual(list(df["NumUsers"]), [3, 1])
         self.assertEqual(list(df["F1"]), [0.0, 1.0])
         self.assertEqual(avg["F1"], 0.25)
-        self.assertEqual(list(df["Coverage"]), [1.0, 0.333])
+        self.assertEqual(list(df["Coverage"]), [1.0, 1 / 3])
+
+    def test_average_uses_unrounded_group_metrics(self):
+        # Group 0: F1 = 1/3 (three users); group 1: F1 = 0 (one user)
+        groups = {"A": 0, "B": 0, "C": 1, "D": 1}
+        D = [(u, (a,), r) for u in (1, 2, 3) for a, r in (("A", 5.0), ("B", 1.0))] + [(1, ("C",), 2.0), (1, ("D",), 1.0)]
+        recs = {0: [(1, ("A",), 0.9), (2, ("B",), 0.9), (3, ("B",), 0.9)], 1: [(1, ("D",), 0.5)]}
+        df, avg = erst.evaluate_groups(D, recs, groups, k=1, top_n=1, n_test_users=3, layer_name="M")
+        self.assertEqual(avg["F1"], 0.25)
+        # Mean over all returned recommendations: (5 + 1 + 1 + 1) / 4
+        self.assertEqual(avg["AverageReferenceRating"], 2.0)
+
+
+class ExpectedRandomTests(unittest.TestCase):
+    D = [(1, (a,), r) for a, r in zip("ABCD", (4.0, 3.0, 2.0, 1.0))]
+
+    def simulate(self, reference, candidates, k, top_n):
+        """Exact expectation over all orders of the candidates of a single user."""
+        runs = [erst.evaluate_topk(reference, [(1, item, -i) for i, (_, item, _) in enumerate(order)], k, top_n)
+                for order in itertools.permutations(candidates)]
+        return {m: sum(run[m] for run in runs) / len(runs) for m in ("P", "R", "F1", "F1_ties")}
+
+    def check(self, reference, candidates, k, top_n):
+        expected = erst.expected_random_topk(reference, candidates, k, top_n)
+        for m, value in self.simulate(reference, candidates, k, top_n).items():
+            self.assertAlmostEqual(expected[m], value, places=12, msg=m)
+        return expected
+
+    def test_candidates_equal_to_reference_pool(self):
+        # E[F1] = m / n with m = 2, n = 4
+        self.assertEqual(self.check(self.D, self.D, 2, 2)["F1"], 0.5)
+
+    def test_candidates_are_a_subset_of_the_reference_pool(self):
+        self.check(self.D, self.D[1:], 2, 2)
+        self.check(self.D, self.D[:1], 2, 2)  # fewer candidates than k
+        tied = [(1, (a,), r) for a, r in zip("ABCD", (4.0, 3.0, 3.0, 1.0))]
+        self.check(tied, tied[1:], 2, 2)
+
+    def test_short_list_returns_everything(self):
+        self.assertEqual(self.check(self.D, self.D, 5, 5)["F1"], 1.0)
+
+    def test_user_without_candidates_counts_as_zero(self):
+        m = erst.expected_random_topk(self.D + [(2, ("A",), 1.0)], self.D, 4, 4)
+        self.assertEqual((m["F1"], m["n_users"], m["n_covered"]), (0.5, 2, 1))
+
+    def test_expected_rating_is_weighted_by_returned_items(self):
+        D = self.D + [(2, ("A",), 5.0)]
+        # User 1 returns 2 of 4 items (mean 2.5), user 2 returns 1 item (mean 5)
+        self.assertAlmostEqual(erst.expected_random_topk(D, D, 2, 2)["avg_rating"], (2 * 2.5 + 5.0) / 3)
+
+
+class ContextBreakdownTests(unittest.TestCase):
+    def test_users_are_split_by_feasible_items(self):
+        D = [(1, (a,), r) for a, r in zip("ABC", (3.0, 2.0, 1.0))] + [(2, ("A",), 1.0)]
+        recs = [(1, ("C",), 0.9), (2, ("A",), 0.9)]
+        df = erst.context_breakdown(D, {"SVD": recs}, {1, 2, 3, 4}, {1, 2, 3}, k=1, top_n=1)
+        self.assertEqual(list(df["NumUsers"]), [1, 1, 1, 1, 2])
+        self.assertEqual(list(df["F1_SVD"])[2:], [1.0, 0.0, 0.5])
+        self.assertTrue(df["F1_SVD"][:2].isna().all())
+        self.assertAlmostEqual(df["F1_Random"][3], 1 / 3)
 
 
 class ScoreTests(unittest.TestCase):
