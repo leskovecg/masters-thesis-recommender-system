@@ -17,7 +17,6 @@ from sklearn.model_selection import ShuffleSplit
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 import elderly_recsys_tools as erst
-import recommendation_items as items
 
 RUN = "20261124_183727"
 OLD_RUN = "20261015_150006"
@@ -29,7 +28,7 @@ def load_recs(name):
     df = pd.read_excel(recs_path / name)
     recs = defaultdict(set)
     for uid, item in zip(df["uID"], df["ActivitySequence"]):
-        recs[uid].add(items.normalize_item(json.loads(item)))
+        recs[uid].add(erst.normalize_item(json.loads(item)))
     return df, recs
 
 
@@ -47,7 +46,7 @@ with open(ROOT / "data" / "D_lst" / "D_lst_full_20260202_150312.pkl", "rb") as f
 _, heldout_idx = next(ShuffleSplit(n_splits=1, test_size=0.25, random_state=42).split(np.zeros(len(D_lst))))
 by_user = defaultdict(list)
 for i in heldout_idx:
-    by_user[D_lst[i][0]].append((items.normalize_item(D_lst[i][1]), float(D_lst[i][3])))
+    by_user[D_lst[i][0]].append((erst.normalize_item(D_lst[i][1]), float(D_lst[i][3])))
 users = sorted(by_user)
 
 # Same context sampling as v7 (pool from the recommendable activities, seed 42)
@@ -64,7 +63,7 @@ mismatch = sum((context[u]["C_T"], context[u]["C_P"]) != (t, p)
                for u, t, p in zip(df_42["uID"], df_42["C_T"], df_42["C_P"]))
 
 feasible = {u: [(i, r) for i, r in by_user[u]
-                if items.item_context_feasible(i, context[u], actID_context_dc, erst.is_action_context_feasibleQ)]
+                if erst.item_context_feasible(i, context[u], actID_context_dc)]
             for u in users}
 n = {u: len(feasible[u]) for u in users}
 none = [u for u in users if n[u] == 0]

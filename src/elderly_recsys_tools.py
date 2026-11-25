@@ -5,29 +5,29 @@ elderly_recsys_tools.py
 Tools for the "Situation-aware elderly daily activity recommender system" project.
 
 Key features:
-- Build D_lst (sparse user-item matrix with optional context)
-- Context feasibility checks
-- Surprise-based recommendation helper
+- Build D_lst (list of [user, activity combination, context, rating])
+- Activity combinations: identity, context feasibility, group membership
+- Simulated user contexts
 - Cross-validation (ShuffleSplit is default for thesis)
-- Precision/Recall/F1 evaluation (with optional context-aware ground truth)
-- Export tables to LaTeX
-
+- Top-k evaluation (Precision/Recall/F1, strict and tie-aware)
+- Export tables to LaTeX and plot the results overview
 """
 from __future__ import annotations
-from collections import defaultdict
-from typing import Callable, Iterable, Optional
 
-# File Tools for elderly recommender system
-import pandas as pd
-import numpy as np
 import itertools
-from sklearn.preprocessing import MinMaxScaler
-from surprise import SVD, accuracy
-from surprise.model_selection import KFold, ShuffleSplit
+import json
 import random
-import time 
-from tqdm import tqdm
+import time
+from collections import defaultdict
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from surprise import accuracy
+from surprise.model_selection import KFold, ShuffleSplit
+from tqdm import tqdm
 
 
 # ======================================================================================
@@ -83,7 +83,7 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
 
                 if c_r > r_T:
                     if actID_context_dc is not None:
-                        # pridobi kontekst za vsako aktivnost v sekvenci
+                        # context of every activity in the combination
                         context_sequence = tuple([
                             {
                                 'qID': actID_context_dc[act]['qID'],
@@ -116,63 +116,13 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
                     entry[3] = min_target + (max_target - min_target) * (entry[3] - min_r) / (max_r - min_r)
             else:
                 for entry in D_lst:
-                    entry[3] = (min_target + max_target) / 2  # če so vse ocene enake
+                    entry[3] = (min_target + max_target) / 2  # all ratings are equal
 
     return D_lst
 
 # ======================================================================================
 # CONTEXT
 # ======================================================================================
-
-def get_random_context(all_contexts):
-    """
-    Selects a random simplified context from a list of full activity contexts.
-
-    Parameters:
-    - all_contexts (list of dict): A list of context dictionaries, where each dictionary contains
-                                   the full context description of an activity.
-
-    Returns:
-    - c_cntx (dict): A context dictionary with a randomly selected time (C_T) and place (C_P)
-                     from a randomly selected full context. Useful for testing context matching.
-    """
-
-    full_cntx = random.choice(all_contexts)
-    C_T = random.choice(['act_C_T1', 'act_C_T2', 'act_C_T3'])
-    C_P = random.choice(['act_C_P1', 'act_C_P2', 'act_C_P3'])
-
-    c_cntx = {'qID': full_cntx['qID'], 'C_T': full_cntx[C_T], 'C_P': full_cntx[C_P], 'C_A':''}
-    
-    return c_cntx
-
-def get_one_random_context(full_cntx):
-    """
-    Selects a random context (time and place) from a full context definition for a single activity.
-
-    Parameters:
-    - full_cntx (dict): Dictionary containing full context fields for one activity,
-                        including keys like 'qID', 'act_C_T1', 'act_C_T2', 'act_C_T3', 'act_C_P1', 'act_C_P2', 'act_C_P3'.
-
-    Returns:
-    - c_cntx (dict): A simplified context dictionary with one randomly selected time (C_T)
-                     and one place (C_P), and empty action field (C_A), e.g.:
-                     {
-                         'qID': 'AB4_1',
-                         'C_T': 'dopoldne',
-                         'C_P': 'doma',
-                         'C_A': ''
-                     }
-    """
-    if full_cntx is None:
-        full_cntx = {}
-
-    C_T = random.choice(['act_C_T1', 'act_C_T2', 'act_C_T3'])
-    C_P = random.choice(['act_C_P1', 'act_C_P2', 'act_C_P3'])
-
-    c_cntx = {'qID': full_cntx['qID'], 'act_C_T': full_cntx[C_T], 'act_C_P': full_cntx[C_P], 'act_C_A':''}
-    
-    return c_cntx
-
 
 def is_action_context_feasibleQ(
     actID: str,
@@ -222,122 +172,78 @@ def is_action_context_feasibleQ(
     return bool(time_ok and place_ok)
 
 
-def is_action_in_context_group(actID: str, group_id: int, actID_to_group: dict) -> bool:
-    if actID not in actID_to_group:
-        return False
-    return int(actID_to_group[actID]) == int(group_id)
+def build_context_pool(actID_context_dc: dict):
+    """Returns the sorted time and place labels that occur in the given activity contexts."""
+    C_T_pool, C_P_pool = set(), set()
+    for _, f_cntx in actID_context_dc.items():
+        for k in ["act_C_T1", "act_C_T2", "act_C_T3"]:
+            v = f_cntx.get(k, None)
+            if isinstance(v, str) and v.strip():
+                C_T_pool.add(v.strip())
+        for k in ["act_C_P1", "act_C_P2", "act_C_P3"]:
+            v = f_cntx.get(k, None)
+            if isinstance(v, str) and v.strip():
+                C_P_pool.add(v.strip())
+    return sorted(list(C_T_pool)), sorted(list(C_P_pool))
+
+
+def sample_random_context(C_T_pool, C_P_pool):
+    """Draws one simulated context (time, place); uses the global `random` state."""
+    return {
+        "C_T": random.choice(C_T_pool) if C_T_pool else "nd",
+        "C_P": random.choice(C_P_pool) if C_P_pool else "nd",
+    }
 
 
 # ======================================================================================
-# RECOMMENDATIONS
+# ITEMS (activity combinations)
 # ======================================================================================
+# An item is a nonempty tuple of activity IDs. Tuple order is retained, because
+# the Surprise model uses that exact tuple as its key.
 
-def get_recommendations(uID, 
-                        n_recommendations=20, 
-                        D_lst=None, 
-                        trainset=None, 
-                        model=None, 
-                        context=None, 
-                        actID_context_dc=None):
-    """
-    Returns top-N recommended actions for a given user.
-    
-    You can use:
-    - D_lst for precomputed recommendations (triplets: user_id, item_id, score)
-    - model + trainset for matrix factorization-based recommendations
-    - Optionally apply context filtering (if context & actID_context_dc provided)
-
-    Parameters:
-    - uID (int or str): ID of the user
-    - n_recommendations (int): Number of top results to return
-    - D_lst (list of tuples): Optional. Precomputed (uID, item, score) list
-    - trainset (Surprise Trainset): Optional. Surprise trainset object
-    - model (Surprise model): Optional. Trained Surprise model
-    - context (dict): Optional. Context to filter actions (e.g., {'C_T': 'dopoldne'})
-    - actID_context_dc (dict): Optional. Dictionary with context info for each action
-
-    Returns:
-    - List of top-N recommendations: [(uID, item, score), ...]
-    - First returns top-20 candidates, then you can filter afterwards
-    """
-
-    # Method 1: Use precomputed D_lst
-    if D_lst is not None:
-        user_entries = [x for x in D_lst if x[0] == uID]
-        sorted_entries = sorted(user_entries, key=lambda x: x[3], reverse=True)
-        return sorted_entries[:n_recommendations]
-
-    # Method 2: Use trained model for prediction
-    elif model is not None and trainset is not None:
-        all_iids = trainset._raw2inner_id_items.keys()
-        predictions = []
-
-        for raw_iid in all_iids:
-            est = model.predict(uid=uID, iid=raw_iid).est
-            predictions.append((uID, raw_iid, est))
-
-        sorted_predictions = sorted(predictions, key=lambda x: x[2], reverse=True)
-        return sorted_predictions[:n_recommendations]
-
+def normalize_item(item):
+    if isinstance(item, str):
+        item = (item,)
+    elif isinstance(item, (tuple, list)):
+        item = tuple(item)
     else:
-        raise ValueError("Provide either D_lst or both model and trainset.")
+        raise TypeError("Expected an activity ID or a tuple/list of activity IDs")
+    if not item or any(not isinstance(a, str) or not a.strip() for a in item):
+        raise ValueError("An item must contain nonempty string activity IDs")
+    return item
 
-def evaluate_recommender_metrics(D_lst, best_act_trp_lst, top_n_groundtruth=20, k_eval=5):
+
+def serialize_item(item):
+    """Lossless JSON representation for Excel exports (not a model key)."""
+    return json.dumps(normalize_item(item), ensure_ascii=False)
+
+
+def item_context_feasible(item, context, actID_context_dc):
     """
-    Evaluate recommender metrics (Precision, Recall, F1) for action sequences.
-    
-    Parameters:
-    - D_lst: List of [uid, act_seq, context_seq, score] (4 elements per entry)
-    - best_act_trp_lst: List of recommended [uid, act_seq, score]
-    - top_n_groundtruth: Number of top items to consider as ground truth
-    - k_eval: Number of recommendations to evaluate (top-K)
-    
-    Returns:
-    - avg_p, avg_r, avg_f: Average precision, recall, F1 scores
+    Every member must pass the SAME context check.
+
+    This is a shared-context bundle, not a multi-context day schedule.
     """
-    user_action_scores = defaultdict(list)
-    for entry in D_lst:
-        uid, act_seq, context_seq, score = entry[0], entry[1], entry[2], entry[3]
-        user_action_scores[uid].append((tuple(act_seq), score))
+    return all(is_action_context_feasibleQ(a, context, actID_context_dc)
+               for a in normalize_item(item))
 
-    ground_truth_dict = {}
-    for uid, scored_seqs in user_action_scores.items():
-        top_gt = sorted(scored_seqs, key=lambda x: x[1], reverse=True)[:top_n_groundtruth]
-        ground_truth_dict[uid] = set([tuple(a) for a, _ in top_gt])
 
-    recommended_dict = defaultdict(list)
-    for uid, act_seq, score in best_act_trp_lst:
-        recommended_dict[uid].append((tuple(act_seq), score))
+def item_in_group(item, group, mapping):
+    """
+    An item belongs to a group only if every member does.
 
-    precision_list, recall_list, f1_list = [], [], []
+    Each actID must be present in the mapping and its group must equal the
+    requested group. Mixed-group combinations and items with an unmapped
+    actID belong to no group; they are never assigned by first member.
+    The same rule is applied to candidates and to the grouped reference.
+    """
+    return all(a in mapping and int(mapping[a]) == int(group)
+               for a in normalize_item(item))
 
-    for uid, recs in recommended_dict.items():
-        top_k = sorted(recs, key=lambda x: x[1], reverse=True)[:k_eval]
-        predicted = set([act for act, _ in top_k])
-        actual = ground_truth_dict.get(uid, set())
-        if not actual:
-            continue
 
-        tp = len(predicted & actual)
-        fp = len(predicted - actual)
-        fn = len(actual - predicted)
-
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-        f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-
-        precision_list.append(precision)
-        recall_list.append(recall)
-        f1_list.append(f1)
-
-    if precision_list:
-        avg_p = round(sum(precision_list) / len(precision_list), 3)
-        avg_r = round(sum(recall_list) / len(recall_list), 3)
-        avg_f = round(sum(f1_list) / len(f1_list), 3)
-    else:
-        avg_p = avg_r = avg_f = 0.0
-
-    return avg_p, avg_r, avg_f
+def first_k(ranked, k, keep):
+    """First k recommendations (uid, item, score) of a ranked list whose item satisfies keep(item)."""
+    return list(itertools.islice((rec for rec in ranked if keep(rec[1])), k))
 
 
 # ======================================================================================
@@ -411,37 +317,15 @@ def perform_cross_validation(
 
 
 # ======================================================================================
-# SCORES / COMPATIBILITY
+# SCORES
 # ======================================================================================
 
-def get_context(act_C_T1, act_C_T2, act_C_T3):
-    """
-    Constructs a context string from three contextual time values.
 
-    Parameters:
-    - act_C_T1, act_C_T2, act_C_T3 (str or NaN): Contextual descriptors
-
-    Returns:
-    - str: Concatenated context string or 'nd' if none are valid
-    """
-
-    valid_contexts = {'dopoldne', 'popoldne', 'zvečer'}  
-    context = []
-
-    for c in [act_C_T1, act_C_T2, act_C_T3]:
-        if pd.isna(c):
-            continue
-        c = c.lower().strip()
-        if c in valid_contexts:
-            context.append(c)
-    if not context:  
-        return 'nd'
-    return '-'.join(sorted(context))  
-
-# @brief copute single action score = rating compatibility
 def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores_dc, all_answers_df, aspect_groups_lst, meth_code):
     """
-    Computes the relevance scores for each user-action pair.
+    Computes the relevance scores for each user-action pair:
+    S[u, a] = a_F2[u] * answer[u, q(a)], with a_F2 the user's activity score
+    and q(a) the question of action a (0 if either value is not numeric).
 
     Parameters:
     - uIDs (list): User IDs
@@ -470,40 +354,7 @@ def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores_dc, all_answers
                     Sc_df.at[uID, actID] = c_score * c_anws
                 else:
                     Sc_df.at[uID, actID] = 0
-        # Normalisation: to do
     return Sc_df
-
-# @brief: compute dataframe of action pair compatibilities
-def get_actIDPair_compat_df(actID_lst, qID_Group_dc, actID_qID_dc):
-    """
-    Calculates compatibility between pairs of actions based on question group similarity.
-
-    Parameters:
-    - actID_lst (list): Action IDs
-    - qID_Group_dc (dict): Question ID to group mapping
-    - actID_qID_dc (dict): Action ID to question ID mapping
-
-    Returns:
-    - Cmp_df (DataFrame): Compatibility score matrix
-    """
-
-    Cmp_df = pd.DataFrame(index=actID_lst, columns=actID_lst)
-    n = len(actID_lst)
-
-    for act1_i in range(n):
-        for act2_i in range(n):
-            act1, act2 = actID_lst[act1_i], actID_lst[act2_i]
-            qID1, qID2 = actID_qID_dc[act1], actID_qID_dc[act2]
-            group1, group2 = qID_Group_dc[qID1], qID_Group_dc[qID2]
-            Cmp_df.at[act1, act2] = 0
-            if group1 == group2:
-                Cmp_df.at[act1, act2] = 0.1
-            elif group1 != group2:
-                Cmp_df.at[act1, act2] = 0.9
-
-    # Normalisation: to do
-
-    return Cmp_df
 
 
 def get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, compat_df, meth_code):
@@ -523,13 +374,13 @@ def get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, com
     """
 
     if meth_code == 'score':
-    
+
         # Get single actions score sum
         c_score = 0
         for actID in act_seq:
             c_score += actID_score_df.at[uID, actID]*uID_actID_answers_df.at[uID, actID]
 
-        # Get ompatibitliy score
+        # Get compatibility score
         if len(act_seq) >= 2:
             act_pairs = list(itertools.combinations(act_seq, 2))
             curr_compat = 1
@@ -542,10 +393,12 @@ def get_score_estimation(uID, act_seq, uID_actID_answers_df, actID_score_df, com
 
         c_r = c_score - (1 - curr_compat)
 
+    else:
+        raise ValueError(f"Unknown meth_code: {meth_code!r}")
+
     return c_r
 
-# @brief get anwssers by users
-def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
+def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=None):
     """
     Prepares a scaled DataFrame of user responses for selected aspects.
 
@@ -557,6 +410,8 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
     Returns:
     - scl_X_df (DataFrame): Scaled user responses by question
     """
+    aspect_groups_lst = aspect_groups_lst or []
+
     all_qs_lst = []
     for group in aspect_groups_lst:
         all_qs_lst = all_qs_lst + group_qLst[group]
@@ -565,18 +420,11 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=[]):
     X_df.fillna(0, inplace=True)
     all_answers_nums_df = all_answers_df.replace(r' ', np.nan, regex=True).astype(float)
 
-    
-    if aspect_groups_lst != []:
-        for group in aspect_groups_lst:
-            c_X_df = pd.DataFrame(index=all_answers_df.index)
-            for qID in group_qLst[group]:
-                c_X_df[qID] = all_answers_nums_df[qID]
-
-            scaler = MinMaxScaler(feature_range=(0, 1))
-            c_scl_X_np = scaler.fit_transform(c_X_df.to_numpy())
-            c_scl_X_np = pd.DataFrame(data=c_scl_X_np, index=all_answers_df.index, columns=group_qLst[group])
-            
-            X_df = X_df.add(c_X_df, fill_value=0)
+    for group in aspect_groups_lst:
+        c_X_df = pd.DataFrame(index=all_answers_df.index)
+        for qID in group_qLst[group]:
+            c_X_df[qID] = all_answers_nums_df[qID]
+        X_df = X_df.add(c_X_df, fill_value=0)
 
     # Scale all answers to [0, 1] range
     scaler = MinMaxScaler(feature_range=(0, 1))
@@ -631,7 +479,6 @@ def save_df_as_latex_table(
 
 def plot_results_overview(table_45, out_stem):
     """Three panels (strict F1, tie-aware F1, coverage) for all rows of table 4.5."""
-    import matplotlib.pyplot as plt
     rows = list(table_45["Category"])
     panels = [("F1-mera (strogo)", "F1"), ("F1-mera z izenačenji", "F1_ties"), ("Pokritost uporabnikov", "Coverage")]
     y = np.arange(len(rows))[::-1]
@@ -659,9 +506,9 @@ def plot_results_overview(table_45, out_stem):
             ax.axhline(yb, color="#cfd4db", lw=0.8, ls=(0, (3, 3)))
     axes[0].set_yticks(y)
     axes[0].set_yticklabels(rows, fontsize=9.5)
-    plt.tight_layout(w_pad=1.2)
+    fig.tight_layout(w_pad=1.2)
     for ext in ("png", "pdf"):
-        plt.savefig(f"{out_stem}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+        fig.savefig(f"{out_stem}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -669,121 +516,103 @@ def plot_results_overview(table_45, out_stem):
 # EVALUATION UTILITIES
 # ======================================================================================
 
-def normalize_act_id(x):
-    return x[0] if isinstance(x, tuple) else x
-
-def build_D_triplets_from_Dlst(D_lst):
-    """Keep only single-action entries: (uid, (actID,), rating)"""
-    D_triplets = []
-    for uid, act_seq, context_seq, rating in D_lst:
-        if isinstance(act_seq, (list, tuple)) and len(act_seq) == 1:
-            D_triplets.append((uid, tuple(act_seq), float(rating)))
-    return D_triplets
-
-def evaluate_recommender_metrics_filtered_groundtruth(
-    D_triplets,
-    rec_triplets,
-    *,
-    top_n_groundtruth=20,
-    k_eval=5,
-    groundtruth_filter_fn=None,
-    tie_aware=False
-):
+def evaluate_topk(D_triplets, recs, k, top_n, gt_filter=None):
     """
-    Ranking metrics with OPTIONAL filtered ground truth (important for M3/M4/M5).
-    D_triplets: (uid, item, rating)
-    rec_triplets: (uid, item, score)
-    where item is a complete activity tuple of one or more actIDs,
-    e.g. ('A',) or ('A', 'B', 'C'); items are compared as whole tuples.
-    groundtruth_filter_fn: optional predicate on item; only matching items
-    enter the per-user reference.
+    Top-k ranking metrics against the per-user reference (top_n rated test items).
+
+    Parameters:
+    - D_triplets: (uid, item, rating) test triplets; item is a complete activity tuple
+    - recs: (uid, item, score) recommendations; items are compared as whole tuples
+    - k (int): Number of recommendations to evaluate per user
+    - top_n (int): Reference size per user (smaller if the user has fewer items)
+    - gt_filter (callable): Optional predicate on item; only matching items
+      enter the reference
+
+    Every user with a nonempty reference is evaluated, including users without
+    recommendations (P = R = F1 = 0). Users without a reference have undefined
+    recall and are outside the evaluation population.
+
+    F1_ties (tie-aware): every item rated at least as high as the last reference
+    item is relevant; the recall denominator stays the reference size.
+
+    Returns:
+    - dict(P, R, F1, F1_ties, n_users): unrounded means over users
     """
     user_gt = defaultdict(list)
-    for uid, act_seq, rating in D_triplets:
-        if groundtruth_filter_fn is None or groundtruth_filter_fn(act_seq):
-            user_gt[uid].append((act_seq, rating))
+    for uid, item, rating in D_triplets:
+        if gt_filter is None or gt_filter(item):
+            user_gt[uid].append((item, rating))
 
-    gt_dict = {}
-    gt_n = {}
-    for uid, seqs in user_gt.items():
-        top_gt = sorted(seqs, key=lambda x: (-x[1], tuple(x[0])))[:top_n_groundtruth]
-        gt_n[uid] = len(top_gt)
-        if tie_aware:
-            # Ties at the cut-off: every item rated >= the last reference rating is relevant
-            r_cut = top_gt[-1][1]
-            gt_dict[uid] = set(a for a, r in seqs if r >= r_cut)
-        else:
-            gt_dict[uid] = set([a for a, _ in top_gt])
+    user_recs = defaultdict(list)
+    for uid, item, score in recs:
+        user_recs[uid].append((item, float(score)))
 
-    rec_dict = defaultdict(list)
-    for uid, act_seq, score in rec_triplets:
-        rec_dict[uid].append((act_seq, float(score)))
+    def prf(tp, n_predicted, n_reference):
+        p = tp / n_predicted if n_predicted else 0.0
+        r = tp / n_reference
+        f = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+        return p, r, f
 
-    precision_list, recall_list, f1_list = [], [], []
+    def ranking_key(x):
+        return (-x[1], tuple(x[0]))
 
-    # Evaluate every user with a nonempty reference, including empty outputs.
-    # Users with no reference after group filtering have undefined recall and
-    # are outside that group's evaluation population.
-    for uid in gt_dict:
-        recs = rec_dict.get(uid, [])
+    rows = []
+    for uid, rated in user_gt.items():
+        top_gt = sorted(rated, key=ranking_key)[:top_n]
+        r_cut = top_gt[-1][1]
+        relevant = {a for a, _ in top_gt}
+        relevant_ties = {a for a, r in rated if r >= r_cut}
+        predicted = {a for a, _ in sorted(user_recs.get(uid, []), key=ranking_key)[:k]}
 
-        top_k = sorted(recs, key=lambda x: (-x[1], tuple(x[0])))[:k_eval]
-        predicted = set([a for a, _ in top_k])
-        actual = gt_dict[uid]
+        strict = prf(len(predicted & relevant), len(predicted), len(relevant))
+        ties = prf(len(predicted & relevant_ties), len(predicted), len(relevant))
+        rows.append((*strict, ties[2]))
 
-        tp = len(predicted & actual)
-        fp = len(predicted - actual)
-        fn = gt_n[uid] - tp if tie_aware else len(actual - predicted)
+    if not rows:
+        return {"P": 0.0, "R": 0.0, "F1": 0.0, "F1_ties": 0.0, "n_users": 0}
 
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-        f1 = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
-
-        precision_list.append(precision)
-        recall_list.append(recall)
-        f1_list.append(f1)
-
-    if len(precision_list) == 0:
-        return 0.0, 0.0, 0.0
-
-    return (
-        round(float(np.mean(precision_list)), 3),
-        round(float(np.mean(recall_list)), 3),
-        round(float(np.mean(f1_list)), 3),
-    )
+    p, r, f1, f1_ties = (float(np.mean(column)) for column in zip(*rows))
+    return {"P": p, "R": r, "F1": f1, "F1_ties": f1_ties, "n_users": len(rows)}
 
 
+def evaluate_groups(D_triplets, recs_by_group, actID_to_group, k, top_n, n_test_users, layer_name):
+    """
+    Evaluates each context group against its own reference (same all-member
+    membership rule for candidates and reference).
 
-# Fallback if you don't have erst.is_action_in_context_group
-def is_action_in_context_group_local(actID: str, group_id: int, actID_to_group: dict) -> bool:
-    if actID not in actID_to_group:
-        return False
-    try:
-        return int(actID_to_group[actID]) == int(group_id)
-    except Exception:
-        return str(actID_to_group[actID]) == str(group_id)
+    Returns:
+    - df_per_group: per-group metrics
+    - avg_dc: average across groups, weighted by NumUsers (AverageScore unweighted)
+    """
+    rows = []
+    for g, recs in recs_by_group.items():
+        m = evaluate_topk(D_triplets, recs, k, top_n,
+                          gt_filter=lambda item: item_in_group(item, g, actID_to_group))
+        rows.append({
+            "Layer": layer_name,
+            "Group": g,
+            "Precision": round(m["P"], 3),
+            "Recall": round(m["R"], 3),
+            "F1": round(m["F1"], 3),
+            "F1_ties": round(m["F1_ties"], 3),
+            "Coverage": round(coverage(recs, n_test_users), 3),
+            "AverageScore": round(average_score(recs), 3),
+            "NumRecs": len(recs),
+            "NumUsers": m["n_users"],
+        })
+
+    df = pd.DataFrame(rows)
+    avg_dc = {c: round(float(np.average(df[c], weights=df["NumUsers"])), 3)
+              for c in ("Precision", "Recall", "F1", "F1_ties")}
+    avg_dc["AverageScore"] = round(float(df["AverageScore"].mean()), 3)
+    return df, avg_dc
 
 
+def coverage(recs, n_test_users):
+    """Share of test users with at least one recommendation."""
+    return len({uid for uid, _, _ in recs}) / n_test_users
 
-# =============================================================================
-# Random context logic for 4.2 (switchable)
-# =============================================================================
 
-def build_context_pool(actID_context_dc: dict):
-    C_T_pool, C_P_pool = set(), set()
-    for _, f_cntx in actID_context_dc.items():
-        for k in ["act_C_T1", "act_C_T2", "act_C_T3"]:
-            v = f_cntx.get(k, None)
-            if isinstance(v, str) and v.strip():
-                C_T_pool.add(v.strip())
-        for k in ["act_C_P1", "act_C_P2", "act_C_P3"]:
-            v = f_cntx.get(k, None)
-            if isinstance(v, str) and v.strip():
-                C_P_pool.add(v.strip())
-    return sorted(list(C_T_pool)), sorted(list(C_P_pool))
-
-def sample_random_context(C_T_pool, C_P_pool):
-    return {
-        "C_T": random.choice(C_T_pool) if C_T_pool else "nd",
-        "C_P": random.choice(C_P_pool) if C_P_pool else "nd",
-    }
+def average_score(recs):
+    """Mean score of the returned recommendations (0 if there are none)."""
+    return float(np.mean([s for _, _, s in recs])) if recs else 0.0
