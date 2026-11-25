@@ -38,11 +38,15 @@ desktop.ini
 diagnostics/**/work/
 
 ############################
-# Legacy: ignored everywhere except src/legacy
-# (small; needed to trace D_lst provenance v5 -> v7)
+# Legacy: old inputs and outputs, kept only locally
 ############################
 **/legacy/
-!src/legacy/
+
+############################
+# Not public: copyrighted papers, rows of individual users
+############################
+/literature/
+/data/D_lst_summary/samples/
 
 ############################
 # Zip archives duplicating existing folders
