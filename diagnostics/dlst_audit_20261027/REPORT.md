@@ -141,6 +141,7 @@ V `diagnostics/dlst_audit_20261027/`:
 - `REPORT.md`: to poročilo
 - `results/`: `provenance.json`, `checks_existing.json`, `checks_current.json`, `checks_hist45d9509.json`, `regen_current.json`, `regen_hist45d9509.json`, `independent.json`, `compare.json`, `examples.json`
 - `logs/`: izpisi posameznih korakov, vključno s `content_stats.txt` (števila iz razdelka 7)
+  - Popravek (2026-11-26): vrstica `compat zero pairs among 34 acts 1448 of 561` v `content_stats.txt` je napačna; pravilno je **258 od 561** parov s C = 0 (95 + 163, kot v vrstici pod njo in v razdelku 7). Surovi dnevnik ni spremenjen.
 - `work/` (velike datoteke, `*.pkl` so v `.gitignore`): `D_lst_regen_current.pkl`, `D_lst_regen_hist45d9509.pkl`, `digest_*.pkl`, `intermediates_*.pkl` in `hist45d9509/` (koda iz commita in kopije tedanjih vhodov)
 
 Ponovitev (približno 35 min za vsako regeneracijo; skupaj okoli 70 min, ker `all` korake izvaja zaporedno; potrebnih je okoli 8 GB RAM):
