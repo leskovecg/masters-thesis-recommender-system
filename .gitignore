@@ -82,10 +82,3 @@ outputs/**/*.zip
 *.tmp
 *.cache
 todo
-
-############################
-# ONLY if the repo stays PUBLIC (not recommended; I can't rerun the pipeline without these)
-############################
-# data/questionnaires/
-# data/annotations/
-# data/scores/
