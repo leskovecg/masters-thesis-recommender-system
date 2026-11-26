@@ -3,7 +3,8 @@ Figures for the defense slides (and the rating histogram of the thesis), from th
 the last run. Slovene labels, decimal comma, 300 dpi, same style as results_overview.
 
 Run from the project root: python presentation/make_slide_figures.py
-Output: presentation/figures/*.png and *.pdf
+Output: presentation/figures/*.png and *.pdf; ratings_distribution (thesis figure) goes to
+outputs/latex/figs/.
 """
 import pickle
 from collections import defaultdict
@@ -17,6 +18,7 @@ RUN = "20261125_222631"
 ROOT = Path(__file__).resolve().parents[1]
 RECS = ROOT / "outputs" / "recommendations"
 OUT = ROOT / "presentation" / "figures"
+THESIS_FIGS = ROOT / "outputs" / "latex" / "figs"
 
 BLUE, GREY, LIGHT_GREY = "#2A6FDB", "#9aa3b0", "#cfd4db"
 MUTED, GRID = "#5b6474", "#e6e8ec"
@@ -42,10 +44,10 @@ def style(ax, title, grid_axis=None):
         ax.set_axisbelow(True)
 
 
-def save(fig, name):
-    OUT.mkdir(parents=True, exist_ok=True)
+def save(fig, name, out=OUT):
+    out.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(OUT / f"{name}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
+        fig.savefig(out / f"{name}.{ext}", dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -77,7 +79,7 @@ def ratings_distribution():
     ax2.set_xlabel("Število različnih ocen", color=MUTED)
     ax2.set_ylabel("Število uporabnikov", color=MUTED)
     fig.tight_layout(w_pad=2)
-    save(fig, "ratings_distribution")
+    save(fig, "ratings_distribution", THESIS_FIGS)
 
 
 def context_reference():
@@ -152,4 +154,4 @@ if __name__ == "__main__":
     ratings_distribution()
     context_reference()
     group_results()
-    print(f"Saved figures to: {OUT}")
+    print(f"Saved figures to: {OUT} and {THESIS_FIGS}")

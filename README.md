@@ -6,7 +6,7 @@ Magistrsko delo, Fakulteta za elektrotehniko Univerze v Ljubljani · **Avtor:** 
 
 Sistem starejšim priporoča kombinacije ene do treh dnevnih aktivnosti: matrična faktorizacija (SVD) napove ocene, izračunane iz vprašalnikov, naknadni filter pa upošteva čas in kraj izvedbe. Prispevek je ločena obravnava napovedovanja ocen in konteksta ter vrednotenje na odloženih podatkih v primerjavi s popularnostjo in naključnim rangiranjem.
 
-Magistrska naloga: [besedilo (LaTeX)](overleaf/2024_GLeskovec_MAG/main.tex), PDF bo objavljen po zagovoru · [Zagovor](presentation/Zagovor_Gasper_Leskovec.pptx) · [Koda](src/) · [Rezultati](outputs/RUN_20261125_222631.md)
+Magistrska naloga: [besedilo (LaTeX)](thesis/main.tex), PDF bo objavljen po zagovoru · [Zagovor](presentation/Zagovor_Gasper_Leskovec.pptx) · [Koda](src/) · [Rezultati](outputs/RUN_20261125_222631.md)
 
 ![F1, F1 z izenačenji in pokritost za vse različice](outputs/latex/figs/results_overview_20261125_222631.png)
 
@@ -48,12 +48,16 @@ Omejitve: ocene so izračunane po pravilu, zato rezultati merijo, kako dobro mod
 src/            runGeneratorOfD_v7.py (eksperiment), elderly_recsys_tools.py (funkcije)
 tests/          test_tools.py
 data/           vhodni podatki; D_lst_summary/ opisuje nabor ocen D_lst
-outputs/        zagoni (RUN_*.md, dnevniki), izvozi, tabele in slike za LaTeX
-overleaf/       besedilo naloge (main.tex, slike, tabele)
+outputs/        zagoni (RUN_*.md, dnevniki), izvozi
+outputs/latex/  vse slike (figs/) in tabele (tabs/) naloge
+thesis/         besedilo naloge (main.tex, literatura.bib, ieeetrslo.bst, Izgled/)
 presentation/   zagovor in make_slide_figures.py (slike slajdov in slika 3.1 naloge)
 ```
 
-overleaf/ vsebuje kopije končnih slik in tabel, da se naloga na Overleafu prevede samostojno; oktobrski tabeli sta v overleaf/ ročno urejeni (slovenske oznake, decimalna vejica).
+Za prevod na Overleafu naloži vsebino thesis/ ter v mapi Slike/ in Tabele/ datoteke iz outputs/latex/figs/ in outputs/latex/tabs/, ki jih main.tex uporablja:
+
+- `Slike/`: `ratings_distribution.pdf`, `algorithm_rmse_comparison_20261015_150006.png`, `ContextGroup_inertia_actC.png`, `ContextGroup_dendrogram_agg_actC.png`, `ContextGroup_hists_actC.png`, `results_overview_20261125_222631.pdf`
+- `Tabele/`: `cv_results_tuned_SVD_20261015_150006.tex`, `algorithm_comparison_20261015_150006.tex`, `context_breakdown_20261125_222631.tex`, `results_all_layers_20261125_222631.tex`
 
 ## Hitro preverjanje (brez podatkov)
 

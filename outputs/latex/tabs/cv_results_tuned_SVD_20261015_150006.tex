@@ -1,18 +1,18 @@
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
-\caption{Razvojni rezultati po izbiri nastavitev (ShuffleSplit, 10 ponovitev, 25\% test) za prilagojeni model SVD.}
+\caption{Rezultati izbrane konfiguracije SVD na razvojnem delu:
+deset ponovitev metode ShuffleSplit.}
 \label{tab:cv_results_tuned_svd}
-\begin{tabular}{llrr}
+\begin{tabular}{lrr}
 \toprule
-Algorithm & Metric & Mean & Std \\
+Metrika & Povprečje & Standardni odklon \\
 \midrule
-SVD\_tuned & RMSE & 0.089 & 0.000 \\
-SVD\_tuned & MAE & 0.057 & 0.000 \\
-SVD\_tuned & MSE & 0.008 & 0.000 \\
-SVD\_tuned & FCP & 0.996 & 0.000 \\
-SVD\_tuned & Fit time & 42.650 & 0.989 \\
-SVD\_tuned & Test time & 3.261 & 0.774 \\
+RMSE & 0,089465 & 0,000418 \\
+MAE & 0,056712 & 0,000152 \\
+MSE & 0,008004 & 0,000075 \\
+FCP & 0,995945 & 0,000148 \\
+Čas učenja [s] & 42,650 & 0,989 \\
+Čas napovedovanja [s] & 3,261 & 0,774 \\
 \bottomrule
 \end{tabular}
-
 \end{table}
