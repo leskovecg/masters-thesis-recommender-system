@@ -1,129 +1,0 @@
-/mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/src/elderly_recsys_tools.py:565: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
-  X_df.fillna(0, inplace=True)
-/mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/src/elderly_recsys_tools.py:566: FutureWarning: Downcasting behavior in `replace` is deprecated and will be removed in a future version. To retain the old behavior, explicitly call `result.infer_objects(copy=False)`. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
-  all_answers_nums_df = all_answers_df.replace(r' ', np.nan, regex=True).astype(float)
-/mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/src/runGeneratorOfD_v7.py:401: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
-  plt.show()
-/mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/src/runGeneratorOfD_v7.py:530: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
-  plt.show()
-========== STEP 0: IMPORTING LIBRARIES ==========
-========== STEP 1: GLOBAL SETTINGS ==========
-Evaluation: held-out pairs; grouped metrics use group-specific references.
-========== STEP 2: LOADING DATA FROM EXCEL FILES ==========
-========== STEP 3: BUILDING DICTIONARIES & STRUCTURES ==========
-========== STEP 4: SELECTING ACTIONS FOR GIVEN ASPECTS ==========
-========== STEP 5: PROCESS CONTEXT STRINGS ==========
-========== STEP 6: GENERATING SEQUENCES OF ACTIONS ==========
-========== STEP 7: TRIM USERS/ACTIONS FOR TESTING ==========
-========== STEP 8: COMPUTING ACTION RELEVANCE SCORES ==========
-========== STEP 9: LOAD AND FILTER COMPATIBILITY MATRIX ==========
-========== STEP 10: BUILDING USER-ACTION RESPONSE MATRIX ==========
-========== STEP 11: BUILD / LOAD D_lst ==========
-Loaded existing D_lst: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/data/D_lst/D_lst_full_20260202_150312.pkl | rows=3053029
-
-========== D_lst STATISTICS ==========
-Total rows in D_lst: 3053029
-Unique users: 679
-Unique actions: 6579
-Min rating: 0.300
-Max rating: 5.000
-Mean rating: 1.541
-
- Lowest ratings:
-[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act01'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
-[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act02'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
-[1373, ('Ac_AB4_1_Act01', 'Ac_AB4_8_Act03'), ({'qID': 'Ac_AB4_1', 'C_T1': 'ob kosilu', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'ob zajtrku', 'C_T2': 'ob večerji', 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}), 0.3]
-
- Highest ratings:
-[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act08', 'Ac_AB4_8_Act11'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'podnevi', 'C_T2': nan, 'C_T3': nan, 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
-[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act09', 'Ac_AB4_8_Act10'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': 'zvečer', 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
-[2045, ('Ac_AB4_5_Act01', 'Ac_AB4_8_Act09', 'Ac_AB4_8_Act11'), ({'qID': 'Ac_AB4_5', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'popoldne', 'C_P1': 'doma', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'dopoldne', 'C_T2': 'popoldne', 'C_T3': 'zvečer', 'C_P1': 'kjerkoli', 'C_P2': nan, 'C_P3': nan}, {'qID': 'Ac_AB4_8', 'C_T1': 'zjutraj ', 'C_T2': 'dopoldne', 'C_T3': 'zvečer', 'C_P1': 'doma', 'C_P2': 'v telovadnici', 'C_P3': 'v parku'}), 5.0]
-
- Top 10 contexts (C_T1, C_P1):
-('podnevi', 'kjerkoli'): 871302x
-('ob kosilu', 'kjerkoli'): 563363x
-('zjutraj ', 'v naravi'): 380449x
-('malica dopoldne', 'kjerkoli'): 287883x
-('ob zajtrku', 'kjerkoli'): 272692x
-('dopoldne', 'kjerkoli'): 183726x
-('kadarkoli', 'kjerkoli'): 174265x
-('zjutraj ', 'kjerkoli'): 122859x
-('kadarkoli', 'doma'): 92830x
-('zjutraj ', 'doma'): 31378x
-========== STEP 12: ALGORITHM COMPARISON ==========
-
-========== Preparing DataFrame for Surprise... ==========
-Shape of df_for_surprise: (3053029, 3)
-========== STEP 13: GRID SEARCH & SVD TUNING ==========
-
-========== GRID SEARCH ==========
-========== STEP 14: CROSS-VALIDATION (TUNED SVD) ==========
-========== STEP 15: FINAL TRAINING & EVALUATION ==========
-
-========== TRAIN(TEST)SET INFO ==========
-Number of users in trainset: 679
-Number of items in trainset: 6579
-Trainset length: 2289771
-Testset length: 763258
-Total unique actions in D_lst: 6579
-User factors: 679 | Item factors: 6579
-
-========== MATRIX FACTORIZATION FACTORS ==========
-Shape of user factors: (679, 150)
-Shape of item factors: (6579, 150)
-
-========== TEST SET EVALUATION ==========
-RMSE: 0.0819
-RMSE: 0.08186158476339936
-MAE:  0.0531
-MAE:  0.05314729498718314
-MSE: 0.0067
-MSE:  0.006701319059975218
-FCP:  0.9966
-FCP:  0.9966479180437348
-========== STEP 16: GENERATE RECOMMENDATIONS (4.1/4.2/4.3) ==========
-M3 labels: [0, 1, 2]
-M4 labels: [0, 1, 2, 3]
-M5 labels: [0, 1, 2, 3, 4]
-Context pool sizes: |C_T|=11 |C_P|=9
-Generating recs (held-out):   0%|          | 0/679 [00:00<?, ?it/s]Generating recs (held-out):   1%|          | 5/679 [00:00<00:13, 49.11it/s]Generating recs (held-out):   2%|▏         | 12/679 [00:00<00:11, 58.47it/s]Generating recs (held-out):   3%|▎         | 20/679 [00:00<00:10, 63.12it/s]Generating recs (held-out):   4%|▍         | 27/679 [00:00<00:11, 58.93it/s]Generating recs (held-out):   5%|▍         | 33/679 [00:00<00:11, 58.05it/s]Generating recs (held-out):   6%|▌         | 39/679 [00:00<00:11, 58.07it/s]Generating recs (held-out):   7%|▋         | 46/679 [00:00<00:10, 58.98it/s]Generating recs (held-out):   8%|▊         | 52/679 [00:00<00:12, 50.76it/s]Generating recs (held-out):   9%|▊         | 58/679 [00:01<00:11, 52.92it/s]Generating recs (held-out):   9%|▉         | 64/679 [00:01<00:11, 54.66it/s]Generating recs (held-out):  10%|█         | 71/679 [00:01<00:10, 58.04it/s]Generating recs (held-out):  11%|█▏        | 77/679 [00:01<00:10, 57.35it/s]Generating recs (held-out):  13%|█▎        | 85/679 [00:01<00:09, 61.03it/s]Generating recs (held-out):  14%|█▎        | 93/679 [00:01<00:09, 63.16it/s]Generating recs (held-out):  15%|█▍        | 100/679 [00:01<00:09, 60.42it/s]Generating recs (held-out):  16%|█▌        | 107/679 [00:01<00:09, 59.87it/s]Generating recs (held-out):  17%|█▋        | 114/679 [00:01<00:10, 54.06it/s]Generating recs (held-out):  18%|█▊        | 120/679 [00:02<00:10, 54.29it/s]Generating recs (held-out):  19%|█▊        | 126/679 [00:02<00:10, 54.78it/s]Generating recs (held-out):  19%|█▉        | 132/679 [00:02<00:09, 55.00it/s]Generating recs (held-out):  20%|██        | 139/679 [00:02<00:09, 56.75it/s]Generating recs (held-out):  22%|██▏       | 146/679 [00:02<00:08, 59.66it/s]Generating recs (held-out):  23%|██▎       | 153/679 [00:02<00:08, 60.49it/s]Generating recs (held-out):  24%|██▎       | 161/679 [00:02<00:08, 64.34it/s]Generating recs (held-out):  25%|██▍       | 168/679 [00:02<00:07, 64.38it/s]Generating recs (held-out):  26%|██▌       | 175/679 [00:02<00:08, 61.59it/s]Generating recs (held-out):  27%|██▋       | 182/679 [00:03<00:08, 60.12it/s]Generating recs (held-out):  28%|██▊       | 189/679 [00:03<00:09, 50.91it/s]Generating recs (held-out):  29%|██▊       | 195/679 [00:03<00:09, 52.69it/s]Generating recs (held-out):  30%|██▉       | 202/679 [00:03<00:08, 55.88it/s]Generating recs (held-out):  31%|███       | 208/679 [00:03<00:08, 52.70it/s]Generating recs (held-out):  32%|███▏      | 215/679 [00:03<00:08, 56.03it/s]Generating recs (held-out):  33%|███▎      | 221/679 [00:03<00:08, 55.23it/s]Generating recs (held-out):  33%|███▎      | 227/679 [00:03<00:08, 55.70it/s]Generating recs (held-out):  34%|███▍      | 233/679 [00:04<00:07, 56.61it/s]Generating recs (held-out):  35%|███▌      | 240/679 [00:04<00:07, 57.82it/s]Generating recs (held-out):  36%|███▌      | 246/679 [00:04<00:07, 54.42it/s]Generating recs (held-out):  37%|███▋      | 252/679 [00:04<00:07, 53.58it/s]Generating recs (held-out):  38%|███▊      | 258/679 [00:04<00:07, 53.37it/s]Generating recs (held-out):  39%|███▉      | 264/679 [00:04<00:07, 54.93it/s]Generating recs (held-out):  40%|███▉      | 270/679 [00:04<00:07, 53.89it/s]Generating recs (held-out):  41%|████      | 276/679 [00:04<00:07, 50.87it/s]Generating recs (held-out):  42%|████▏     | 285/679 [00:05<00:06, 58.66it/s]Generating recs (held-out):  43%|████▎     | 292/679 [00:05<00:06, 60.51it/s]Generating recs (held-out):  44%|████▍     | 299/679 [00:05<00:06, 62.62it/s]Generating recs (held-out):  45%|████▌     | 306/679 [00:05<00:06, 58.54it/s]Generating recs (held-out):  46%|████▌     | 312/679 [00:05<00:06, 56.47it/s]Generating recs (held-out):  47%|████▋     | 318/679 [00:05<00:06, 56.52it/s]Generating recs (held-out):  48%|████▊     | 325/679 [00:05<00:06, 58.71it/s]Generating recs (held-out):  49%|████▉     | 333/679 [00:05<00:05, 60.89it/s]Generating recs (held-out):  50%|█████     | 340/679 [00:05<00:05, 61.29it/s]Generating recs (held-out):  51%|█████     | 347/679 [00:06<00:05, 63.31it/s]Generating recs (held-out):  52%|█████▏    | 354/679 [00:06<00:05, 62.36it/s]Generating recs (held-out):  53%|█████▎    | 361/679 [00:06<00:04, 64.43it/s]Generating recs (held-out):  54%|█████▍    | 368/679 [00:06<00:05, 61.62it/s]Generating recs (held-out):  55%|█████▌    | 375/679 [00:06<00:05, 59.18it/s]Generating recs (held-out):  56%|█████▌    | 381/679 [00:06<00:05, 58.85it/s]Generating recs (held-out):  57%|█████▋    | 387/679 [00:06<00:05, 55.63it/s]Generating recs (held-out):  58%|█████▊    | 396/679 [00:06<00:04, 64.34it/s]Generating recs (held-out):  59%|█████▉    | 403/679 [00:06<00:04, 62.83it/s]Generating recs (held-out):  60%|██████    | 410/679 [00:07<00:04, 63.05it/s]Generating recs (held-out):  61%|██████▏   | 417/679 [00:07<00:04, 61.93it/s]Generating recs (held-out):  62%|██████▏   | 424/679 [00:07<00:04, 63.13it/s]Generating recs (held-out):  63%|██████▎   | 431/679 [00:07<00:03, 62.70it/s]Generating recs (held-out):  65%|██████▍   | 438/679 [00:07<00:04, 58.58it/s]Generating recs (held-out):  66%|██████▌   | 445/679 [00:07<00:03, 60.42it/s]Generating recs (held-out):  67%|██████▋   | 452/679 [00:07<00:04, 56.17it/s]Generating recs (held-out):  68%|██████▊   | 460/679 [00:07<00:03, 59.54it/s]Generating recs (held-out):  69%|██████▉   | 467/679 [00:08<00:03, 57.58it/s]Generating recs (held-out):  70%|██████▉   | 475/679 [00:08<00:03, 63.18it/s]Generating recs (held-out):  71%|███████   | 482/679 [00:08<00:03, 59.79it/s]Generating recs (held-out):  72%|███████▏  | 489/679 [00:08<00:03, 59.32it/s]Generating recs (held-out):  73%|███████▎  | 496/679 [00:08<00:03, 58.04it/s]Generating recs (held-out):  74%|███████▍  | 504/679 [00:08<00:02, 61.89it/s]Generating recs (held-out):  75%|███████▌  | 511/679 [00:08<00:02, 62.28it/s]Generating recs (held-out):  76%|███████▋  | 518/679 [00:08<00:02, 62.34it/s]Generating recs (held-out):  77%|███████▋  | 525/679 [00:09<00:02, 53.50it/s]Generating recs (held-out):  78%|███████▊  | 533/679 [00:09<00:02, 59.73it/s]Generating recs (held-out):  80%|███████▉  | 540/679 [00:09<00:02, 62.26it/s]Generating recs (held-out):  81%|████████  | 547/679 [00:09<00:02, 58.40it/s]Generating recs (held-out):  82%|████████▏ | 554/679 [00:09<00:02, 57.61it/s]Generating recs (held-out):  82%|████████▏ | 560/679 [00:09<00:02, 56.96it/s]Generating recs (held-out):  84%|████████▎ | 568/679 [00:09<00:01, 61.52it/s]Generating recs (held-out):  85%|████████▍ | 575/679 [00:09<00:01, 61.56it/s]Generating recs (held-out):  86%|████████▌ | 582/679 [00:09<00:01, 62.49it/s]Generating recs (held-out):  87%|████████▋ | 589/679 [00:10<00:01, 60.50it/s]Generating recs (held-out):  88%|████████▊ | 596/679 [00:10<00:01, 57.34it/s]Generating recs (held-out):  89%|████████▊ | 602/679 [00:10<00:01, 57.66it/s]Generating recs (held-out):  90%|████████▉ | 610/679 [00:10<00:01, 58.90it/s]Generating recs (held-out):  91%|█████████ | 616/679 [00:10<00:01, 55.42it/s]Generating recs (held-out):  92%|█████████▏| 622/679 [00:10<00:01, 55.43it/s]Generating recs (held-out):  92%|█████████▏| 628/679 [00:10<00:00, 53.35it/s]Generating recs (held-out):  93%|█████████▎| 634/679 [00:10<00:00, 52.65it/s]Generating recs (held-out):  94%|█████████▍| 640/679 [00:11<00:00, 54.37it/s]Generating recs (held-out):  95%|█████████▌| 646/679 [00:11<00:00, 54.86it/s]Generating recs (held-out):  96%|█████████▌| 652/679 [00:11<00:00, 54.20it/s]Generating recs (held-out):  97%|█████████▋| 658/679 [00:11<00:00, 49.63it/s]Generating recs (held-out):  98%|█████████▊| 664/679 [00:11<00:00, 51.95it/s]Generating recs (held-out):  99%|█████████▉| 673/679 [00:11<00:00, 59.93it/s]Generating recs (held-out): 100%|██████████| 679/679 [00:11<00:00, 58.24it/s]
-/mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/src/runGeneratorOfD_v7.py:1294: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
-  plt.show()
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/recommendations_4_1_with_PQ_20261124_183727.xlsx
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/recommendations_4_2_with_PQ_20261124_183727.xlsx
-STEP 16 done. Containers ready for STEP 18 evaluation:
-recs_41: 3395 | recs_42: 2534
-M3 groups: [583, 3395, 78]
-M4 groups: [3157, 291, 3234, 513]
-M5 groups: [71, 3172, 3204, 291, 78]
-========== STEP 18: EVALUATE (4.1/4.2/4.3) ==========
-D_triplets (complete items) size: 763258
-Eval params: top_n_groundtruth=5 | k_eval=5
-[4.1] Precision=0.339 Recall=0.339 F1=0.339 F1_ties=0.982 Coverage=1.000 AvgScore=3.011
-[Pop] Precision=0.151 Recall=0.151 F1=0.151 F1_ties=0.531 Coverage=1.000 AvgScore=3.054
-Saved LaTeX table (4.1) to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/tabs
-[4.2] Precision=0.018 Recall=0.018 F1=0.018 F1_ties=0.12 Coverage=0.895 AvgScore=2.022
-[4.2 context reference] Precision=0.804 Recall=0.804 F1=0.804 F1_ties=0.998
-Saved LaTeX table (4.2) to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/tabs
-[M3 avg] {'Precision': 0.623, 'Recall': 0.623, 'F1': 0.623, 'F1_ties': 0.988, 'AverageScore': 1.928}
-[M4 avg] {'Precision': 0.698, 'Recall': 0.698, 'F1': 0.698, 'F1_ties': 0.996, 'AverageScore': 1.844}
-[M5 avg] {'Precision': 0.683, 'Recall': 0.683, 'F1': 0.683, 'F1_ties': 0.998, 'AverageScore': 1.892}
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/evaluation_metrics_M3_per_group_20261124_183727.xlsx
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/evaluation_metrics_M4_per_group_20261124_183727.xlsx
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/evaluation_metrics_M5_per_group_20261124_183727.xlsx
-
-========== TABLE 4.5 (ALL LAYERS) ==========
-                             Category  Precision  ...  Coverage  AverageScore
-0           Brez konteksta (baseline)      0.339  ...       1.0         3.011
-1              Popularnost (baseline)      0.151  ...       1.0         3.054
-2    S kontekstom, globalna referenca      0.018  ...     0.895         2.022
-3  S kontekstom, kontekstna referenca      0.804  ...     0.895         2.022
-4         M3 (uteženo po uporabnikih)      0.623  ...        --         1.928
-5         M4 (uteženo po uporabnikih)      0.698  ...        --         1.844
-6         M5 (uteženo po uporabnikih)      0.683  ...        --         1.892
-
-[7 rows x 7 columns]
-Opomba: kontekstna referenca in M3/M4/M5 uporabljajo druge referenčne množice (M3/M4/M5 uteženo po uporabnikih); višja metrika sama ne dokazuje izboljšanja.
-Saved: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/recommendations/table_4_5_all_layers_20261124_183727.xlsx
-Saved LaTeX table to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/tabs
-Saved PRF comparison plot to: /mnt/c/Users/E3/Documents/Projekti/Faks/Thesis/outputs/heldout_evaluation/latex/figs/prf_comparison_20261124_183727.png

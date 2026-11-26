@@ -32,10 +32,9 @@ desktop.ini
 *.h5
 
 ############################
-# Diagnostics: keep REPORT.md, audit_dlst.py, logs/, results/
-# Drop work/ (pkl files + duplicated data/src snapshots of hist45d9509)
+# Local audit leftovers (pkl files, data snapshots); not in the repository
 ############################
-diagnostics/**/work/
+/diagnostics
 
 ############################
 # Legacy: old inputs and outputs, kept only locally

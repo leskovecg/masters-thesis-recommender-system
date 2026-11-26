@@ -1,9 +1,0 @@
-rows 3053029
-rows with textual duplicate activity inside item 158292 distinct items 297
-rows with penalty (some C=0) 2765081  items with >=2 incompatible pairs 1271 rows 557381
-rows with at least one member contributing 0 (answer 0) 2709618
-rows where ALL members contribute >0 343411
-compat zero pairs among 34 acts 1448 of 561
-C=0 pairs: same question 95 different question 163 | C=1 pairs 303
-AB4_8 answer=1 among 679 included users 38
-a_F2 distinct values 50

@@ -1,8 +1,0 @@
-1 aktivnost(i), vključeno 1373 ['Ac_AB4_1_Act01'] raw 1.3885266061687365 norm 0.6216650281130627 existing 0.6216650281130627 bit-eq True
-2 aktivnost(i), vključeno 1373 ['Ac_AB4_1_Act01', 'Ac_AB4_1_Act02'] raw 1.777053212337473 norm 0.746640449809002 existing 0.746640449809002 bit-eq True
-3 aktivnost(i), vključeno 1373 ['Ac_AB4_1_Act01', 'Ac_AB4_1_Act02', 'Ac_AB4_1_Act03'] raw 3.1655798185062096 norm 1.1932808996180042 existing 1.1932808996180042 bit-eq True
-par, nezdružljiv (C=0.0) 1373 ['Ac_AB4_1_Act01', 'Ac_AB4_1_Act02'] raw 1.777053212337473 norm 0.746640449809002 existing 0.746640449809002 bit-eq True
-par, združljiv (C=1) 1373 ['Ac_AB4_1_Act01', 'Ac_AB4_2_Act01'] raw 2.777053212337473 norm 1.0683054779220647 existing 1.0683054779220647 bit-eq True
-prag: najmanjši vključeni raw 1373 ['Ac_AB4_1_Act01', 'Ac_AB4_8_Act01'] raw 0.38852660616873647 norm 0.3 existing 0.3 bit-eq True
-prag: največji izključeni raw 2 ['Ac_AB4_4_Act01'] raw 0.0 norm None existing None bit-eq False
-največji raw (ocena 5) 456 ['Ac_AB4_1_Act01', 'Ac_AB4_2_Act01', 'Ac_AB4_5_Act01'] raw 15.0 norm 5.0 existing 5.0 bit-eq True

@@ -49,7 +49,6 @@ src/            runGeneratorOfD_v7.py (eksperiment), elderly_recsys_tools.py (fu
 tests/          test_tools.py
 data/           vhodni podatki; D_lst_summary/ opisuje nabor ocen D_lst
 outputs/        heldout_evaluation/ (zagoni, RUN_*.md, izvozi, tabele in slike za LaTeX)
-diagnostics/    revizija D_lst, neodvisno preverjanje statistik
 overleaf/       besedilo naloge (main.tex, slike, tabele)
 presentation/   zagovor in make_slide_figures.py (slike slajdov in slika 3.1 naloge)
 ```
@@ -75,7 +74,7 @@ MPLBACKEND=Agg PYTHONUTF8=1 .venv/bin/python src/runGeneratorOfD_v7.py
 
 Izvozi dobijo časovni žig zagona in se shranijo v `outputs/heldout_evaluation/`. Privzeto (`SKIP_TUNING = True`) se primerjava algoritmov in iskanje nastavitev preskočita; s `SKIP_TUNING = False` trajata več ur ([RUN_20261015_150006.md](outputs/heldout_evaluation/RUN_20261015_150006.md)). `USE_EXISTING_D_LST = False` nabor `D_lst` ponovno ustvari iz vhodov (približno 30 minut).
 
-`D_lst` je bil s kodo v7 (commit `0df8fdd`) bitno regeneriran ([poročilo revizije](diagnostics/dlst_audit_20261027/REPORT.md)); vhodi v generiranje so po čiščenju kode ostali enaki.
+D_lst se iz vhodov ponovi bitno enako (SHA-256 9b8ae198…), preverjeno 2026-11-26.
 Po commitu `cb3edc0` je bila koda preurejena; SHA-256 ponovno ustvarjenega `D_lst` in vsi izvozi zagona `20261125_222631` so bili preverjeni kot enaki.
 
 **Podatki niso namenjeni javni objavi** (vprašalniki o zdravju, uteži uporabnikov, `D_lst`). Za dostop se obrni na avtorja ali mentorja. Izvorno raziskavo je izvedel Inštitut Antona Trstenjaka za gerontologijo in medgeneracijsko sožitje.

@@ -1,8 +1,0 @@
-Run: 20261125_222631 | users: 679 | test ratings: 763258
-Recommendable activities: 34 | |C_T|=11 |C_P|=9
-Context mismatches against the export: 0
-
-[B, context reference] feasible held-out items per user
-0 items: 71 | 1-5 items: 210 (0.309 of all users) | >5 items: 398
-SVD F1:             all with reference=0.804 | 1-5=1.000 | >5=0.700
-Random expected F1: all with reference=0.532 | 1-5=1.000 | >5=0.285
