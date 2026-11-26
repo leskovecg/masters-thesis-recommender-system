@@ -218,6 +218,10 @@ aktivnosti. Ocene temeljijo na uporabniških odgovorih na
 vprašalnike, pripadajočih utežeh in združljivosti aktivnosti.
 Eksperiment preverja napovedovanje zadržanih ocen ter izbor
 kombinacij brez konteksta in z naknadnim filtriranjem.
+Od modela SVD ne pričakujemo, da bo boljši od pravila, s katerim so
+ocene izračunane: eksperiment meri, kako dobro model obnovi zadržane
+izračunane ocene znanih uporabnikov in kombinacij, ogrodje pa je
+namenjeno kasnejši uporabi z dejanskimi uporabniškimi ocenami.
 
 Glavni cilji magistrske naloge so:
 \begin{itemize}
@@ -277,7 +281,7 @@ model SVD iz knjižnice Surprise \cite{hug2020surprise}.
 \section{Kontekstno zavedni priporočilni sistemi}
 \label{sec:sota_context}
 
-V realnih okoljih uporabniške preference pogosto niso statične, temveč so odvisne od trenutnega konteksta, kot so čas, lokacija ali uporabnikovo stanje. Kontekstno zavedni priporočilni sistemi razširjajo klasične modele z vključevanjem teh informacij. Kontekst je lahko vključen neposredno v model ali pa uporabljen v fazi generiranja oziroma filtriranja priporočil. Adomavicius in Tuzhilin \cite{adomavicius2011context} ločita predfiltriranje podatkov, naknadno filtriranje priporočil in neposredno modeliranje konteksta; v tej nalogi uporabimo naknadno filtriranje. Primer neposredne vključitve konteksta v model predstavlja
+Kontekstno zavedni priporočilni sistemi razširjajo klasične modele z informacijami o trenutnem kontekstu uporabnika, kot so čas, lokacija ali njegovo stanje. Kontekst je lahko vključen neposredno v model ali pa uporabljen v fazi generiranja oziroma filtriranja priporočil. Adomavicius in Tuzhilin \cite{adomavicius2011context} ločita predfiltriranje podatkov, naknadno filtriranje priporočil in neposredno modeliranje konteksta; v tej nalogi uporabimo naknadno filtriranje. Primer neposredne vključitve konteksta v model predstavlja
 CA-KGCN, ki kontekst povezuje z informacijami iz grafa
 znanja. Njegovo vrednotenje kaže izboljšanje napovedovanja
 in razvrščanja na uporabljenih podatkovnih naborih,
@@ -676,23 +680,14 @@ ki jim v katalogu pripada skupaj 34 aktivnosti.
 \section{Algoritmi za priporočilne sisteme} 
 \label{sec:recommender_algorithms}
 
-Priporočilni sistemi so razred algoritmov, katerih cilj je uporabnikom predlagati elemente, ki so zanje najverjetneje relevantni, na podlagi preteklih interakcij, preferenc ali dodatnih informacij. Glede na vrsto razpoložljivih podatkov in način modeliranja lahko priporočilne sisteme razdelimo v več osnovnih skupin.
-
-\subsection{Vsebinsko osnovani sistemi}
-
-Vsebinsko osnovani priporočilni sistemi (ang. \textit{content-based filtering}) temeljijo na lastnostih elementov in profilu posameznega uporabnika. Sistem gradi model uporabnikovih interesov na podlagi preteklih interakcij ter priporoča elemente, ki so po svojih lastnostih podobni tistim, ki jih je uporabnik v preteklosti že izbral. Prednost takšnega pristopa je dobra prilagodljivost posameznemu uporabniku, slabost pa omejena zmožnost odkrivanja novih vsebin ter odvisnost od kakovosti opisnih atributov elementov.
-
-\subsection{Sodelovalno filtriranje}
-
-Sodelovalno filtriranje (ang. \textit{collaborative filtering}) temelji na predpostavki, da imajo uporabniki s podobnimi vzorci obnašanja podobne preference. Priporočila se generirajo na podlagi ocen ali interakcij več uporabnikov, brez neposrednega upoštevanja lastnosti elementov. Ta pristop je razširjen v praksi, saj omogoča odkrivanje skritih vzorcev in implicitnih povezav med uporabniki in elementi, vendar se sooča s težavami, kot sta redkost podatkov in problem hladnega zagona.
-
-\subsection{Modelno osnovani sistemi}
-
-Modelno osnovani priporočilni sistemi uporabljajo formalne matematične ali strojno-učne modele za učenje latentnih vzorcev v podatkih. Med najbolj razširjene pristope sodi matrična faktorizacija, pri kateri se matrika ocen dekomponira na nizkorazsežne latentne faktorje uporabnikov in elementov. Takšni modeli omogočajo dobro generalizacijo in učinkovito napovedovanje neopaženih ocen, zato so primerni za obravnavo kompleksnih priporočilnih problemov.
-
-\subsection{Kontekstno zavedni priporočilni sistemi}
-
-Kontekstno zavedni priporočilni sistemi razširjajo klasične pristope z vključevanjem dodatnih informacij, kot so čas, lokacija ali stanje uporabnika. Kontekst je lahko vključen neposredno v model ali pa se uporabi v fazi generiranja priporočil, na primer z naknadnim filtriranjem rezultatov. Takšni sistemi so posebej primerni za aplikacije, kjer je relevantnost priporočila močno odvisna od trenutnih okoliščin uporabnika.
+Osnovne pristope priporočanja, vsebinsko in sodelovalno filtriranje ter
+kontekstno zavedne sisteme, smo predstavili v
+poglavju~\ref{sec:state_of_the_art}. Med modelno osnovanimi pristopi
+sodelovalnega filtriranja je razširjena matrična faktorizacija, ki matriko
+ocen predstavi z nizkorazsežnimi latentnimi faktorji uporabnikov in
+elementov \cite{koren2009matrix}. Kontekst je mogoče upoštevati s
+predfiltriranjem podatkov, z naknadnim filtriranjem priporočil ali
+z neposrednim modeliranjem \cite{adomavicius2011context}.
 
 \subsection{Izbira pristopa v tej nalogi}
 
@@ -703,7 +698,7 @@ V okviru te magistrske naloge smo uporabili modelno osnovan pristop sodelovalneg
 \label{sec:sys_architecture}
 
 Na Sliki~\ref{fig:system_overview} je prikazan celoten potek delovanja
-predlaganega priporočevalnega sistema – od vhodnih podatkov, preko
+predlaganega priporočilnega sistema – od vhodnih podatkov, preko
 generiranja ocen in učenja modela do končnih, kontekstualno filtriranih
 priporočil. Arhitektura je zasnovana modularno, kar omogoča ločeno obravnavo
 napovedovanja izračunanih ocen in obravnave kontekstualnih omejitev.
@@ -805,7 +800,10 @@ so podane v listu \texttt{ActionCompatibilities} datoteke
 \texttt{ActivityContextGen\_v12.xlsx}. V celotnem katalogu zavzamejo
 vrednosti med 0 in 1, v uporabljenem bloku $34 \times 34$ pa samo 0 ali 1.
 Zato je kazen enaka 0 ali natanko 1, ne glede na število nezdružljivih
-parov v kombinaciji.
+parov v kombinaciji. Ker so uporabljeni odgovori dvojiški, je
+$a_{u,q(j)} \cdot \tilde{a}_{u,q(j)} = a_{u,q(j)}$, ocena pred normalizacijo
+pa je v praksi $s_u^{(g)}$ krat število pritrdilnih odgovorov v kombinaciji,
+zmanjšano za 1, če kombinacija vsebuje nezdružljiv par.
 
 V nadaljnjo obdelavo so vključene le aktivnosti oziroma kombinacije, za katere velja
 $r_{u,\mathbf{s}} > r_T$, kjer je uporabljeni prag $r_T=0{,}3$. Preostale
@@ -1204,8 +1202,6 @@ Knjižnici \texttt{matplotlib} in \texttt{seaborn} sta bili uporabljeni za izris
 \paragraph{Druge knjižnice.}
 Poleg navedenih knjižnic so bile uporabljene tudi standardne Python knjižnice, kot so \texttt{pickle} za shranjevanje in nalaganje vmesnih podatkovnih struktur, \texttt{time} za merjenje časovne zahtevnosti algoritmov ter \texttt{pathlib} za delo z datotečnim sistemom in upravljanje poti do datotek. Knjižnica \texttt{SciPy} je uporabljena samo posredno, kot odvisnost drugih knjižnic.
 
-Uporaba navedenih knjižnic omogoča modularno implementacijo sistema, ponovljivost eksperimentov ter enostavno razširljivost rešitve v prihodnjem delu.
-
 
 
 \chapter{Eksperimentalni rezultati} \label{chap:results}
@@ -1250,7 +1246,7 @@ na odloženem testnem delu.
 \input{Tabele/cv_results_tuned_SVD_20261015_150006.tex}
 
 
-Za lažjo primerjavo uspešnosti posameznih priporočevalnih algoritmov so
+Za lažjo primerjavo uspešnosti posameznih priporočilnih algoritmov so
 povprečne vrednosti napake RMSE prikazane tudi grafično na
 Sliki~\ref{fig:algo_rmse_comparison}.
 
@@ -1274,7 +1270,7 @@ izvedeno samo za SVD.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.75\textwidth]{Slike/algorithm_rmse_comparison_20261015_150006.png}
-\caption{Primerjava povprečne vrednosti RMSE za različne priporočevalne algoritme.}
+\caption{Primerjava povprečne vrednosti RMSE za različne priporočilne algoritme.}
 \label{fig:algo_rmse_comparison}
 \end{figure}
 
@@ -1345,6 +1341,12 @@ pravilu razreševanja izenačenj, druga pa ne razlikuje med enako
 ocenjenimi kombinacijami. Omejitve te razlage so zbrane v
 razdelku~\ref{sec:limitations}.
 
+Model, ki bi vse testne ocene napovedal brez napake in izenačenja
+razreševal naključno, bi dosegel pričakovano strogo F1-mero $0{,}321$.
+Vrednost $0{,}339$ je torej na ravni, ki jo stroga mera ob izenačenjih
+dopušča tudi brezhibnemu napovedovanju ocen; razlika do 1 izhaja predvsem
+iz razreševanja izenačenj in ne iz napak napovedi.
+
 
 \section{Uspešnost priporočilnega sistema s kontekstom} 
 \label{sec:results_with_context}
@@ -1408,7 +1410,8 @@ testnih kombinacij (in vsaj ena), zato so vse hkrati priporočene
 in referenčne, F1-mera pa je 1 pri vsakem razvrščanju. Informativna
 je primerjava na 398 uporabnikih z več kot petimi skladnimi
 kombinacijami: naključno rangiranje doseže $0{,}285$, popularnost
-$0{,}569$ in SVD $0{,}700$. Na vseh 608 uporabnikih so vrednosti
+$0{,}569$ in SVD $0{,}700$, z izenačenji pa $0{,}470$, $0{,}857$
+in $0{,}996$. Na vseh 608 uporabnikih so vrednosti
 $0{,}532$, $0{,}718$ in $0{,}804$.
 
 \paragraph{Primera priporočil.}
@@ -1676,7 +1679,9 @@ top-5 pogosta (658 od 679 uporabnikov). Pri osnovni različici je imelo
 97,3~\% priporočil zunaj referenčne množice enako referenčno oceno kot
 njen peti element. Stroga F1-mera zato odraža tudi leksikografsko razreševanje
 izenačenj, F1-mera z izenačenji pa je visoka, ker model dobro povzame
-pravilo. Izenačenja so prisotna tudi v referenčnih množicah skupin.
+pravilo. Tudi brezhibna napoved ocen bi ob naključnem razreševanju
+izenačenj dosegla pričakovano strogo F1-mero le $0{,}321$.
+Izenačenja so prisotna tudi v referenčnih množicah skupin.
 
 \paragraph{Različne referenčne množice.}
 Kontekstna referenca in reference skupin M3--M5 so ožje od globalne in
