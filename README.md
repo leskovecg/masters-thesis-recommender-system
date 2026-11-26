@@ -6,9 +6,9 @@ Magistrsko delo, Fakulteta za elektrotehniko Univerze v Ljubljani · **Avtor:** 
 
 Sistem starejšim priporoča kombinacije ene do treh dnevnih aktivnosti: matrična faktorizacija (SVD) napove ocene, izračunane iz vprašalnikov, naknadni filter pa upošteva čas in kraj izvedbe. Prispevek je ločena obravnava napovedovanja ocen in konteksta ter vrednotenje na odloženih podatkih v primerjavi s popularnostjo in naključnim rangiranjem.
 
-Magistrska naloga: [besedilo (LaTeX)](overleaf/2024_GLeskovec_MAG/main.tex), PDF bo objavljen po zagovoru · [Zagovor](presentation/Zagovor_Gasper_Leskovec.pptx) · [Koda](src/) · [Rezultati](outputs/heldout_evaluation/RUN_20261125_222631.md)
+Magistrska naloga: [besedilo (LaTeX)](overleaf/2024_GLeskovec_MAG/main.tex), PDF bo objavljen po zagovoru · [Zagovor](presentation/Zagovor_Gasper_Leskovec.pptx) · [Koda](src/) · [Rezultati](outputs/RUN_20261125_222631.md)
 
-![F1, F1 z izenačenji in pokritost za vse različice](outputs/heldout_evaluation/latex/figs/results_overview_20261125_222631.png)
+![F1, F1 z izenačenji in pokritost za vse različice](outputs/latex/figs/results_overview_20261125_222631.png)
 
 ## Postopek
 
@@ -48,10 +48,12 @@ Omejitve: ocene so izračunane po pravilu, zato rezultati merijo, kako dobro mod
 src/            runGeneratorOfD_v7.py (eksperiment), elderly_recsys_tools.py (funkcije)
 tests/          test_tools.py
 data/           vhodni podatki; D_lst_summary/ opisuje nabor ocen D_lst
-outputs/        heldout_evaluation/ (zagoni, RUN_*.md, izvozi, tabele in slike za LaTeX)
+outputs/        zagoni (RUN_*.md, dnevniki), izvozi, tabele in slike za LaTeX
 overleaf/       besedilo naloge (main.tex, slike, tabele)
 presentation/   zagovor in make_slide_figures.py (slike slajdov in slika 3.1 naloge)
 ```
+
+overleaf/ vsebuje kopije končnih slik in tabel, da se naloga na Overleafu prevede samostojno; oktobrski tabeli sta v overleaf/ ročno urejeni (slovenske oznake, decimalna vejica).
 
 ## Hitro preverjanje (brez podatkov)
 
@@ -72,7 +74,7 @@ mkdir -p data/D_lst          # sem kopiraj D_lst_full_20260202_150312.pkl
 MPLBACKEND=Agg PYTHONUTF8=1 .venv/bin/python src/runGeneratorOfD_v7.py
 ```
 
-Izvozi dobijo časovni žig zagona in se shranijo v `outputs/heldout_evaluation/`. Privzeto (`SKIP_TUNING = True`) se primerjava algoritmov in iskanje nastavitev preskočita; s `SKIP_TUNING = False` trajata več ur ([RUN_20261015_150006.md](outputs/heldout_evaluation/RUN_20261015_150006.md)). `USE_EXISTING_D_LST = False` nabor `D_lst` ponovno ustvari iz vhodov (približno 30 minut).
+Izvozi dobijo časovni žig zagona in se shranijo v `outputs/`. Privzeto (`SKIP_TUNING = True`) se primerjava algoritmov in iskanje nastavitev preskočita; s `SKIP_TUNING = False` trajata več ur ([RUN_20261015_150006.md](outputs/RUN_20261015_150006.md)). `USE_EXISTING_D_LST = False` nabor `D_lst` ponovno ustvari iz vhodov (približno 30 minut).
 
 D_lst se iz vhodov ponovi bitno enako (SHA-256 9b8ae198…), preverjeno 2026-11-26.
 Po commitu `cb3edc0` je bila koda preurejena; SHA-256 ponovno ustvarjenega `D_lst` in vsi izvozi zagona `20261125_222631` so bili preverjeni kot enaki.
@@ -81,4 +83,4 @@ Po commitu `cb3edc0` je bila koda preurejena; SHA-256 ponovno ustvarjenega `D_ls
 
 ## Testi
 
-`python -m unittest discover -s tests` (33 testov; sintetični podatki, `D_lst` ni potreben). Podrobnosti posameznih zagonov, okolje in hashi so v `outputs/heldout_evaluation/RUN_*.md`.
+`python -m unittest discover -s tests` (33 testov; sintetični podatki, `D_lst` ni potreben). Podrobnosti posameznih zagonov, okolje in hashi so v `outputs/RUN_*.md`.

@@ -58,7 +58,7 @@ D_lst_path = data_path / 'D_lst'
 questionnaires_path = data_path / 'questionnaires'
 scores_path = data_path / 'scores'
 
-outputs_path = BASE_DIR / 'outputs' / 'heldout_evaluation'
+outputs_path = BASE_DIR / 'outputs'
 evaluation_path = outputs_path / 'evaluation'
 tabs_path = outputs_path / 'latex' / 'tabs'
 figs_path = outputs_path / 'latex' / 'figs'

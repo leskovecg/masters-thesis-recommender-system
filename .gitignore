@@ -59,7 +59,7 @@ outputs/**/*.zip
 ############################
 /logs/
 *.log
-!outputs/heldout_evaluation/*.log
+!outputs/*.log
 
 ############################
 # LaTeX build artifacts

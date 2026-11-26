@@ -15,7 +15,7 @@ import pandas as pd
 
 RUN = "20261125_222631"
 ROOT = Path(__file__).resolve().parents[1]
-RECS = ROOT / "outputs" / "heldout_evaluation" / "recommendations"
+RECS = ROOT / "outputs" / "recommendations"
 OUT = ROOT / "presentation" / "figures"
 
 BLUE, GREY, LIGHT_GREY = "#2A6FDB", "#9aa3b0", "#cfd4db"
