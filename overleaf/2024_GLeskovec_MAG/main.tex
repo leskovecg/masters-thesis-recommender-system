@@ -200,8 +200,8 @@ vpliv na zdravje, dobrobit in kakovost življenja. Starejša populacija je
 heterogena in se razlikuje v telesnih, kognitivnih ter socialnih zmožnostih,
 zato morajo biti priporočila prilagojena posamezniku, razumljiva in skladna z
 dejanskim kontekstom uporabe. Poleg natančnosti priporočil je v takšnih
-sistemih ključnega pomena tudi razložljivost, saj povečuje zaupanje
-uporabnikov in omogoča boljše razumevanje odločitev sistema.
+sistemih pomembna tudi razložljivost, ki lahko podpre zaupanje
+uporabnikov in omogoči boljše razumevanje odločitev sistema.
 
 V tej magistrski nalogi je predstavljen razvoj kontekstualiziranega
 priporočilnega sistema za dnevne aktivnosti starejših uporabnikov. Jedro
@@ -291,12 +291,12 @@ pri uporabnikih \cite{zhong2023context}.
 \section{Razložljivi priporočilni sistemi}
 \label{sec:sota_xrs}
 
-Z naraščajočo uporabo priporočilnih sistemov v domenah, kjer so posledice odločitev lahko pomembne za uporabnika, se je povečala potreba po razložljivosti priporočil. Razložljivi priporočilni sistemi (ang. \textit{Explainable Recommender Systems}) uporabnikom ponujajo utemeljitve, zakaj je bilo določeno priporočilo podano, s čimer povečujejo zaupanje, sprejemanje sistema in zaznano uporabnost. Raziskave poudarjajo, da razložljivost ni le tehnični dodatek, temveč ključni dejavnik pri uporabi sistemov v zdravstvu in socialnih aplikacijah \cite{zhang2020explainable,musto2021justifications,rostami2022food}.
+Z naraščajočo uporabo priporočilnih sistemov v domenah, kjer so posledice odločitev lahko pomembne za uporabnika, se je povečala potreba po razložljivosti priporočil. Razložljivi priporočilni sistemi (ang. \textit{Explainable Recommender Systems}) uporabnikom ponujajo utemeljitve, zakaj je bilo določeno priporočilo podano. Zhang in Chen med cilji razlag navajata preglednost priporočanja in podporo zaupanju uporabnika \cite{zhang2020explainable}. Musto in sodelavci so v spletni raziskavi s 503 udeleženci ugotovili, da so primerjalne utemeljitve spodbudile izbiro bolj zdravega izmed dveh priporočenih receptov \cite{musto2021justifications}. Rostami in sodelavci so za priporočanje hrane uporabili gručenje slik in podatke o uporabniških skupnostih ter kakovost razvrščanja ovrednotili z natančnostjo, priklicem, F1 in NDCG \cite{rostami2022food}.
 
 \section{Priporočilni sistemi za starejše uporabnike}
 \label{sec:sota_elderly}
 
-Področje priporočilnih sistemov za starejše uporabnike predstavlja poseben izziv, saj vključuje heterogeno populacijo z raznolikimi potrebami, sposobnostmi in omejitvami. Raziskave v domeni zdravega staranja poudarjajo pomen celostnega pristopa, ki upošteva telesne, kognitivne in socialne vidike staranja. Strojno učenje in priporočilni sistemi se vse pogosteje uporabljajo kot orodja za podporo odločanju in izboljševanje kakovosti življenja starejših uporabnikov \cite{gasperlin2024healthyageing}.
+Področje priporočilnih sistemov za starejše uporabnike predstavlja poseben izziv, saj vključuje heterogeno populacijo z raznolikimi potrebami, sposobnostmi in omejitvami. Raziskave v domeni zdravega staranja poudarjajo pomen celostnega pristopa, ki upošteva telesne, kognitivne in socialne vidike staranja. Strojno učenje se v raziskavah starejših uporablja kot pomoč pri celostnem vrednotenju zdravega staranja \cite{gasperlin2024healthyageing}.
 
 Pri tem je treba ločiti modeliranje zdravega staranja
 od neposrednega priporočanja aktivnosti.
@@ -617,7 +617,8 @@ priporočilnih elementov: odgovori izhajajo iz raziskave,
 ocene kombinacij aktivnosti pa so v tem delu
 izračunane s postopkom iz
 razdelka~\ref{sec:data_rating_gen}.
-Vhodna tabela ocen in uteži je vsebovala 696 uporabnikov,
+Vhodna tabela ocen in uteži je vsebovala 696 uporabnikov
+\cite{gasperlin2024healthyageing},
 končni nabor, uporabljen v eksperimentih, pa 679.
 Naknadno preverjanje vhodnih podatkov je pokazalo, da je
 imelo vseh 17 uporabnikov, ki niso zastopani v končnem
@@ -647,7 +648,7 @@ Opisi aktivnosti in njihove kontekstne omejitve se berejo iz datoteke \texttt{Ac
 Katalog vsebuje tudi druge, opisne lastnosti (npr. skupino aktivnosti in
 povezavo z zdravstvenimi vidiki), ki jih postopek ne uporablja.
 
-Aktivnosti so zasnovane tako, da pokrivajo širok spekter vsakodnevnih opravil, primernih za starejšo populacijo, in omogočajo kontekstualno prilagajanje priporočil.
+Katalog vključuje prehranske aktivnosti, telesno aktivnost in vsakodnevne opravke, na primer sestavo obroka in opravljanje poti peš.
 
 Osnovni element priporočilnega modela ni nujno posamezna aktivnost,
 temveč kombinacija od ene do treh aktivnosti. Kombinacijo označimo
@@ -656,7 +657,7 @@ Vsaka različna kombinacija ima lasten identifikator in lastni vektor
 latentnih faktorjev. Kombinacije z istim prvim članom zato niso
 obravnavane kot isti element.
 
-Kombinacije so ustvarjene brez ponavljanja aktivnosti.
+V posamezni kombinaciji se isti identifikator aktivnosti ne ponovi.
 Zapis članov v terki je uporabljen za identifikacijo kombinacije
 in ne določa časovnega vrstnega reda izvedbe. Sistem tako ne sestavlja
 urnika aktivnosti.
@@ -1196,8 +1197,8 @@ Iz knjižnice \texttt{scikit-learn} sta uporabljena razreda \texttt{ShuffleSplit
 \paragraph{Surprise.}
 Knjižnica \texttt{Surprise} je predstavljala osrednje ogrodje za implementacijo priporočilnega sistema. Uporabljena je bila za primerjane algoritme (SVD, KNNBasic, BaselineOnly in NMF), prečno preverjanje in mrežno iskanje, napovedovanje ocen ter izračun metrik RMSE, MAE, MSE in FCP.
 
-\paragraph{Matplotlib in seaborn.}
-Knjižnici \texttt{matplotlib} in \texttt{seaborn} sta bili uporabljeni za izris grafov.
+\paragraph{Matplotlib.}
+Knjižnica \texttt{matplotlib} je bila uporabljena za izris grafov.
 
 \paragraph{Druge knjižnice.}
 Poleg navedenih knjižnic so bile uporabljene tudi standardne Python knjižnice, kot so \texttt{pickle} za shranjevanje in nalaganje vmesnih podatkovnih struktur, \texttt{time} za merjenje časovne zahtevnosti algoritmov ter \texttt{pathlib} za delo z datotečnim sistemom in upravljanje poti do datotek. Knjižnica \texttt{SciPy} je uporabljena samo posredno, kot odvisnost drugih knjižnic.
