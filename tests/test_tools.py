@@ -5,6 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -133,6 +134,14 @@ class EvaluateTopkTests(unittest.TestCase):
         m = erst.evaluate_topk([(1, ("A", "B"), 5.0)], [(1, ("A", "C"), 0.9)], k=1, top_n=1)
         self.assertEqual(m["F1"], 0.0)
 
+    def test_tie_aware_hits_are_capped_at_reference_size(self):
+        # Three tied items, one reference item, three recommendations: F1_ties must not exceed 1
+        D = [(1, (a,), 5.0) for a in "ABC"]
+        recs = [(1, (a,), s) for a, s in zip("ABC", (0.9, 0.8, 0.7))]
+        m = erst.evaluate_topk(D, recs, k=3, top_n=1)
+        self.assertAlmostEqual(m["F1_ties"], 0.5)  # P = 1/3, R = 1
+        self.assertLessEqual(m["F1_ties"], 1.0)
+
     def test_short_list_has_precision_and_recall_of_its_own_length(self):
         D = [(1, (a,), r) for a, r in zip("ABCD", (4.0, 3.0, 2.0, 1.0))]
         m = erst.evaluate_topk(D, [(1, ("A",), 0.9)], k=5, top_n=4)
@@ -187,6 +196,16 @@ class ExpectedRandomTests(unittest.TestCase):
         tied = [(1, (a,), r) for a, r in zip("ABCD", (4.0, 3.0, 3.0, 1.0))]
         self.check(tied, tied[1:], 2, 2)
 
+    def test_tie_aware_cap_when_more_recommendations_than_reference(self):
+        # k > top_n: the exact expectation of the capped hits matches all orderings
+        tied = [(1, (a,), r) for a, r in zip("ABCD", (5.0, 5.0, 5.0, 1.0))]
+        self.assertLessEqual(self.check(tied, tied, 3, 1)["F1_ties"], 1.0)
+
+    def test_no_candidates_at_all(self):
+        m = erst.expected_random_topk(self.D, [], 2, 2)
+        self.assertEqual((m["F1"], m["n_users"], m["n_covered"]), (0.0, 1, 0))
+        self.assertTrue(np.isnan(m["avg_rating"]))
+
     def test_short_list_returns_everything(self):
         self.assertEqual(self.check(self.D, self.D, 5, 5)["F1"], 1.0)
 
@@ -218,6 +237,25 @@ class ScoreTests(unittest.TestCase):
         compat = pd.DataFrame([[0.0, 0.0], [0.0, 0.0]], index=["A", "B"], columns=["A", "B"])
         self.assertEqual(erst.get_score_estimation(7, ("A",), answers, scores, compat, "score"), 2.0)
         self.assertEqual(erst.get_score_estimation(7, ("A", "B"), answers, scores, compat, "score"), 3.0)
+
+    def test_numpy_integer_answer_is_a_number(self):
+        answers = pd.DataFrame({"Q": np.array([1, 0], dtype=np.int64)}, index=[7, 8])
+        scores = erst.get_actID_score_df([7, 8], ["A"], {"A": "Q"}, {7: 2.5, 8: np.int64(3)}, answers)
+        self.assertEqual((scores.at[7, "A"], scores.at[8, "A"]), (2.5, 0))
+
+    def test_missing_answer_propagates_nan_and_text_gives_zero(self):
+        answers = pd.DataFrame({"Q": [np.nan, " "]}, index=[7, 8], dtype=object)
+        scores = erst.get_actID_score_df([7, 8], ["A"], {"A": "Q"}, {7: 2.0, 8: 2.0}, answers)
+        self.assertTrue(np.isnan(scores.at[7, "A"]))
+        self.assertEqual(scores.at[8, "A"], 0)
+
+    def test_scaled_answers_treat_missing_and_text_as_zero(self):
+        answers = pd.DataFrame({"Q1": [0.0, 2.0, np.nan], "Q2": [1, " ", 3], "X": ["a", "b", "c"]}, index=[1, 2, 3])
+        scaled = erst.get_uID_answers_df(answers, {"g": ["Q1", "Q2"]}, ["g"])
+        self.assertEqual(list(scaled.columns), ["Q1", "Q2"])
+        self.assertEqual(scaled.index.names, ["uID"])
+        self.assertEqual(scaled["Q1"].tolist(), [0.0, 1.0, 0.0])
+        self.assertEqual(scaled["Q2"].tolist(), [1 / 3, 0.0, 1.0])
 
     def test_unknown_method_is_rejected(self):
         with self.assertRaises(ValueError):

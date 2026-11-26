@@ -10,7 +10,6 @@ numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.6.1      # import sklearn
 matplotlib==3.10.3
-seaborn==0.13.2
 tqdm==4.70.1
 openpyxl==3.1.5          # pandas.read_excel / DataFrame.to_excel za .xlsx
 Jinja2==3.1.6            # pandas DataFrame.to_latex (izvoz tabel LaTeX)

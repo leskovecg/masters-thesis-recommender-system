@@ -2,7 +2,8 @@
 elderly_recsys_tools.py
 =======================
 
-Tools for the "Situation-aware elderly daily activity recommender system" project.
+Tools for the master's thesis "Kontekstualiziran priporočilni sistem za dnevne aktivnosti
+starejših" (used by runGeneratorOfD_v7.py).
 
 Key features:
 - Build D_lst (list of [user, activity combination, context, rating])
@@ -16,9 +17,11 @@ from __future__ import annotations
 
 import itertools
 import json
+import numbers
 import random
 import time
 from collections import Counter, defaultdict
+from math import comb
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -66,7 +69,7 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
     - r_T (float): Threshold to include a recommendation
     - meth_code (str): Method to compute the rating
     - actID_context_dc (dict): Dictionary with full context for each action ID
-    - normalize (bool): If True, normalize all ratings to range [0, 5]
+    - normalize (bool): If True, rescale the kept ratings linearly to [r_T, 5]
 
     Returns:
     - D_lst (list): List of [user_id, action_sequence, context_sequence, score]
@@ -124,14 +127,7 @@ def get_dataMat(uIDs, seq_act_lst, uID_actID_answers_df, actID_score_df, compat_
 # CONTEXT
 # ======================================================================================
 
-def is_action_context_feasibleQ(
-    actID: str,
-    cntx: dict,
-    actID_context_dc: dict,
-    *,
-    relax_kjerkoli: bool = True,
-    relax_nd: bool = True
-) -> bool:
+def is_action_context_feasibleQ(actID: str, cntx: dict, actID_context_dc: dict) -> bool:
     """
     Checks if actID is feasible in a given context.
 
@@ -141,6 +137,10 @@ def is_action_context_feasibleQ(
 
     actID_context_dc[actID] contains:
       - act_C_T1..3, act_C_P1..3
+
+    Labels are compared after stripping. "kadarkoli" (any time) and "kjerkoli" (anywhere)
+    remove the restriction, in the activity definition as well as in the selected context.
+    An unknown actID is not feasible.
     """
     if actID not in actID_context_dc:
         return False
@@ -154,22 +154,9 @@ def is_action_context_feasibleQ(
     user_C_T = (cntx.get('C_T', '') or '').strip()
     user_C_P = (cntx.get('C_P', '') or '').strip()
 
-    # relax 'nd' (unknown) => treat as feasible
-    if relax_nd and (user_C_T == 'nd' or user_C_P == 'nd'):
-        return True
-
-    # "kadarkoli" means no time restriction, in the activity definition or the selected context.
-    time_ok = bool(user_C_T) and (user_C_T == 'kadarkoli' or user_C_T in C_Ts or 'kadarkoli' in C_Ts)
-    place_ok = user_C_P in C_Ps if user_C_P else False
-
-    # relax "kjerkoli"
-    if relax_kjerkoli:
-        if user_C_P == 'kjerkoli':
-            place_ok = True
-        if 'kjerkoli' in C_Ps:
-            place_ok = True
-
-    return bool(time_ok and place_ok)
+    time_ok = bool(user_C_T) and (user_C_T == 'kadarkoli' or 'kadarkoli' in C_Ts or user_C_T in C_Ts)
+    place_ok = bool(user_C_P) and (user_C_P == 'kjerkoli' or 'kjerkoli' in C_Ps or user_C_P in C_Ps)
+    return time_ok and place_ok
 
 
 def build_context_pool(actID_context_dc: dict):
@@ -188,11 +175,8 @@ def build_context_pool(actID_context_dc: dict):
 
 
 def sample_random_context(C_T_pool, C_P_pool):
-    """Draws one simulated context (time, place); uses the global `random` state."""
-    return {
-        "C_T": random.choice(C_T_pool) if C_T_pool else "nd",
-        "C_P": random.choice(C_P_pool) if C_P_pool else "nd",
-    }
+    """Draws one simulated context (time, place); uses the global `random` state. Pools must be nonempty."""
+    return {"C_T": random.choice(C_T_pool), "C_P": random.choice(C_P_pool)}
 
 
 # ======================================================================================
@@ -321,39 +305,35 @@ def perform_cross_validation(
 # ======================================================================================
 
 
-def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores_dc, all_answers_df, aspect_groups_lst, meth_code):
+def get_actID_score_df(uIDs, actID_lst, actID_qID_dc, uID_scores, all_answers_df):
     """
-    Computes the relevance scores for each user-action pair:
-    S[u, a] = a_F2[u] * answer[u, q(a)], with a_F2 the user's activity score
-    and q(a) the question of action a (0 if either value is not numeric).
+    Computes the relevance scores for each user-action pair of a single aspect:
+    S[u, a] = a_F2[u] * answer[u, q(a)], with a_F2 the user's weight of the aspect
+    and q(a) the question of action a.
+
+    Python and numpy numbers (numbers.Real) are accepted. A missing answer (NaN) gives
+    S = NaN, and every combination with that action then fails the threshold r_T. A value
+    that is not a number (e.g. the string ' ') gives S = 0.
 
     Parameters:
     - uIDs (list): User IDs
     - actID_lst (list): Action IDs
     - actID_qID_dc (dict): Mapping from actID to corresponding question ID
-    - uID_scores_dc (dict): User scores by aspect
+    - uID_scores (dict): User weight of the aspect, {uID: a_F2}
     - all_answers_df (DataFrame): User questionnaire answers
-    - aspect_groups_lst (list): Aspects to use
-    - meth_code (str): Scoring method (e.g., 'score')
 
     Returns:
     - Sc_df (DataFrame): Relevance scores matrix (users x actions)
     """
-
     Sc_df = pd.DataFrame(index=uIDs, columns=actID_lst)
-
-    for group in aspect_groups_lst:
-        c_uID_activity_scores_dc = uID_scores_dc[group]
-    
-        for uID in uIDs:
-            for actID in actID_lst:
-                qID = actID_qID_dc[actID]
-                c_score = c_uID_activity_scores_dc[uID]
-                c_anws = all_answers_df.at[uID, qID]
-                if isinstance(c_score, (int, float)) and isinstance(c_anws, (int, float)):
-                    Sc_df.at[uID, actID] = c_score * c_anws
-                else:
-                    Sc_df.at[uID, actID] = 0
+    for uID in uIDs:
+        c_score = uID_scores[uID]
+        for actID in actID_lst:
+            c_anws = all_answers_df.at[uID, actID_qID_dc[actID]]
+            if isinstance(c_score, numbers.Real) and isinstance(c_anws, numbers.Real):
+                Sc_df.at[uID, actID] = c_score * c_anws
+            else:
+                Sc_df.at[uID, actID] = 0
     return Sc_df
 
 
@@ -408,30 +388,16 @@ def get_uID_answers_df(all_answers_df, group_qLst, aspect_groups_lst=None):
     - aspect_groups_lst (list): Selected aspects to process
 
     Returns:
-    - scl_X_df (DataFrame): Scaled user responses by question
+    - scl_X_df (DataFrame): Scaled user responses by question; values that are missing
+      or not numeric count as 0 before scaling
     """
-    aspect_groups_lst = aspect_groups_lst or []
+    all_qs_lst = [qID for group in aspect_groups_lst or [] for qID in group_qLst[group]]
+    X_df = all_answers_df[all_qs_lst].apply(pd.to_numeric, errors="coerce").fillna(0)
 
-    all_qs_lst = []
-    for group in aspect_groups_lst:
-        all_qs_lst = all_qs_lst + group_qLst[group]
-
-    X_df = pd.DataFrame(index=all_answers_df.index, columns=all_qs_lst)
-    X_df.fillna(0, inplace=True)
-    all_answers_nums_df = all_answers_df.replace(r' ', np.nan, regex=True).astype(float)
-
-    for group in aspect_groups_lst:
-        c_X_df = pd.DataFrame(index=all_answers_df.index)
-        for qID in group_qLst[group]:
-            c_X_df[qID] = all_answers_nums_df[qID]
-        X_df = X_df.add(c_X_df, fill_value=0)
-
-    # Scale all answers to [0, 1] range
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scl_X_np = scaler.fit_transform(X_df.to_numpy())
-    scl_X_df = pd.DataFrame(data=scl_X_np, index = all_answers_df.index, columns=all_qs_lst)
+    # Scale every question to the [0, 1] range
+    scl_X_np = MinMaxScaler(feature_range=(0, 1)).fit_transform(X_df.to_numpy())
+    scl_X_df = pd.DataFrame(data=scl_X_np, index=all_answers_df.index, columns=all_qs_lst)
     scl_X_df.index.names = ['uID']
-
     return scl_X_df
 
 
@@ -560,7 +526,8 @@ def evaluate_topk(D_triplets, recs, k, top_n, gt_filter=None):
     recall and are outside the evaluation population.
 
     F1_ties (tie-aware): every item rated at least as high as the last reference
-    item is relevant; the recall denominator stays the reference size.
+    item is relevant; the recall denominator stays the reference size, and the hits are
+    capped at it (so F1_ties <= 1 also when k > top_n).
 
     Returns:
     - dict(P, R, F1, F1_ties, n_users): unrounded means over users
@@ -581,7 +548,7 @@ def evaluate_topk(D_triplets, recs, k, top_n, gt_filter=None):
         predicted = {a for a, _ in ranked[:k]}
 
         strict = prf(len(predicted & relevant), len(predicted), len(relevant))
-        ties = prf(len(predicted & relevant_ties), len(predicted), len(relevant))
+        ties = prf(min(len(predicted & relevant_ties), len(relevant)), len(predicted), len(relevant))
         rows.append((*strict, ties[2]))
 
     return _mean_metrics(rows)
@@ -596,8 +563,9 @@ def expected_random_topk(D_triplets, candidates, k, top_n):
     recall and F1 = 2|A & B| / (a + b) are linear in |A & B|, so
         E[P] = h / n,   E[R] = b * h / (n * a),   E[F1] = 2 * b * h / (n * (a + b)).
     The tie-aware F1 replaces h by the number of candidates in the tie-extended reference.
-    If the candidates are the reference pool itself, then a = b = h = m = min(k, n) (for
-    k = top_n) and E[F1] = m / n.
+    Its hits are capped at a (as in evaluate_topk); if b > a, the expectation of the capped
+    hypergeometric count is computed exactly. If the candidates are the reference pool itself,
+    then a = b = h = m = min(k, n) (for k = top_n) and E[F1] = m / n.
 
     Parameters:
     - D_triplets: (uid, item, rating) test triplets that define the reference
@@ -605,7 +573,8 @@ def expected_random_topk(D_triplets, candidates, k, top_n):
 
     Returns:
     - dict(P, R, F1, F1_ties, n_users, n_covered, avg_rating); n_covered is the number of
-      users with at least one candidate, avg_rating the expected mean rating of the returned items
+      users with at least one candidate, avg_rating the expected mean rating of the returned
+      items (NaN if no user has a candidate)
     """
     user_cand = defaultdict(list)
     for uid, item, rating in candidates:
@@ -620,12 +589,18 @@ def expected_random_topk(D_triplets, candidates, k, top_n):
             continue
         b = min(k, n)
         h, h_ties = len(relevant & items), len(relevant_ties & items)
-        rows.append((h / n, b * h / (n * a), 2 * b * h / (n * (a + b)), 2 * b * h_ties / (n * (a + b))))
+        if b > a:
+            # E[min(X, a)] for X ~ hypergeometric(n items, h_ties relevant, b drawn)
+            hits_ties = sum(min(x, a) * comb(h_ties, x) * comb(n - h_ties, b - x) for x in range(b + 1)) / comb(n, b)
+            f1_ties = 2 * hits_ties / (a + b)
+        else:
+            f1_ties = 2 * b * h_ties / (n * (a + b))
+        rows.append((h / n, b * h / (n * a), 2 * b * h / (n * (a + b)), f1_ties))
 
     n_returned = [min(k, len(rated)) for rated in user_cand.values()]
     mean_ratings = [np.mean([r for _, r in rated]) for rated in user_cand.values()]
-    return {**_mean_metrics(rows), "n_covered": len(user_cand),
-            "avg_rating": float(np.average(mean_ratings, weights=n_returned))}
+    avg_rating = float(np.average(mean_ratings, weights=n_returned)) if user_cand else float("nan")
+    return {**_mean_metrics(rows), "n_covered": len(user_cand), "avg_rating": avg_rating}
 
 
 def _mean_metrics(rows):

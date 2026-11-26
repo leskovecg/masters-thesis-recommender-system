@@ -36,7 +36,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from sklearn.model_selection import ShuffleSplit
 from surprise import BaselineOnly, Dataset, KNNBasic, NMF, Reader, SVD, accuracy
 from surprise.model_selection import GridSearchCV, KFold
@@ -89,7 +88,6 @@ TEST_D_LST_MAX_ROWS = 100000    # Max rows to load when test_mode=True
 # ========== MODEL & EVALUATION PARAMETERS ==========
 n_splits = 10                   # Number of CV splits/folds; not changed by test_mode (test_mode only slices D_lst and shrinks the SVD grid)
 test_size = 0.25                # Proportion of dataset for test split
-n_recommendations = None        # None = filter the whole held-out list (was 20)
 top_k_final_recommendations = 5 # Number of final context-aware recommendations
 top_n_groundtruth = 5           # Top ground-truth items for evaluation
 
@@ -104,15 +102,10 @@ EXISTING_D_LST_PATH = D_lst_path / 'D_lst_full_20260202_150312.pkl'
 ##==================================================================================
 print("========== STEP 2: LOADING DATA FROM EXCEL FILES ==========")
 
-# Load questionnaire answers: -1 becomes NaN, columns get a prefix per questionnaire
-answers_dfs = []
-for name, prefix in [('Activities', 'Ac_'), ('MentalHealth', 'Mh_'), ('PhysicalHealth', 'Ph_'), ('SocialHealth', 'Sh_')]:
-    answers_df = pd.read_excel(questionnaires_path / f'{name}.xlsx', sheet_name='AllAnswers', index_col='S4').replace(-1, np.nan)
-    answers_dfs.append(answers_df.add_prefix(prefix))
-activities_df, mentalHealth_df, physicalHealth_df, socialHealth_df = answers_dfs
-
-# Merge all user responses (activities + mental + physical + social) into a single DataFrame
-all_answers_df = activities_df.join(mentalHealth_df).join(physicalHealth_df, rsuffix='_r').join(socialHealth_df, rsuffix='_r')
+# Answers to the activity questionnaire (the only one the experiment uses): -1 becomes NaN,
+# columns get the prefix 'Ac_'
+all_answers_df = pd.read_excel(questionnaires_path / 'Activities.xlsx', sheet_name='AllAnswers',
+                               index_col='S4').replace(-1, np.nan).add_prefix('Ac_')
 
 # Load user-specific scores and weights (how suitable each activity is for each user)
 scores_and_wgt_df = pd.read_excel(scores_path / 'ml_data_scores_and_wgt.xlsx', sheet_name='scores_and_wgt', header=1, index_col='person_id')
@@ -130,16 +123,9 @@ print("========== STEP 3: BUILDING DICTIONARIES & STRUCTURES ==========")
 # Extract user IDs from the scores DataFrame
 uIDs = list(np.sort(scores_and_wgt_df.index))
 
-# Question IDs (questionnaire columns) per health/activity aspect
+# Question IDs (questionnaire columns) of the activity aspect
 activity_qs = ['Ac_AB4_1', 'Ac_AB4_2', 'Ac_AB4_3', 'Ac_AB4_4', 'Ac_AB4_5', 'Ac_AB4_8']
-phy_health_qs = ['Ph_AB1_7', 'Ph_AB1_11', 'Ph_AB3', 'Ph_AB6_1', 'Ph_AB6_5', 'Ph_AB7_1', 'Ph_AB7_5', 'Ph_AB4_2', 'Ph_AB4_3', 'Ph_AB4_4']
-ment_health_qs = ['Mh_A75_2', 'Mh_A75_3', 'Mh_A75_4', 'Mh_A75_5', 'Mh_AB1_14', 'Mh_A82_r1', 'Mh_A82_r3']
-soc_health_qs = ['Sh_A83_r', 'Sh_sh_AB98_da_ne']
-
-group_qLst = {'activity': activity_qs,
-              'phy_health': phy_health_qs,
-              'ment_health': ment_health_qs,
-              'soc_health': soc_health_qs}
+group_qLst = {'activity': activity_qs}
 
 # The question ID is given only in the first row of each question
 action_qIDs = action_df['qID'].ffill()
@@ -169,12 +155,12 @@ layer_labels = {layer: sorted(set(mapping.values())) for layer, mapping in layer
 for layer, labels in layer_labels.items():
     print(f"{layer} labels: {labels}")
 
-# ========== SELECT ASPECT GROUPS ==========
-# Only 'activity' is used; another aspect also needs its user scores in uID_scores_dc
+# ========== SELECTED ASPECT ==========
+# Only the 'activity' aspect is used
 aspect_groups_lst = ['activity']
 
-# User scores by aspect
-uID_scores_dc = {'activity': dict(zip(scores_and_wgt_df.index, scores_and_wgt_df['a_F2']))}
+# User weight of the activity aspect (a_F2)
+uID_activity_scores = dict(zip(scores_and_wgt_df.index, scores_and_wgt_df['a_F2']))
 
 #%% STEP 4: SELECT ACTIONS BASED ON CHOSEN ASPECTS
 ##==================================================================================
@@ -219,9 +205,7 @@ else:
 
     # Relevance score of each action for each user
     actID_score_df = erst.get_actID_score_df(
-        uIDs, single_actID_lst, actID_qID_dc,
-        uID_scores_dc, all_answers_df,
-        aspect_groups_lst, meth_code
+        uIDs, single_actID_lst, actID_qID_dc, uID_activity_scores, all_answers_df
     )
 
     # Compatibilities between the selected actions
@@ -232,16 +216,6 @@ else:
     uID_actID_answers_df = pd.DataFrame(index=uID_qID_answers_df.index)
     for actID in single_actID_lst:
         uID_actID_answers_df[actID] = uID_qID_answers_df[actID_qID_dc[actID]]
-
-    # Heatmap without user IDs
-    fig, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(uID_actID_answers_df, ax=ax, yticklabels=False)
-    ax.set_title("Relevantnost akcij za posameznega uporabnika")
-    ax.set_xlabel("Akcije")
-    ax.set_ylabel("Uporabniki")
-    fig.tight_layout()
-    fig.savefig(figs_path / f"user_action_relevance_heatmap_{timestamp}.png")
-    plt.close(fig)
 
     D_lst = erst.get_dataMat(
         uIDs,
@@ -287,16 +261,7 @@ print("\n Top 10 contexts (C_T1, C_P1):")
 for ctx, count in context_counts.most_common(10):
     print(f"{ctx}: {count}x")
 
-# ========== VISUALIZE RATINGS DISTRIBUTION ==========
-fig, ax = plt.subplots()
-ax.hist(ratings, bins=20)
-ax.set_title("Porazdelitev ocen v podatkovni matriki")
-ax.set_xlabel("Ocena")
-ax.set_ylabel("Število vnosov")
-ax.grid(True)
-fig.tight_layout()
-fig.savefig(figs_path / f"ratings_distribution_hist_{timestamp}.png")
-plt.close(fig)
+# The rating histogram of the thesis (figure 3.1) is drawn by presentation/make_slide_figures.py
 
 #%% STEP 7: COMPARE ALGORITHMS (SVD, KNNBasic, BaselineOnly, NMF)
 ##==================================================================================
@@ -523,7 +488,7 @@ for uID in tqdm(sorted(test_predictions_by_user), desc="Generating recs (held-ou
     context_42_by_user[uID] = context_42
 
     # Candidates in ranking order (unfiltered)
-    ranked = sorted(test_predictions_by_user[uID], key=lambda rec: (-rec[2], rec[1]))[:n_recommendations]
+    ranked = sorted(test_predictions_by_user[uID], key=lambda rec: (-rec[2], rec[1]))
 
     # 4.1 Baseline: take top 5 directly
     recs_41.extend(ranked[:top_k_final_recommendations])
@@ -642,6 +607,13 @@ for layer, mapping in layer_mappings.items():
 
 # ========== RESULTS TABLE ==========
 results_df = erst.round_floats(pd.DataFrame(result_rows))
+
+# The LaTeX table shows only F1, which is valid only if precision and recall equal F1 in every row
+prf_equal = bool((results_df["Precision"] == results_df["Recall"]).all() and (results_df["Precision"] == results_df["F1"]).all())
+if not prf_equal:
+    print("OPOZORILO: natančnost, priklic in F1 se v vsaj eni vrstici razlikujejo; "
+          "tabela LaTeX results_all_layers ne bo izvožena (xlsx vsebuje vse tri stolpce).")
+
 out_table = recommendations_path / f"results_all_layers_{timestamp}.xlsx"
 results_df.to_excel(out_table, index=False)
 
@@ -650,23 +622,20 @@ print(results_df.to_string())
 print("Opomba: kontekstna referenca in M3/M4/M5 uporabljajo druge referenčne množice (M3/M4/M5 uteženo po uporabnikih); višja metrika sama ne dokazuje izboljšanja.")
 print(f"Saved: {out_table}")
 
-# The LaTeX table and the figure show only F1
-assert (results_df["Precision"] == results_df["Recall"]).all() and (results_df["Precision"] == results_df["F1"]).all(), \
-    "Precision, recall and F1 differ in a row of the results table: report them separately."
-
-erst.save_df_as_latex_table(
-    df=results_df[["Category", "F1", "F1_ties", "Coverage", "AverageReferenceRating"]].replace(
-        {"Category": {"referenca": "ref.", "uteženo po uporabnikih": "uteženo"}}, regex=True).rename(columns={
-        "Category": "Različica", "F1_ties": "F1 z izen.", "Coverage": "Pokritost", "AverageReferenceRating": "Povp. ref. ocena"}),
-    out_dir=tabs_path,
-    filename_stem=f"results_all_layers_{timestamp}",
-    caption="Rezultati na testnih parih. Natančnost in priklic sta pri vseh vrsticah enaka F1. "
-            "F1 z izen. upošteva izenačenja pri meji referenčnega seznama, povp. ref. ocena je povprečna testna ocena vrnjenih priporočil. "
-            "Kontekstna referenca in M3--M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco.",
-    label="tab:results_all_layers",
-    float_format="{:.3f}",
-    index=False
-)
+if prf_equal:
+    erst.save_df_as_latex_table(
+        df=results_df[["Category", "F1", "F1_ties", "Coverage", "AverageReferenceRating"]].replace(
+            {"Category": {"referenca": "ref.", "uteženo po uporabnikih": "uteženo"}}, regex=True).rename(columns={
+            "Category": "Različica", "F1_ties": "F1 z izen.", "Coverage": "Pokritost", "AverageReferenceRating": "Povp. ref. ocena"}),
+        out_dir=tabs_path,
+        filename_stem=f"results_all_layers_{timestamp}",
+        caption="Rezultati na testnih parih. Natančnost in priklic sta pri vseh vrsticah enaka F1. "
+                "F1 z izen. upošteva izenačenja pri meji referenčnega seznama, povp. ref. ocena je povprečna testna ocena vrnjenih priporočil. "
+                "Kontekstna referenca in M3--M5 uporabljajo ožje reference in niso neposredno primerljivi z globalno referenco.",
+        label="tab:results_all_layers",
+        float_format="{:.3f}",
+        index=False
+    )
 
 # ========== CONTEXT REFERENCE: USERS BY NUMBER OF FEASIBLE TEST ITEMS ==========
 users_feasible_anywhere = {row[0] for row in D_lst if row[0] in context_42_by_user
