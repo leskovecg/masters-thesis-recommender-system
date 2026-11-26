@@ -154,7 +154,7 @@ user_id range: [2, 2196]
 
 ### Per context segment (M3 / M4 / M5)
 
-Source: `data/context/ActivityContextGen_v12.xlsx` (sha256 `3cfa366ad18efa24...`). Rule: item belongs to group g iff every actID in the item maps to g (recommendation_items.item_in_group, used by runGeneratorOfD_v7 STEP 16/18).
+Source: `data/context/ActivityContextGen_v12.xlsx` (sha256 `3cfa366ad18efa24...`). Rule: item belongs to group g iff every actID in the item maps to g (elderly_recsys_tools.item_in_group, used by runGeneratorOfD_v7 STEP 11/12).
 
 
 #### M3 (`ContextG_act_3`)
@@ -390,7 +390,7 @@ user_id range: [2, 2196]
 
 ### Per context segment (M3 / M4 / M5)
 
-Source: `data/context/ActivityContextGen_v12.xlsx` (sha256 `3cfa366ad18efa24...`). Rule: item belongs to group g iff every actID in the item maps to g (recommendation_items.item_in_group, used by runGeneratorOfD_v7 STEP 16/18).
+Source: `data/context/ActivityContextGen_v12.xlsx` (sha256 `3cfa366ad18efa24...`). Rule: item belongs to group g iff every actID in the item maps to g (elderly_recsys_tools.item_in_group, used by runGeneratorOfD_v7 STEP 11/12).
 
 
 #### M3 (`ContextG_act_3`)
